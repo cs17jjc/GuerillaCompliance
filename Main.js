@@ -1,7 +1,14 @@
 var c = document.getElementById("canvas");
 var ctx = c.getContext("2d");
+ctx.imageSmoothingEnabled = false;
 var canvasWidth = c.width;
 var canvasHeight = c.height;
+
+var textures = new Map();
+for(var i = 0;i<=17;i++){
+    textures.set(i,document.getElementById(i.toString()));
+}
+
 var gameState = GameState.initial();
 var inputs = Inputs.empty();
 inputs.attachInputs();
@@ -40,7 +47,9 @@ function draw(ctx){
     }
     
     
-    
+    if(!inputs.prevStates.includes("RESTART") && inputs.getInputs().includes("RESTART")){
+        gameState=GameState.initial();
+    }
 
     if(!inputs.prevStates.includes("MUTE") && inputs.getInputs().includes("MUTE")){
         if(musicToggle && soundToggle){

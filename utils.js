@@ -44,21 +44,26 @@ function makeRect(x, y, w, h) {
   return { x: x, y: y, w: w, h: h };
 }
 function intersectRect(r1, r2) {
-  const xIntersection = (r1.x > r2.x && r1.x < r2.x + r2.w) || (r2.x > r1.x && r2.x < r1.x + r1.w);
-  const yIntersection = (r1.y > r2.y && r1.y < r2.y + r2.h) || (r2.y > r1.y && r2.y < r1.y + r1.h);
+  const xIntersection = (r1.x >= r2.x && r1.x <= r2.x + r2.w) || (r2.x >= r1.x && r2.x <= r1.x + r1.w);
+  const yIntersection = (r1.y >= r2.y && r1.y <= r2.y + r2.h) || (r2.y >= r1.y && r2.y <= r1.y + r1.h);
   return xIntersection && yIntersection;
 }
-function makeWall(x, y, w, h) {
-  return { t: "WALL", r: makeRect(x, y, w, h) };
+function canvasToImage(canvas) {
+	var image = new Image();
+	image.src = canvas.toDataURL("image/png");
+	return image;
 }
-function makeFloor(x, y, w, h) {
-  return { t: "FLOOR", r: makeRect(x, y, w, h) };
+function makeWall(d,x, y, w, h) {
+  return { t: "WALL",d:d, r: makeRect(x, y, w, h) };
+}
+function makeFloor(d,x, y, w, h) {
+  return { t: "FLOOR",d:d, r: makeRect(x, y, w, h) };
 }
 function makeMirror(x, y, w, h) {
   return { t: "MIRROR", r: makeRect(x, y, w, h) };
 }
-function makeSlime(x, y, vx, hp, loot, dmg, s) {
-  return { t: "SLIME", x:x,y:y,vx:vx,vy:0,s:s,hp:hp,loot:loot,dmg:dmg};
+function makeSlime(x, y, vx, hp, loot, dmg, s, hs) {
+  return { t: "SLIME", x:x,y:y,vx:vx,vy:0,s:s,hp:hp,loot:loot,dmg:dmg,move:false,hitTimer:0,hitspeed:hs};
 }
 function countFloors(map,x,y,size){
   if(y < 0 || y > map[0].length-1){
@@ -184,19 +189,42 @@ function generateMap(height, levelRadius, tileSize) {
     for (var x = 0; x < rowTiles.length; x++) {
       switch (rowTiles[x]) {
         case "FLOOR":
-          row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize));
+          if(rowTiles[x-1]!="FLOOR"){
+            row.push(makeFloor("LEFT",x * tileSize, y * tileSize, tileSize, tileSize));
+          } else if(rowTiles[x+1]!="FLOOR"){
+            row.push(makeFloor("RIGHT",x * tileSize, y * tileSize, tileSize, tileSize));
+          } else {
+            row.push(makeFloor("CENT",x * tileSize, y * tileSize, tileSize, tileSize));
+          }
           break;
         case "WALL":
-          row.push(makeWall(x * tileSize, y * tileSize, tileSize, tileSize));
+          if(x == 0){
+            row.push(makeWall("LEFT",x * tileSize, y * tileSize, tileSize, tileSize));
+          }else if(x==(levelRadius*2)-1){
+            row.push(makeWall("RIGHT",x * tileSize, y * tileSize, tileSize, tileSize));
+          }
           break;
         case "MIRRORLEFT":
-          row.push(makeMirror(x * tileSize + 3 * (tileSize / 4), y * tileSize, tileSize / 4, tileSize));
+          row.push(makeMirror(x * tileSize, y * tileSize, tileSize, tileSize));
           break;
         case "MIRRORRIGHT":
-          row.push(makeMirror(x * tileSize, y * tileSize, tileSize / 4, tileSize));
+          row.push(makeMirror(x * tileSize, y * tileSize, tileSize, tileSize));
           break;
         case "SLIME":
-          row.push(makeSlime(x * tileSize, y * tileSize,5,10,null,1,tileSize - 4));
+          if(y > height-30){
+            row.push(makeSlime(x * tileSize, y * tileSize,1,10,null,0,tileSize - 4,1000));
+          } else if(y > height-80){
+            var dmg = Math.max(30,Math.trunc(40*Math.random()));
+            row.push(makeSlime(x * tileSize, y * tileSize,2,30,null,dmg,tileSize - 3,1500));
+          } else if(y > height-90){
+            if(Math.random() > 0.5){
+              var dmg = Math.max(60,Math.trunc(70*Math.random()));
+              row.push(makeSlime(x * tileSize, y * tileSize,4,40,null,dmg,tileSize - 3,900));
+            } else {
+              var dmg = Math.max(60,Math.trunc(90*Math.random()));
+              row.push(makeSlime(x * tileSize, y * tileSize,2,50,null,dmg,tileSize - 2),900);
+            }
+          }
           break;
       }
     }
