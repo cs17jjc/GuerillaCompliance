@@ -15,6 +15,7 @@ class GameState {
         this.maxHealth = 100;
         this.playerHealth = this.maxHealth;
         this.prevPlayerHealth = this.playerHealth;
+        this.hitTimer = 0;
 
         this.cameraYOffset = this.tileSize*7;
         this.cameraY = this.playerPosition.y - canvasHeight + this.cameraYOffset;
@@ -159,6 +160,11 @@ class GameState {
             this.playerVelocity.y = 0;
         }
 
+        if(this.playerHealth < this.prevPlayerHealth){
+            this.hitTimer = Date.now();
+        }
+        this.prevPlayerHealth = this.playerHealth;
+
         if((this.playerPosition.y-this.cameraY > canvasHeight || this.playerHealth == 0) && !this.gameOver){
             this.gameOver = true
             this.gameOverTimer = Date.now();
@@ -246,11 +252,13 @@ class GameState {
             this.playerAnimationTimer = Date.now();
         }
 
+
+        var xHealthBarOffset = Date.now() - this.hitTimer < 500 ? Math.sin((Date.now() - this.hitTimer)/25)*3 : 0;
         ctx.fillStyle = rgbToHex(150,20,20);
-        ctx.fillRect(canvasWidth*0.91,canvasHeight*0.2,canvasWidth*0.05,canvasHeight*0.4);
+        ctx.fillRect(canvasWidth*0.91 + xHealthBarOffset,canvasHeight*0.2,canvasWidth*0.05,canvasHeight*0.4);
         ctx.fillStyle = rgbToHex(250,20,20);
         var healthOffset = canvasHeight*0.4*(1 - (this.playerHealth/this.maxHealth));
-        ctx.fillRect(canvasWidth*0.91,canvasHeight*0.2+healthOffset,canvasWidth*0.05,canvasHeight*0.4-healthOffset);
+        ctx.fillRect(canvasWidth*0.91 + xHealthBarOffset,canvasHeight*0.2+healthOffset,canvasWidth*0.05,canvasHeight*0.4-healthOffset);
 
         if(this.gameOver){
             var ratio = Math.min(1,(Date.now() - this.gameOverTimer)/3000);
