@@ -240,10 +240,18 @@ function generateMap(height, levelRadius, tileSize) {
           } else if(y > height-90){
             if(Math.random() > 0.5){
               var dmg = Math.max(60,Math.trunc(70*Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize,4,40,null,dmg,tileSize - 3,400));
+              row.push(makeSlime(x * tileSize, y * tileSize,4,40,null,dmg,tileSize - 3,800,400));
             } else {
               var dmg = Math.max(60,Math.trunc(90*Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize,2,50,null,dmg,tileSize - 2,300));
+              row.push(makeSlime(x * tileSize, y * tileSize,2,50,null,dmg,tileSize - 2,500,300));
+            }
+          } else {
+            if(Math.random() > 0.7){
+              var dmg = Math.max(60,Math.trunc(70*Math.random()));
+              row.push(makeSlime(x * tileSize, y * tileSize,4,40,null,dmg,tileSize - 3,800,400));
+            } else {
+              var dmg = Math.max(60,Math.trunc(90*Math.random()));
+              row.push(makeSlime(x * tileSize, y * tileSize,2,50,null,dmg,tileSize - 2,500,300));
             }
           }
           break;

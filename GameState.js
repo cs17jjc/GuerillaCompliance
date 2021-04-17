@@ -44,6 +44,12 @@ class GameState {
         return [{x:this.playerPosition.x,y:this.playerPosition.y,w:this.playerSize.w,h:this.playerSize.h},
                 {x:this.playerPositionOpposite.x,y:this.playerPositionOpposite.y,w:this.playerSize.w,h:this.playerSize.h}]
     }
+    godMode(){
+        this.equipedWeapon.d = 500;
+        this.equipedWeapon.rate = 50;
+        this.maxHealth = 100000;
+        this.playerHealth = this.maxHealth;
+    }
 
     update(inputsArr,soundToggle) {
 
@@ -107,7 +113,7 @@ class GameState {
             } else if (Date.now() - o.hitTimer > o.hitspeed){
                 var sSX = makeRect(o.x,o.y,o.s,o.s);
                 var sSY = makeRect(o.x,o.y,o.s,o.s);
-                if(intersectRect(pX,sSX) || intersectRect(pOX,sSX) || intersectRect(pY,sSY) || intersectRect(pOY,sSY) && !o.isDead){
+                if((intersectRect(pX,sSX) || intersectRect(pOX,sSX) || intersectRect(pY,sSY) || intersectRect(pOY,sSY)) && !o.isDead){
                     o.hitTimer = Date.now();
                     this.playerHealth = Math.max(0,this.playerHealth-o.dmg);
                 }
@@ -269,13 +275,14 @@ class GameState {
             });
         this.visableGeom.filter(t => t.t=="SLIME").forEach(o => {
             var imgOffset = o.isDead ? 2 : Date.now() - o.lastHit > o.recov ? 0 : 1;
+            var bobing = o.isDead ? 0 : Math.sin(Date.now()/100)*2;
             if(o.dmg == 0){
-                ctx.drawImage(textures.get(6+imgOffset),o.x + xOffset,o.y-this.cameraY - Math.sin(Date.now()/100)*2,o.s,o.s + Math.sin(Date.now()/100)*2);
+                ctx.drawImage(textures.get(6+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing*2);
             } else {
                 if(o.s == this.tileSize-3){
-                    ctx.drawImage(textures.get(9+imgOffset),o.x + xOffset,o.y-this.cameraY - Math.sin(Date.now()/100)*2,o.s,o.s + Math.sin(Date.now()/100)*2);
+                    ctx.drawImage(textures.get(9+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing*2);
                 } else {
-                    ctx.drawImage(textures.get(12+imgOffset),o.x + xOffset,o.y-this.cameraY - Math.sin(Date.now()/100)*2,o.s,o.s + Math.sin(Date.now()/100)*2);
+                    ctx.drawImage(textures.get(12+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing*2);
                 }
             }
         });
@@ -316,9 +323,6 @@ class GameState {
         ctx.fillRect(canvasWidth*0.91 + xHealthBarOffset,canvasHeight*0.2+healthOffset,canvasWidth*0.05,canvasHeight*0.4-healthOffset);
 
         
-        
-
-
         if(this.gameOver){
             var ratio = Math.min(1,(Date.now() - this.gameOverTimer)/3000);
             ctx.textAlign = "center";
