@@ -12,6 +12,12 @@ class GameState {
         this.playerPositionOpposite = {x: (this.levelRadius*this.tileSize) + ((this.levelRadius*this.tileSize) - this.playerPosition.x - this.playerSize.w) ,y:this.playerPosition.y};
         this.playerAnimationTimer = Date.now();
 
+        this.equipedWeapon = makeStartWeapon(this.playerSize);
+        this.hitBox;
+        this.hitBoxOpp;
+
+        this.attackTimer = 0;
+
         this.maxHealth = 100;
         this.playerHealth = this.maxHealth;
         this.prevPlayerHealth = this.playerHealth;
@@ -40,6 +46,22 @@ class GameState {
     }
 
     update(inputsArr,soundToggle) {
+
+        var canAttack = Date.now() - this.attackTimer > this.equipedWeapon.rate;
+        
+        this.hitBox = null;
+        this.hitBoxOpp = null;
+        if(canAttack){
+            if(inputsArr.includes("LEFTARROW")){
+                this.attackTimer = Date.now();
+                this.hitBox = copyRect(this.equipedWeapon.hw);
+                this.hitBoxOpp = copyRect(this.equipedWeapon.hw);
+            }else if(inputsArr.includes("RIGHTARROW")){
+                this.attackTimer = Date.now();
+                this.hitBox = copyRect(this.equipedWeapon.he);
+                this.hitBoxOpp = copyRect(this.equipedWeapon.he);
+            }
+        }
         
         var playerTileY = Math.trunc(this.playerPosition.y/this.tileSize);
         this.visableGeom = [];
@@ -83,14 +105,42 @@ class GameState {
             
                 
             } else if (Date.now() - o.hitTimer > o.hitspeed){
-                var sSX = makeRect(o.x+o.vx,o.y,o.s,o.s);
-                var sSY = makeRect(o.x,o.y+o.vy,o.s,o.s);
-                if(intersectRect(pX,sSX) || intersectRect(pOX,sSX) || intersectRect(pY,sSY) || intersectRect(pOY,sSY)){
+                var sSX = makeRect(o.x,o.y,o.s,o.s);
+                var sSY = makeRect(o.x,o.y,o.s,o.s);
+                if(intersectRect(pX,sSX) || intersectRect(pOX,sSX) || intersectRect(pY,sSY) || intersectRect(pOY,sSY) && !o.isDead){
                     o.hitTimer = Date.now();
                     this.playerHealth = Math.max(0,this.playerHealth-o.dmg);
                 }
             }
         });
+
+        if(xCollision){
+            this.playerVelocity.x = 0;
+        } else {
+            this.playerVelocity.x *= 0.8;
+        }
+        if(yCollison){
+            this.playerVelocity.y = 0;
+        }else{
+            this.playerVelocity.y += 0.5;
+        }
+        if(xCollision && yCollison){
+            this.playerVelocity.x = 0;
+            this.playerVelocity.y = 0;
+        }
+        if(!this.gameOver){
+            this.playerPosition = addVector(this.playerPosition,this.playerVelocity);
+        }
+        this.playerPositionOpposite = {x: (this.levelRadius*this.tileSize) + ((this.levelRadius*this.tileSize) - this.playerPosition.x - this.playerSize.w),y:this.playerPosition.y};
+        this.cameraY = Math.min(this.cameraY,this.playerPosition.y - canvasHeight + this.cameraYOffset);
+
+        if(this.hitBox != null && this.hitBoxOpp != null){
+            this.hitBox.x += this.playerPosition.x;
+            this.hitBox.y += this.playerPosition.y;
+            this.hitBoxOpp.x += this.playerPositionOpposite.x;
+            this.hitBoxOpp.y += this.playerPositionOpposite.y;
+        }
+
         this.visableGeom.filter(t => t.t == "SLIME").forEach(o => {
             o.vy += 0.1;
             o.move = false;
@@ -139,26 +189,25 @@ class GameState {
             if(xColSlime ^ !hasFloor){
                 o.vx *= -1;
             }
-            if(o.move){
-                o.x += o.vx;
+            if(!o.isDead){
+                if(o.move){
+                    o.x += o.vx;
+                }
+                o.y += o.vy;
             }
-            o.y += o.vy;
+            
+            var slimeRect = makeRect(o.x,o.y,o.s,o.s);
+            if(this.hitBox != null && this.hitBoxOpp != null){
+                if(intersectRect(slimeRect,this.hitBox) || intersectRect(slimeRect,this.hitBoxOpp)){
+                    o.hp -= this.equipedWeapon.d;
+                    o.lastHit = Date.now();
+                    if(o.hp <= 0){
+                        o.isDead = true;
+                    }
+                }
+            }
         });
 
-        if(xCollision){
-            this.playerVelocity.x = 0;
-        } else {
-            this.playerVelocity.x *= 0.8;
-        }
-        if(yCollison){
-            this.playerVelocity.y = 0;
-        }else{
-            this.playerVelocity.y += 0.5;
-        }
-        if(xCollision && yCollison){
-            this.playerVelocity.x = 0;
-            this.playerVelocity.y = 0;
-        }
 
         if(this.playerHealth < this.prevPlayerHealth){
             this.hitTimer = Date.now();
@@ -169,11 +218,6 @@ class GameState {
             this.gameOver = true
             this.gameOverTimer = Date.now();
         }
-        if(!this.gameOver){
-            this.playerPosition = addVector(this.playerPosition,this.playerVelocity);
-        }
-        this.playerPositionOpposite = {x: (this.levelRadius*this.tileSize) + ((this.levelRadius*this.tileSize) - this.playerPosition.x - this.playerSize.w),y:this.playerPosition.y};
-        this.cameraY = Math.min(this.cameraY,this.playerPosition.y - canvasHeight + this.cameraYOffset);
     }
 
     draw(ctx){
@@ -181,7 +225,9 @@ class GameState {
         ctx.fillStyle = rgbToHex(50,50,250);
         ctx.fillRect(0,0,canvasWidth,canvasHeight)
 
-        ctx.drawImage(this.backgroundImg,((canvasWidth/2) - (this.levelRadius*this.tileSize)),-this.cameraY*0.5);
+        var xOffset = ((canvasWidth/2) - (this.levelRadius*this.tileSize));
+
+        ctx.drawImage(this.backgroundImg,xOffset,-this.cameraY*0.5);
 
 
         this.visableGeom.forEach(o => {
@@ -189,46 +235,47 @@ class GameState {
                 case "FLOOR":
                     switch(o.d){
                         case "LEFT":
-                            ctx.drawImage(textures.get(2),o.r.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),o.r.y-this.cameraY,o.r.w,o.r.h);
+                            ctx.drawImage(textures.get(2),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
                             break;
                         case "RIGHT":
-                            ctx.drawImage(textures.get(3),o.r.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),o.r.y-this.cameraY,o.r.w,o.r.h);
+                            ctx.drawImage(textures.get(3),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
                             break;
                         case "CENT":
-                            ctx.drawImage(textures.get(1),o.r.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),o.r.y-this.cameraY,o.r.w,o.r.h);
+                            ctx.drawImage(textures.get(1),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
                             break;
                     }
                     break;
                 case "WALL":
                     switch(o.d){
                         case "LEFT":
-                            ctx.drawImage(textures.get(4),o.r.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),o.r.y-this.cameraY,o.r.w,o.r.h);
+                            ctx.drawImage(textures.get(4),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
                             break;
                         case "RIGHT":
-                            ctx.drawImage(textures.get(5),o.r.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),o.r.y-this.cameraY,o.r.w,o.r.h);
+                            ctx.drawImage(textures.get(5),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
                             break;
                     }
                     break;
                 case "MIRROR":
                     switch(Math.trunc(o.r.x/this.tileSize)){
                         case this.levelRadius-1:
-                            ctx.drawImage(textures.get(17),o.r.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),o.r.y-this.cameraY,o.r.w,o.r.h);
+                            ctx.drawImage(textures.get(17),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
                             break;
                         case this.levelRadius:
-                            ctx.drawImage(textures.get(16),o.r.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),o.r.y-this.cameraY,o.r.w,o.r.h);
+                            ctx.drawImage(textures.get(16),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
                             break;
                     }
                     break;
             }
             });
         this.visableGeom.filter(t => t.t=="SLIME").forEach(o => {
+            var imgOffset = o.isDead ? 2 : Date.now() - o.lastHit > o.recov ? 0 : 1;
             if(o.dmg == 0){
-                ctx.drawImage(textures.get(6),o.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),o.y-this.cameraY - Math.sin(Date.now()/100)*2,o.s,o.s + Math.sin(Date.now()/100)*2);
+                ctx.drawImage(textures.get(6+imgOffset),o.x + xOffset,o.y-this.cameraY - Math.sin(Date.now()/100)*2,o.s,o.s + Math.sin(Date.now()/100)*2);
             } else {
                 if(o.s == this.tileSize-3){
-                    ctx.drawImage(textures.get(9),o.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),o.y-this.cameraY - Math.sin(Date.now()/100)*2,o.s,o.s + Math.sin(Date.now()/100)*2);
+                    ctx.drawImage(textures.get(9+imgOffset),o.x + xOffset,o.y-this.cameraY - Math.sin(Date.now()/100)*2,o.s,o.s + Math.sin(Date.now()/100)*2);
                 } else {
-                    ctx.drawImage(textures.get(12),o.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),o.y-this.cameraY - Math.sin(Date.now()/100)*2,o.s,o.s + Math.sin(Date.now()/100)*2);
+                    ctx.drawImage(textures.get(12+imgOffset),o.x + xOffset,o.y-this.cameraY - Math.sin(Date.now()/100)*2,o.s,o.s + Math.sin(Date.now()/100)*2);
                 }
             }
         });
@@ -237,23 +284,27 @@ class GameState {
         var paTime = Date.now() - this.playerAnimationTimer;
         var jmpTime = Date.now() - this.jumpTimer;
         var squish =  (jmpTime >= 800 ? 0: 1-(jmpTime/800)) * 3;
-        console.log(squish);
-        var xOffset = ((canvasWidth/2) - (this.levelRadius*this.tileSize)) + squish;
         if(paTime < 250){
-            ctx.drawImage(textures.get(18),this.playerPosition.x + xOffset,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
-            ctx.drawImage(textures.get(18),this.playerPositionOpposite.x + xOffset,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(18),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(18),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         }else if(paTime < 500){
-            ctx.drawImage(textures.get(19),this.playerPosition.x + xOffset,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
-            ctx.drawImage(textures.get(19),this.playerPositionOpposite.x + xOffset,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(19),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(19),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         }else if(paTime < 750){
-            ctx.drawImage(textures.get(20),this.playerPosition.x + xOffset,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
-            ctx.drawImage(textures.get(20),this.playerPositionOpposite.x + xOffset,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(20),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(20),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         } else{
-            ctx.drawImage(textures.get(21),this.playerPosition.x + xOffset,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
-            ctx.drawImage(textures.get(21),this.playerPositionOpposite.x + xOffset,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(21),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(21),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         }
         if(paTime >= 1000){
             this.playerAnimationTimer = Date.now();
+        }
+
+        if(this.hitBox != null && this.hitBoxOpp != null){
+            ctx.fillStyle = rgbToHex(0,0,0);
+            ctx.fillRect(this.hitBox.x+ xOffset,this.hitBox.y-this.cameraY,this.hitBox.w,this.hitBox.h);
+            ctx.fillRect(this.hitBoxOpp.x+ xOffset,this.hitBoxOpp.y-this.cameraY,this.hitBoxOpp.w,this.hitBoxOpp.h);
         }
 
 
@@ -263,6 +314,10 @@ class GameState {
         ctx.fillStyle = rgbToHex(250,20,20);
         var healthOffset = canvasHeight*0.4*(1 - (this.playerHealth/this.maxHealth));
         ctx.fillRect(canvasWidth*0.91 + xHealthBarOffset,canvasHeight*0.2+healthOffset,canvasWidth*0.05,canvasHeight*0.4-healthOffset);
+
+        
+        
+
 
         if(this.gameOver){
             var ratio = Math.min(1,(Date.now() - this.gameOverTimer)/3000);

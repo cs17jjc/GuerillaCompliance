@@ -19,6 +19,10 @@ class Inputs{
         this.attachInput("DOWN",'s');
         this.attachInput("LEFT",'a');
         this.attachInput("RIGHT",'d');
+        this.attachInput("UPARROW",'ArrowUp');
+        this.attachInput("DOWNARROW",'ArrowDown');
+        this.attachInput("LEFTARROW",'ArrowLeft');
+        this.attachInput("RIGHTARROW",'ArrowRight');
         this.attachInput("SPACE",' ');
         this.attachInput("RESTART",'r');
         this.attachInput("ESC",'Escape');
@@ -27,6 +31,7 @@ class Inputs{
     getInputs(){
         const nameKeys = Array.from(this.namesKeycode.keys());
         const namesValue = nameKeys.map(n => {return {name:n,value:this.currentStates.get(this.namesKeycode.get(n))}});
-        return namesValue.filter(nv => {return nv.value}).map(nv => {return nv.name});
+        const inputsArr = namesValue.filter(nv => {return nv.value}).map(nv => {return nv.name});
+        return inputsArr;
     }
 }

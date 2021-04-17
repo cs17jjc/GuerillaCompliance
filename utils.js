@@ -43,6 +43,9 @@ function createParticle(pos, xvel, yvel, lifeDec) {
 function makeRect(x, y, w, h) {
   return { x: x, y: y, w: w, h: h };
 }
+function copyRect(r) {
+  return { x: r.x, y: r.y, w: r.w, h: r.h };
+}
 function intersectRect(r1, r2) {
   const xIntersection = (r1.x >= r2.x && r1.x <= r2.x + r2.w) || (r2.x >= r1.x && r2.x <= r1.x + r1.w);
   const yIntersection = (r1.y >= r2.y && r1.y <= r2.y + r2.h) || (r2.y >= r1.y && r2.y <= r1.y + r1.h);
@@ -76,8 +79,8 @@ function makeFloor(d,x, y, w, h) {
 function makeMirror(x, y, w, h) {
   return { t: "MIRROR", r: makeRect(x, y, w, h) };
 }
-function makeSlime(x, y, vx, hp, loot, dmg, s, hs) {
-  return { t: "SLIME", x:x,y:y,vx:vx,vy:0,s:s,hp:hp,loot:loot,dmg:dmg,move:false,hitTimer:0,hitspeed:hs};
+function makeSlime(x, y, vx, hp, loot, dmg, s, hs,recov) {
+  return { t: "SLIME", x:x,y:y,vx:vx,vy:0,s:s,hp:hp,loot:loot,dmg:dmg,move:false,hitTimer:0,hitspeed:hs,lastHit:0,recov:recov,isDead:false};
 }
 function countFloors(map,x,y,size){
   if(y < 0 || y > map[0].length-1){
@@ -226,21 +229,21 @@ function generateMap(height, levelRadius, tileSize) {
           break;
         case "SLIME":
           if(y > height-30){
-            row.push(makeSlime(x * tileSize, y * tileSize,1,10,null,0,tileSize - 4,1000));
+            row.push(makeSlime(x * tileSize, y * tileSize,1,10,null,0,tileSize - 4,1000,200));
           } else if(y > height-80){
             if(Math.random() > 0.5){
               var dmg = Math.max(30,Math.trunc(40*Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize,2,30,null,dmg,tileSize - 3,1500));
+              row.push(makeSlime(x * tileSize, y * tileSize,2,30,null,dmg,tileSize - 3,1500,500));
             } else {
-              row.push(makeSlime(x * tileSize, y * tileSize,1,10,null,0,tileSize - 4,1000));
+              row.push(makeSlime(x * tileSize, y * tileSize,1,10,null,0,tileSize - 4,1000,800));
             }
           } else if(y > height-90){
             if(Math.random() > 0.5){
               var dmg = Math.max(60,Math.trunc(70*Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize,4,40,null,dmg,tileSize - 3,900));
+              row.push(makeSlime(x * tileSize, y * tileSize,4,40,null,dmg,tileSize - 3,400));
             } else {
               var dmg = Math.max(60,Math.trunc(90*Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize,2,50,null,dmg,tileSize - 2,900));
+              row.push(makeSlime(x * tileSize, y * tileSize,2,50,null,dmg,tileSize - 2,300));
             }
           }
           break;
@@ -249,4 +252,12 @@ function generateMap(height, levelRadius, tileSize) {
     tileMap.set(y, row);
   }
   return tileMap;
+}
+function makeMeleeWeapon(dmg,rate,texture,hitAreaEast,hitAreaWest){
+  return {t:"MELEE",d:dmg,rate:rate,texture:texture,he:hitAreaEast,hw:hitAreaWest};
+}
+function makeStartWeapon(playerSize){
+  return makeMeleeWeapon(5,500,null,
+    makeRect(playerSize.w,0,10,playerSize.h),
+    makeRect(-10,0,10,playerSize.h));
 }
