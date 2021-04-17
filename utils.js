@@ -53,11 +53,13 @@ function createBackgroundImage(levelRadius,levelHeight,tileSize){
   bgCanv.width = levelRadius * 2 * tileSize;
   bgCanv.height = levelHeight * tileSize;
   var bgCtx = bgCanv.getContext("2d");
-  for(x = 0; x < bgCanv.width;x+=tileSize){
-    for(y=0;y<bgCanv.height;y+=tileSize){
-      bgCtx.drawImage(textures.get(0),x,y,tileSize,tileSize);
+  var bgImg = textures.get(0);
+    for(x = 0; x < bgCanv.width;x+=tileSize){
+      for(y=0;y<bgCanv.height;y+=tileSize){
+        bgCtx.drawImage(bgImg,x,y,tileSize,tileSize);
+      }
     }
-  }
+  
   return bgCanv;
 }
 function canvasToImage(canvas) {

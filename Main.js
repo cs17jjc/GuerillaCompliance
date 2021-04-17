@@ -5,11 +5,12 @@ var canvasWidth = c.width;
 var canvasHeight = c.height;
 
 var textures = new Map();
-for(var i = 0;i<=21;i++){
-    textures.set(i,document.getElementById(i.toString()));
+for(var i = 0;i<document.images.length;i++){
+    var img = document.getElementById(i.toString());
+    textures.set(i,img);
 }
 
-var gameState = GameState.initial();
+var gameState;
 var inputs = Inputs.empty();
 inputs.attachInputs();
 
@@ -71,5 +72,19 @@ function draw(ctx){
     inputs.prevStates = inputs.getInputs();
 }
 
-
-setInterval(() => draw(ctx),50);
+var loadedImages = false;
+var loadChecker;
+loadChecker = setInterval(() => {
+    if(loadedImages){
+        clearInterval(loadChecker);
+        gameState = GameState.initial();
+        setInterval(() => draw(ctx),50);
+    } else {
+        loadedImages = true;
+        Array.from(textures.keys()).forEach(i => {
+            if(!textures.get(i).complete){
+                loadedImages = false;
+            }
+        })
+    }
+},50);

@@ -74,8 +74,8 @@ class GameState {
                 if(intersectRect(pY,o.r) || intersectRect(pOY,o.r)){
                     yCollison = true;
                 }
-            const pOYJump = {x:this.playerPositionOpposite.x,y:this.playerPositionOpposite.y + this.playerSize.h-2,w:this.playerSize.w,h:2};
-            const pYJump = {x:this.playerPosition.x,y:this.playerPosition.y + this.playerSize.h-2,w:this.playerSize.w,h:2};
+            const pOYJump = {x:this.playerPositionOpposite.x+3,y:this.playerPositionOpposite.y + this.playerSize.h-2+this.playerVelocity.y,w:this.playerSize.w-6,h:2};
+            const pYJump = {x:this.playerPosition.x+3,y:this.playerPosition.y + this.playerSize.h-2+this.playerVelocity.y,w:this.playerSize.w-6,h:2};
             if(intersectRect(pYJump,o.r) || intersectRect(pOYJump,o.r)){
                 this.hasLanded = true;
             }
