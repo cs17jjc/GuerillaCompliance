@@ -48,6 +48,18 @@ function intersectRect(r1, r2) {
   const yIntersection = (r1.y >= r2.y && r1.y <= r2.y + r2.h) || (r2.y >= r1.y && r2.y <= r1.y + r1.h);
   return xIntersection && yIntersection;
 }
+function createBackgroundImage(levelRadius,levelHeight,tileSize){
+  var bgCanv = document.createElement('canvas');
+  bgCanv.width = levelRadius * 2 * tileSize;
+  bgCanv.height = levelHeight * tileSize;
+  var bgCtx = bgCanv.getContext("2d");
+  for(x = 0; x < bgCanv.width;x+=tileSize){
+    for(y=0;y<bgCanv.height;y+=tileSize){
+      bgCtx.drawImage(textures.get(0),x,y,tileSize,tileSize);
+    }
+  }
+  return bgCanv;
+}
 function canvasToImage(canvas) {
 	var image = new Image();
 	image.src = canvas.toDataURL("image/png");
@@ -161,10 +173,10 @@ function generateMap(height, levelRadius, tileSize) {
           if(y < height-10 && Math.random() > 0.5 && slimeCooldown == 0){
             if(tileMapLeft[x][y] == "FLOOR"){
               tileMapLeft[x][y-1] = "SLIME";
-              slimeCooldown = 8;
+              slimeCooldown = levelRadius-2;
             }else if(tileMapRight[x][y] == "FLOOR"){
               tileMapRight[x][y-1] = "SLIME";
-              slimeCooldown = 8;
+              slimeCooldown = levelRadius-2;
             }
           }
 
@@ -214,15 +226,19 @@ function generateMap(height, levelRadius, tileSize) {
           if(y > height-30){
             row.push(makeSlime(x * tileSize, y * tileSize,1,10,null,0,tileSize - 4,1000));
           } else if(y > height-80){
-            var dmg = Math.max(30,Math.trunc(40*Math.random()));
-            row.push(makeSlime(x * tileSize, y * tileSize,2,30,null,dmg,tileSize - 3,1500));
+            if(Math.random() > 0.5){
+              var dmg = Math.max(30,Math.trunc(40*Math.random()));
+              row.push(makeSlime(x * tileSize, y * tileSize,2,30,null,dmg,tileSize - 3,1500));
+            } else {
+              row.push(makeSlime(x * tileSize, y * tileSize,1,10,null,0,tileSize - 4,1000));
+            }
           } else if(y > height-90){
             if(Math.random() > 0.5){
               var dmg = Math.max(60,Math.trunc(70*Math.random()));
               row.push(makeSlime(x * tileSize, y * tileSize,4,40,null,dmg,tileSize - 3,900));
             } else {
               var dmg = Math.max(60,Math.trunc(90*Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize,2,50,null,dmg,tileSize - 2),900);
+              row.push(makeSlime(x * tileSize, y * tileSize,2,50,null,dmg,tileSize - 2,900));
             }
           }
           break;

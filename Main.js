@@ -5,7 +5,7 @@ var canvasWidth = c.width;
 var canvasHeight = c.height;
 
 var textures = new Map();
-for(var i = 0;i<=17;i++){
+for(var i = 0;i<=21;i++){
     textures.set(i,document.getElementById(i.toString()));
 }
 

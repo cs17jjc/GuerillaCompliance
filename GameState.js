@@ -10,16 +10,19 @@ class GameState {
         this.playerSize = {w:this.tileSize*0.8,h:this.tileSize*0.9};
         this.playerVelocity = {x:0,y:0};
         this.playerPositionOpposite = {x: (this.levelRadius*this.tileSize) + ((this.levelRadius*this.tileSize) - this.playerPosition.x - this.playerSize.w) ,y:this.playerPosition.y};
+        this.playerAnimationTimer = Date.now();
 
         this.maxHealth = 100;
         this.playerHealth = this.maxHealth;
         this.prevPlayerHealth = this.playerHealth;
 
-        this.cameraYOffset = this.tileSize*4;
+        this.cameraYOffset = this.tileSize*7;
         this.cameraY = this.playerPosition.y - canvasHeight + this.cameraYOffset;
 
         this.jumpTimer = 0;
         this.hasLanded = false;
+
+        this.backgroundImg = createBackgroundImage(this.levelRadius,this.levelHeight,this.tileSize);
 
         this.gameOver = false;
         this.gameOverTimer = 0;
@@ -39,7 +42,7 @@ class GameState {
         
         var playerTileY = Math.trunc(this.playerPosition.y/this.tileSize);
         this.visableGeom = [];
-        for(var i = Math.max(0,playerTileY - 20);i<Math.min(playerTileY+5,this.levelHeight);i++){
+        for(var i = Math.max(0,playerTileY - 20);i<Math.min(playerTileY+8,this.levelHeight);i++){
             this.visableGeom = this.visableGeom.concat(this.levelGeom.get(i));
         }
         
@@ -71,6 +74,13 @@ class GameState {
                 if(intersectRect(pY,o.r) || intersectRect(pOY,o.r)){
                     yCollison = true;
                 }
+            const pOYJump = {x:this.playerPositionOpposite.x,y:this.playerPositionOpposite.y + this.playerSize.h-2,w:this.playerSize.w,h:2};
+            const pYJump = {x:this.playerPosition.x,y:this.playerPosition.y + this.playerSize.h-2,w:this.playerSize.w,h:2};
+            if(intersectRect(pYJump,o.r) || intersectRect(pOYJump,o.r)){
+                this.hasLanded = true;
+            }
+            
+                
             } else if (Date.now() - o.hitTimer > o.hitspeed){
                 var sSX = makeRect(o.x+o.vx,o.y,o.s,o.s);
                 var sSY = makeRect(o.x,o.y+o.vy,o.s,o.s);
@@ -141,7 +151,6 @@ class GameState {
         }
         if(yCollison){
             this.playerVelocity.y = 0;
-            this.hasLanded = true;
         }else{
             this.playerVelocity.y += 0.5;
         }
@@ -166,11 +175,7 @@ class GameState {
         ctx.fillStyle = rgbToHex(50,50,250);
         ctx.fillRect(0,0,canvasWidth,canvasHeight)
 
-        for(var x = canvasWidth/2 - this.levelRadius*this.tileSize;x<canvasWidth/2 + this.levelRadius*this.tileSize;x+=this.tileSize){
-            for(var y = -this.tileSize;y < canvasHeight+this.tileSize;y+=this.tileSize){
-                ctx.drawImage(textures.get(0),x,y,this.tileSize,this.tileSize);
-            }
-        }
+        ctx.drawImage(this.backgroundImg,((canvasWidth/2) - (this.levelRadius*this.tileSize)),-this.cameraY*0.5);
 
 
         this.visableGeom.forEach(o => {
@@ -223,8 +228,23 @@ class GameState {
         });
 
         ctx.fillStyle = rgbToHex(0,0,0);
-        ctx.fillRect(this.playerPosition.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPosition.y-this.cameraY,this.playerSize.w,this.playerSize.h);
-        ctx.fillRect(this.playerPositionOpposite.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPositionOpposite.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+        var paTime = Date.now() - this.playerAnimationTimer;
+        if(paTime < 250){
+            ctx.drawImage(textures.get(18),this.playerPosition.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPosition.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+            ctx.drawImage(textures.get(18),this.playerPositionOpposite.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPositionOpposite.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+        }else if(paTime < 500){
+            ctx.drawImage(textures.get(19),this.playerPosition.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPosition.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+            ctx.drawImage(textures.get(19),this.playerPositionOpposite.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPositionOpposite.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+        }else if(paTime < 750){
+            ctx.drawImage(textures.get(20),this.playerPosition.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPosition.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+            ctx.drawImage(textures.get(20),this.playerPositionOpposite.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPositionOpposite.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+        } else{
+            ctx.drawImage(textures.get(21),this.playerPosition.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPosition.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+            ctx.drawImage(textures.get(21),this.playerPositionOpposite.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPositionOpposite.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+        }
+        if(paTime >= 1000){
+            this.playerAnimationTimer = Date.now();
+        }
 
         ctx.fillStyle = rgbToHex(150,20,20);
         ctx.fillRect(canvasWidth*0.91,canvasHeight*0.2,canvasWidth*0.05,canvasHeight*0.4);
@@ -234,13 +254,15 @@ class GameState {
 
         if(this.gameOver){
             var ratio = Math.min(1,(Date.now() - this.gameOverTimer)/3000);
-            ctx.font = "60px Arial";
             ctx.textAlign = "center";
             ctx.shadowOffsetX = 3;
             ctx.shadowOffsetY = 3;
             ctx.shadowColor = rgbToHexAlpha(100,0,0,Math.trunc(255*ratio));
             ctx.fillStyle = rgbToHexAlpha(220,0,0,Math.trunc(255*ratio));
+            ctx.font = "90px Arial";
             ctx.fillText("Game Over", canvasWidth/2, canvasHeight/2 - (25 * ratio));
+            ctx.font = "70px Arial";
+            ctx.fillText("Press R To Restart", canvasWidth/2, canvasHeight/2 - (25 * ratio)+100);
         }
         ctx.restore();
     }
