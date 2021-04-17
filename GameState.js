@@ -235,18 +235,22 @@ class GameState {
 
         ctx.fillStyle = rgbToHex(0,0,0);
         var paTime = Date.now() - this.playerAnimationTimer;
+        var jmpTime = Date.now() - this.jumpTimer;
+        var squish =  (jmpTime >= 800 ? 0: 1-(jmpTime/800)) * 3;
+        console.log(squish);
+        var xOffset = ((canvasWidth/2) - (this.levelRadius*this.tileSize)) + squish;
         if(paTime < 250){
-            ctx.drawImage(textures.get(18),this.playerPosition.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPosition.y-this.cameraY,this.playerSize.w,this.playerSize.h);
-            ctx.drawImage(textures.get(18),this.playerPositionOpposite.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPositionOpposite.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+            ctx.drawImage(textures.get(18),this.playerPosition.x + xOffset,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(18),this.playerPositionOpposite.x + xOffset,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         }else if(paTime < 500){
-            ctx.drawImage(textures.get(19),this.playerPosition.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPosition.y-this.cameraY,this.playerSize.w,this.playerSize.h);
-            ctx.drawImage(textures.get(19),this.playerPositionOpposite.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPositionOpposite.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+            ctx.drawImage(textures.get(19),this.playerPosition.x + xOffset,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(19),this.playerPositionOpposite.x + xOffset,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         }else if(paTime < 750){
-            ctx.drawImage(textures.get(20),this.playerPosition.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPosition.y-this.cameraY,this.playerSize.w,this.playerSize.h);
-            ctx.drawImage(textures.get(20),this.playerPositionOpposite.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPositionOpposite.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+            ctx.drawImage(textures.get(20),this.playerPosition.x + xOffset,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(20),this.playerPositionOpposite.x + xOffset,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         } else{
-            ctx.drawImage(textures.get(21),this.playerPosition.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPosition.y-this.cameraY,this.playerSize.w,this.playerSize.h);
-            ctx.drawImage(textures.get(21),this.playerPositionOpposite.x + ((canvasWidth/2) - (this.levelRadius*this.tileSize)),this.playerPositionOpposite.y-this.cameraY,this.playerSize.w,this.playerSize.h);
+            ctx.drawImage(textures.get(21),this.playerPosition.x + xOffset,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get(21),this.playerPositionOpposite.x + xOffset,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         }
         if(paTime >= 1000){
             this.playerAnimationTimer = Date.now();
