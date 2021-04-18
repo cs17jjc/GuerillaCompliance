@@ -17,17 +17,22 @@ class GameState {
         this.hitBox;
         this.hitBoxOpp;
         this.attackDir = "";
-
         this.attackTimer = 0;
 
         this.maxHealth = 100;
         this.playerHealth = this.maxHealth;
         this.prevPlayerHealth = this.playerHealth;
+        this.maxArmor = 3;
+        this.playerArmor = this.maxArmor;
+        this.prevPlayerArmor = this.playerArmor;
         this.hitTimer = 0;
 
         this.coins = 0;
         this.lastCoinTimer = 0;
         this.coinUIImage = "coin1";
+
+        this.items = [makeHealthItem(10),makeHealthBoostItem(20),makeArmorItem(),makeArmorItem(),makeArmorItem()];
+        this.selectedItem = 0;
 
         this.cameraYOffset = this.tileSize*7;
         this.cameraY = this.playerPosition.y - canvasHeight + this.cameraYOffset;
@@ -146,7 +151,11 @@ class GameState {
                 var sSY = makeRect(o.x,o.y,o.s,o.s);
                 if((intersectRect(pX,sSX) || intersectRect(pOX,sSX) || intersectRect(pY,sSY) || intersectRect(pOY,sSY)) && !o.isDead && Date.now()-o.lastHit>o.recov){
                     o.hitTimer = Date.now();
-                    this.playerHealth = Math.max(0,this.playerHealth-o.dmg);
+                    if(this.playerArmor > 0 && o.dmg > 0){
+                        this.playerArmor-=1;
+                    } else {
+                        this.playerHealth = Math.max(0,this.playerHealth-o.dmg);
+                    }
                 }
             } else if(o.t == "COIN"){
                 var rCX = makeRect(o.r.x+o.vx,o.r.y,o.r.w,o.r.h-1);
@@ -278,6 +287,24 @@ class GameState {
             }
         });
 
+        if(!inputs.prevStates.includes("PREVITEM") && inputsArr.includes("PREVITEM") && this.selectedItem > 0){
+            this.selectedItem -= 1;
+        }
+        if(!inputs.prevStates.includes("NEXTITEM") && inputsArr.includes("NEXTITEM") && this.selectedItem < this.items.length-1){
+            this.selectedItem += 1;
+        }
+        if(!inputs.prevStates.includes("USEITEM") && inputsArr.includes("USEITEM") && this.items[this.selectedItem] != null){
+
+            if(canUse(this.items[this.selectedItem],this)){
+                useItem(this.items[this.selectedItem],this);
+                this.items.splice(this.selectedItem, 1);
+                this.selectedItem = Math.min(this.items.length-1,this.selectedItem);
+            } else {
+
+            }
+            
+        }
+
 
         if(this.playerHealth < this.prevPlayerHealth){
             this.hitTimer = Date.now();
@@ -363,8 +390,8 @@ class GameState {
             this.playerAnimationTimer = Date.now();
         }
 
-        ctx.drawImage(textures.get("playerReflection"),xOffset + (this.levelRadius*this.tileSize)-this.tileSize,this.playerPosition.y-this.cameraY,5,this.playerSize.h);
-        ctx.drawImage(textures.get("playerReflection"),xOffset + (this.levelRadius*this.tileSize)+this.tileSize-5,this.playerPositionOpposite.y-this.cameraY,5,this.playerSize.h);
+        ctx.drawImage(textures.get("playerReflection"),xOffset + (this.levelRadius*this.tileSize)-this.tileSize,this.playerPosition.y-this.cameraY,5,this.playerSize.h*(this.playerPosition.x/(this.levelRadius*this.tileSize)));
+        ctx.drawImage(textures.get("playerReflection"),xOffset + (this.levelRadius*this.tileSize)+this.tileSize-5,this.playerPositionOpposite.y-this.cameraY,5,this.playerSize.h*(this.playerPosition.x/(this.levelRadius*this.tileSize)));
         
 
 
@@ -397,7 +424,23 @@ class GameState {
         ctx.fillStyle = rgbToHex(250,20,20);
         var healthOffset = canvasHeight*0.4*(1 - (this.playerHealth/this.maxHealth));
         ctx.fillRect(canvasWidth*0.91 + xHealthBarOffset,canvasHeight*0.2+healthOffset,canvasWidth*0.05,canvasHeight*0.4-healthOffset);
+        ctx.font = "28px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillText(Math.round(this.playerHealth),canvasWidth*0.91 + xHealthBarOffset+canvasWidth*0.025,canvasHeight*0.65);
 
+        ctx.font = "28px Courier New";
+        ctx.fillStyle = rgbToHex(180,180,180);
+        if(this.playerArmor == 3){
+            ctx.fillText("🛡️",canvasWidth*0.91 + xHealthBarOffset+canvasWidth*0.025 - 30,canvasHeight*0.72);
+        }
+        if(this.playerArmor >= 2){
+            ctx.fillText("🛡️",canvasWidth*0.91 + xHealthBarOffset+canvasWidth*0.025,canvasHeight*0.72);
+        }
+        if(this.playerArmor >= 1){
+            ctx.fillText("🛡️",canvasWidth*0.91 + xHealthBarOffset+canvasWidth*0.025+30,canvasHeight*0.72);
+        }
+
+        ctx.textAlign = "left";
         var coinImageTime = Date.now() - this.lastCoinTimer;
         var spinTime = 500;
         if(coinImageTime < spinTime){

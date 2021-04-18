@@ -19,10 +19,16 @@ class Inputs{
         this.attachInput("DOWN",'s');
         this.attachInput("LEFT",'a');
         this.attachInput("RIGHT",'d');
+
         this.attachInput("UPARROW",'ArrowUp');
         this.attachInput("DOWNARROW",'ArrowDown');
         this.attachInput("LEFTARROW",'ArrowLeft');
         this.attachInput("RIGHTARROW",'ArrowRight');
+
+        this.attachInput("NEXTITEM",'e');
+        this.attachInput("PREVITEM",'q');
+        this.attachInput("USEITEM",'Shift');
+
         this.attachInput("SPACE",' ');
         this.attachInput("RESTART",'r');
         this.attachInput("ESC",'Escape');

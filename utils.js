@@ -300,10 +300,16 @@ function generateMap(height, levelRadius, tileSize) {
 function makeMeleeWeapon(dmg, rate, texture, hitAreaEast, hitAreaWest) {
   return { t: "MELEE", d: dmg, rate: rate, texture: texture, he: hitAreaEast, hw: hitAreaWest };
 }
+
 function makeStartWeapon(playerSize) {
   return makeMeleeWeapon(5, 500, "sword1",
     makeRect(playerSize.w, 0, 20, playerSize.h),
     makeRect(-20, 0, 20, playerSize.h));
+}
+function makeMediumWeapon(playerSize) {
+  return makeMeleeWeapon(8, 400, "sword1",
+    makeRect(playerSize.w, 0, 30, playerSize.h),
+    makeRect(-30, 0, 30, playerSize.h));
 }
 function makeGodWeapon(playerSize) {
   return makeMeleeWeapon(50, 200, "sword2",
@@ -314,4 +320,43 @@ function makeFarmingWeapon(playerSize) {
   return makeMeleeWeapon(2, 100, "sword2",
     makeRect(playerSize.w, 0, 20, playerSize.h),
     makeRect(-20, 0, 20, playerSize.h));
+}
+
+function makeHealthItem(strength){
+  return {type:"HEALTH",value:strength}
+}
+function makeHealthBoostItem(strength){
+  return {type:"HEALTHBOOST",value:strength}
+}
+function makeArmorItem(){
+  return {type:"ARMOR"}
+}
+function makeEffectItem(effectType,strength,duration){
+  return {type:"EFFECT",effectType:effectType,strength:strength,duration:duration};
+}
+
+function useItem(item,gState){
+  switch(item.type){
+    case "HEALTH":
+      gState.playerHealth = Math.min(gState.maxHealth,gState.playerHealth+item.value);
+      break;
+    case "HEALTHBOOST":
+      gState.maxHealth += item.value;
+      gState.playerHealth = gState.maxHealth;
+      break;
+    case "ARMOR":
+      gState.playerArmor += 1;
+      break;
+  }
+}
+
+function canUse(item,gState){
+  switch(item.type){
+    case "HEALTH":
+      return gState.playerHealth != gState.maxHealth;
+    case "HEALTHBOOST":
+      return gState.maxHealth < 300;
+    case "ARMOR":
+      return gState.playerArmor < gState.maxArmor;
+  }
 }

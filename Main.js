@@ -27,10 +27,14 @@ myAudioNode.loop = true;
 var musicToggle = true;
 var soundToggle = true;
 
+var paused = false;
+
 
 function draw(ctx){
     ctx.clearRect(0,0,canvasWidth,canvasHeight);
-    gameState.update(inputs.getInputs(),soundToggle);
+    if(!this.paused){
+        gameState.update(inputs.getInputs(),soundToggle);
+    }
     ctx.save();
     gameState.draw(ctx);
     ctx.restore();
@@ -46,6 +50,9 @@ function draw(ctx){
         ctx.fillText("♬",canvasWidth*0.05,canvasHeight*0.98);
     }
     
+    if(!inputs.prevStates.includes("ESC") && inputs.getInputs().includes("ESC")){
+        this.paused = !this.paused;
+    }
     
     if(!inputs.prevStates.includes("RESTART") && inputs.getInputs().includes("RESTART")){
         var coins = localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA");
