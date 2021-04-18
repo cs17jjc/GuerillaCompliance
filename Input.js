@@ -27,6 +27,7 @@ class Inputs{
         this.attachInput("RESTART",'r');
         this.attachInput("ESC",'Escape');
         this.attachInput("MUTE",'m');
+        this.attachInput("CLEARSTORAGE",'+');
     }
     getInputs(){
         const nameKeys = Array.from(this.namesKeycode.keys());

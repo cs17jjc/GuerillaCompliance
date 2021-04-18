@@ -13,7 +13,7 @@ class GameState {
         this.playerPositionOpposite = {x: (this.levelRadius*this.tileSize) + ((this.levelRadius*this.tileSize) - this.playerPosition.x - this.playerSize.w) ,y:this.playerPosition.y};
         this.playerAnimationTimer = Date.now();
 
-        this.equipedWeapon = makeStartWeapon(this.playerSize);
+        this.equipedWeapon;
         this.hitBox;
         this.hitBoxOpp;
         this.attackDir = "";
@@ -43,7 +43,15 @@ class GameState {
         this.gold = 0;
     }
     static initial() {
-        return new GameState();
+        var gState = new GameState();
+        gState.changeWeapon(makeStartWeapon(gState.playerSize));
+        return gState;
+    }
+    static initial(coins,weapon) {
+        var gState = new GameState();
+        gState.coins = coins == null ? 0 : coins;
+        gState.changeWeapon(weapon == null ? makeStartWeapon(gState.playerSize) : weapon);
+        return gState;
     }
 
     playerRects(){
@@ -55,6 +63,10 @@ class GameState {
         this.equipedWeapon.rate = 50;
         this.maxHealth = 100000;
         this.playerHealth = this.maxHealth;
+    }
+    changeWeapon(newWeapon){
+        this.equipedWeapon = newWeapon;
+        localStorage.setItem("AJSNDJNSAJKJNDSKJMirroriaWeaponYRYRBHJASKWA",JSON.stringify(this.equipedWeapon));
     }
 
     update(inputsArr,soundToggle) {
@@ -166,6 +178,7 @@ class GameState {
                     o.collected = true;
                     this.coins += 1;
                     this.lastCoinTimer = Date.now();
+                    localStorage.setItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA",this.coins);
                 }
             }
         });
@@ -357,7 +370,7 @@ class GameState {
 
         if(Date.now()-this.attackTimer<this.equipedWeapon.rate){
             var attackRatio = (Date.now()-this.attackTimer)/this.equipedWeapon.rate;
-            var swordImg = this.equipedWeapon.texture;
+            var swordImg = textures.get(this.equipedWeapon.texture);
             var swordX = xOffset + (this.attackDir=="RIGHT"?this.playerSize.w:0);
             ctx.save();
             ctx.translate(swordX+this.playerPosition.x,this.playerPosition.y+this.playerSize.h/2-this.cameraY);
@@ -390,7 +403,6 @@ class GameState {
         if(coinImageTime < spinTime){
             var frameProg = Math.trunc(coinImageTime/(spinTime/6))+1;
             this.coinUIImage = "coin"+frameProg.toString();
-            console.log(this.coinUIImage);
         } else {
             this.coinUIImage = "coin1";
         }
@@ -402,7 +414,7 @@ class GameState {
         ctx.shadowColor = rgbToHex(150,50,0);
         ctx.fillStyle = rgbToHex(255,215,0);
         var goldStr = this.coins.toString().padStart(3,"0");
-        ctx.font = "28px Georgia";
+        ctx.font = "28px Courier New";
         ctx.fillText(goldStr,canvasWidth*0.928,canvasHeight*0.15);
         
         if(this.gameOver){

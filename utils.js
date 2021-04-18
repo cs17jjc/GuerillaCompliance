@@ -301,12 +301,12 @@ function makeMeleeWeapon(dmg, rate, texture, hitAreaEast, hitAreaWest) {
   return { t: "MELEE", d: dmg, rate: rate, texture: texture, he: hitAreaEast, hw: hitAreaWest };
 }
 function makeStartWeapon(playerSize) {
-  return makeMeleeWeapon(5, 500, textures.get("sword1"),
+  return makeMeleeWeapon(5, 500, "sword1",
     makeRect(playerSize.w, 0, 20, playerSize.h),
     makeRect(-20, 0, 20, playerSize.h));
 }
 function makeGodWeapon(playerSize) {
-  return makeMeleeWeapon(50, 200, textures.get("sword2"),
+  return makeMeleeWeapon(50, 200, "sword2",
     makeRect(playerSize.w, 0, 30, playerSize.h),
     makeRect(-30, 0, 30, playerSize.h));
 }

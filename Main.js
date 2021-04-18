@@ -50,7 +50,21 @@ function draw(ctx){
     if(!inputs.prevStates.includes("RESTART") && inputs.getInputs().includes("RESTART")){
         var coins = gameState.coins;
         gameState=GameState.initial();
-        gameState.coins = coins;
+        var coins = localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA");
+        if(coins != null){
+            gameState.coins = coins;
+        }
+        var weapon = JSON.parse(localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaWeaponYRYRBHJASKWA"));
+        if(weapon != null){
+            gameState.equipedWeapon = weapon;
+        }
+    }
+
+    if(!inputs.prevStates.includes("CLEARSTORAGE") && inputs.getInputs().includes("CLEARSTORAGE")){
+        gameState.coins = 0;
+        gameState.equipedWeapon = makeStartWeapon(gameState.playerSize);
+        localStorage.setItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA",0);
+        localStorage.setItem("AJSNDJNSAJKJNDSKJMirroriaWeaponYRYRBHJASKWA",JSON.stringify(gameState.equipedWeapon));
     }
 
     if(!inputs.prevStates.includes("MUTE") && inputs.getInputs().includes("MUTE")){
@@ -78,7 +92,9 @@ var loadChecker;
 loadChecker = setInterval(() => {
     if(loadedImages){
         clearInterval(loadChecker);
-        gameState = GameState.initial();
+        var coins = localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA");
+        var weapon = JSON.parse(localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaWeaponYRYRBHJASKWA"));
+        gameState = GameState.initial(coins,weapon);
         setInterval(() => draw(ctx),50);
     } else {
         loadedImages = true;
