@@ -25,7 +25,9 @@ class GameState {
         this.prevPlayerHealth = this.playerHealth;
         this.hitTimer = 0;
 
-        this.playerGold - 0;
+        this.coins = 0;
+        this.lastCoinTimer = 0;
+        this.coinUIImage = "coin1";
 
         this.cameraYOffset = this.tileSize*7;
         this.cameraY = this.playerPosition.y - canvasHeight + this.cameraYOffset;
@@ -79,7 +81,14 @@ class GameState {
         var playerTileY = Math.trunc(this.playerPosition.y/this.tileSize);
         this.visableGeom = [];
         for(var i = Math.max(0,playerTileY - 20);i<Math.min(playerTileY+8,this.levelHeight);i++){
-            this.visableGeom = this.visableGeom.concat(this.levelGeom.get(i));
+            this.visableGeom = this.visableGeom.concat(this.levelGeom.get(i).filter(o => {
+                //Remove already collected coins from visable area.
+                if(o.t != "COIN"){
+                    return true;
+                } else {
+                    return !o.collected;
+                }
+            }));
         }
         
         if(inputsArr.includes("UP") && Date.now() - this.jumpTimer > 1000 && this.hasLanded){
@@ -153,6 +162,11 @@ class GameState {
                 o.r.x += o.vx;
                 o.r.y += o.vy;
 
+                if(intersectRect(pX,o.r) || intersectRect(pOX,o.r) || intersectRect(pY,o.r) || intersectRect(pOY,o.r)){
+                    o.collected = true;
+                    this.coins += 1;
+                    this.lastCoinTimer = Date.now();
+                }
             }
         });
 
@@ -245,7 +259,7 @@ class GameState {
                     o.lastHit = Date.now();
                     this.levelGeom.get(Math.trunc(o.y/this.tileSize)).push(makeCoin(o.x,o.y,Math.random()*4*Math.sign(o.vx)+o.vx,-2));
                     if(o.hp <= 0){
-                        o.isDead = true;    
+                        o.isDead = true;
                     }
                 }
             }
@@ -297,24 +311,13 @@ class GameState {
                         o.texture = "wallRightB1";
                         break;
                     case "coin1":
-                        o.texture = "coin2";
-                        break;
                     case "coin2":
-                        o.texture = "coin3";
-                        break;
                     case "coin3":
-                        o.texture = "coin4";
-                        break;
                     case "coin4":
-                        o.texture = "coin5";
-                        break;
                     case "coin5":
-                        o.texture = "coin6";
-                        break;
                     case "coin6":
-                        o.texture = "coin1";
+                        o.texture = getNextCoinFrame(o.texture);
                         break;
-                    
                 }
                 this.geomAnimationTimer = Date.now();
             }
@@ -382,6 +385,25 @@ class GameState {
         var healthOffset = canvasHeight*0.4*(1 - (this.playerHealth/this.maxHealth));
         ctx.fillRect(canvasWidth*0.91 + xHealthBarOffset,canvasHeight*0.2+healthOffset,canvasWidth*0.05,canvasHeight*0.4-healthOffset);
 
+        var coinImageTime = Date.now() - this.lastCoinTimer;
+        var spinTime = 500;
+        if(coinImageTime < spinTime){
+            var frameProg = Math.trunc(coinImageTime/(spinTime/6))+1;
+            this.coinUIImage = "coin"+frameProg.toString();
+            console.log(this.coinUIImage);
+        } else {
+            this.coinUIImage = "coin1";
+        }
+        ctx.drawImage(textures.get(this.coinUIImage),canvasWidth*0.89,canvasHeight*0.1,32,32);
+        
+
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        ctx.shadowColor = rgbToHex(150,50,0);
+        ctx.fillStyle = rgbToHex(255,215,0);
+        var goldStr = this.coins.toString().padStart(3,"0");
+        ctx.font = "28px Georgia";
+        ctx.fillText(goldStr,canvasWidth*0.928,canvasHeight*0.15);
         
         if(this.gameOver){
             var ratio = Math.min(1,(Date.now() - this.gameOverTimer)/3000);

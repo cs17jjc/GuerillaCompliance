@@ -48,7 +48,9 @@ function draw(ctx){
     
     
     if(!inputs.prevStates.includes("RESTART") && inputs.getInputs().includes("RESTART")){
+        var coins = gameState.coins;
         gameState=GameState.initial();
+        gameState.coins = coins;
     }
 
     if(!inputs.prevStates.includes("MUTE") && inputs.getInputs().includes("MUTE")){
