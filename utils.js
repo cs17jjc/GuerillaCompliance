@@ -56,10 +56,21 @@ function createBackgroundImage(levelRadius,levelHeight,tileSize){
   bgCanv.width = levelRadius * 2 * tileSize;
   bgCanv.height = levelHeight * tileSize;
   var bgCtx = bgCanv.getContext("2d");
-  var bgImg = textures.get(0);
+  bgCtx.imageSmoothingEnabled = false;
     for(x = 0; x < bgCanv.width;x+=tileSize){
       for(y=0;y<bgCanv.height;y+=tileSize){
-        bgCtx.drawImage(bgImg,x,y,tileSize,tileSize);
+        var choice = Math.random();
+        if(choice < 0.94){
+          bgCtx.drawImage(textures.get("backgroundTile"),x,y,tileSize,tileSize);
+        }else if (choice < 0.96){
+          bgCtx.drawImage(textures.get("backgroundTileB"),x,y,tileSize,tileSize);
+        } else if (choice < 0.98){
+          bgCtx.drawImage(textures.get("backgroundTileC"),x,y,tileSize,tileSize);
+        }else if (choice < 0.99){
+          bgCtx.drawImage(textures.get("backgroundTileD"),x,y,tileSize,tileSize);
+        } else {
+          bgCtx.drawImage(textures.get("backgroundTileE"),x,y,tileSize,tileSize);
+        } 
       }
     }
   
@@ -70,17 +81,21 @@ function canvasToImage(canvas) {
 	image.src = canvas.toDataURL("image/png");
 	return image;
 }
-function makeWall(d,x, y, w, h) {
-  return { t: "WALL",d:d, r: makeRect(x, y, w, h) };
+function makeWall(x, y, w, h, tex) {
+  return { t: "WALL", r: makeRect(x, y, w, h) ,texture:tex};
 }
-function makeFloor(d,x, y, w, h) {
-  return { t: "FLOOR",d:d, r: makeRect(x, y, w, h) };
+function makeFloor(x, y, w, h, tex) {
+  return { t: "FLOOR", r: makeRect(x, y, w, h),texture:tex};
 }
-function makeMirror(x, y, w, h) {
-  return { t: "MIRROR", r: makeRect(x, y, w, h) };
+function makeMirror(x, y, w, h, tex) {
+  return { t: "MIRROR", r: makeRect(x, y, w, h) ,texture:tex};
 }
 function makeSlime(x, y, vx, hp, loot, dmg, s, hs,recov) {
   return { t: "SLIME", x:x,y:y,vx:vx,vy:0,s:s,hp:hp,loot:loot,dmg:dmg,move:false,hitTimer:0,hitspeed:hs,lastHit:0,recov:recov,isDead:false};
+}
+function makeCoin(x,y,vx,vy){
+  return { t: "COIN", vx:vx,vy:vy,texture:"coin1",r:makeRect(x,y,8,8)};
+
 }
 function countFloors(map,x,y,size){
   if(y < 0 || y > map[0].length-1){
@@ -207,25 +222,30 @@ function generateMap(height, levelRadius, tileSize) {
       switch (rowTiles[x]) {
         case "FLOOR":
           if(rowTiles[x-1]!="FLOOR"){
-            row.push(makeFloor("LEFT",x * tileSize, y * tileSize, tileSize, tileSize));
+            row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize,"floorLeft"));
           } else if(rowTiles[x+1]!="FLOOR"){
-            row.push(makeFloor("RIGHT",x * tileSize, y * tileSize, tileSize, tileSize));
+            row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize,"floorRight"));
           } else {
-            row.push(makeFloor("CENT",x * tileSize, y * tileSize, tileSize, tileSize));
+            row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize,"floorMiddle"));
           }
           break;
         case "WALL":
           if(x == 0){
-            row.push(makeWall("LEFT",x * tileSize, y * tileSize, tileSize, tileSize));
+            row.push(makeWall(x * tileSize, y * tileSize, tileSize, tileSize,"wallLeft"));
           }else if(x==(levelRadius*2)-1){
-            row.push(makeWall("RIGHT",x * tileSize, y * tileSize, tileSize, tileSize));
+            if(Math.random() > 0.1){
+              row.push(makeWall(x * tileSize, y * tileSize, tileSize, tileSize,"wallRight"));
+            } else {
+              row.push(makeWall(x * tileSize, y * tileSize, tileSize, tileSize,"wallRightB1"));
+            }
+            
           }
           break;
         case "MIRRORLEFT":
-          row.push(makeMirror(x * tileSize, y * tileSize, tileSize, tileSize));
+          row.push(makeMirror(x * tileSize, y * tileSize, tileSize, tileSize,"mirrorLeft"));
           break;
         case "MIRRORRIGHT":
-          row.push(makeMirror(x * tileSize, y * tileSize, tileSize, tileSize));
+          row.push(makeMirror(x * tileSize, y * tileSize, tileSize, tileSize,"mirrorRight"));
           break;
         case "SLIME":
           if(y > height-30){
@@ -265,12 +285,12 @@ function makeMeleeWeapon(dmg,rate,texture,hitAreaEast,hitAreaWest){
   return {t:"MELEE",d:dmg,rate:rate,texture:texture,he:hitAreaEast,hw:hitAreaWest};
 }
 function makeStartWeapon(playerSize){
-  return makeMeleeWeapon(5,500,textures.get(22),
-    makeRect(playerSize.w,0,10,playerSize.h),
-    makeRect(-10,0,10,playerSize.h));
+  return makeMeleeWeapon(5,500,textures.get("sword1"),
+    makeRect(playerSize.w,0,20,playerSize.h),
+    makeRect(-20,0,20,playerSize.h));
 }
 function makeGodWeapon(playerSize){
-  return makeMeleeWeapon(50,200,textures.get(23),
+  return makeMeleeWeapon(50,200,textures.get("sword2"),
     makeRect(playerSize.w,0,30,playerSize.h),
     makeRect(-30,0,30,playerSize.h));
 }

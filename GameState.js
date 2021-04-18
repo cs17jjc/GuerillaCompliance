@@ -5,6 +5,7 @@ class GameState {
         this.levelRadius = 12;
         this.levelGeom = generateMap(this.levelHeight,this.levelRadius,this.tileSize);
         this.visableGeom = [];
+        this.geomAnimationTimer = 0;
 
         this.playerPosition = {x:4*this.tileSize,y:(this.levelHeight-4)*this.tileSize};
         this.playerSize = {w:this.tileSize*0.8,h:this.tileSize*0.9};
@@ -12,7 +13,7 @@ class GameState {
         this.playerPositionOpposite = {x: (this.levelRadius*this.tileSize) + ((this.levelRadius*this.tileSize) - this.playerPosition.x - this.playerSize.w) ,y:this.playerPosition.y};
         this.playerAnimationTimer = Date.now();
 
-        this.equipedWeapon = makeGodWeapon(this.playerSize);
+        this.equipedWeapon = makeStartWeapon(this.playerSize);
         this.hitBox;
         this.hitBoxOpp;
         this.attackDir = "";
@@ -23,6 +24,8 @@ class GameState {
         this.playerHealth = this.maxHealth;
         this.prevPlayerHealth = this.playerHealth;
         this.hitTimer = 0;
+
+        this.playerGold - 0;
 
         this.cameraYOffset = this.tileSize*7;
         this.cameraY = this.playerPosition.y - canvasHeight + this.cameraYOffset;
@@ -56,7 +59,7 @@ class GameState {
 
         var canAttack = Date.now() - this.attackTimer > this.equipedWeapon.rate;
         var didAttack = false;
-        if(canAttack){
+        if(canAttack && !this.gameOver){
             if(inputsArr.includes("LEFTARROW")){
                 this.attackTimer = Date.now();
                 this.hitBox = copyRect(this.equipedWeapon.hw);
@@ -85,7 +88,7 @@ class GameState {
             this.hasLanded = false;
         }
         if(inputsArr.includes("DOWN") && !this.hasLanded){
-            this.playerVelocity.y += 0.5;
+            this.playerVelocity.y += 0.2;
         }
         if(inputsArr.includes("LEFT")){
             this.playerVelocity.x = 6;
@@ -103,7 +106,7 @@ class GameState {
             
             const pOX = {x:this.playerPositionOpposite.x - this.playerVelocity.x,y:this.playerPositionOpposite.y,w:this.playerSize.w,h:this.playerSize.h-1};
             const pOY = {x:this.playerPositionOpposite.x,y:this.playerPositionOpposite.y + this.playerVelocity.y,w:this.playerSize.w,h:this.playerSize.h};
-            if(o.t != "SLIME"){
+            if(o.t != "SLIME" && o.t != "COIN"){
                 if(intersectRect(pX,o.r) || intersectRect(pOX,o.r)){
                     xCollision = true;
                 }
@@ -117,13 +120,39 @@ class GameState {
             }
             
                 
-            } else if (Date.now() - o.hitTimer > o.hitspeed){
+            } else if (o.t == "SLIME" && Date.now() - o.hitTimer > o.hitspeed){
                 var sSX = makeRect(o.x,o.y,o.s,o.s);
                 var sSY = makeRect(o.x,o.y,o.s,o.s);
                 if((intersectRect(pX,sSX) || intersectRect(pOX,sSX) || intersectRect(pY,sSY) || intersectRect(pOY,sSY)) && !o.isDead && Date.now()-o.lastHit>o.recov){
                     o.hitTimer = Date.now();
                     this.playerHealth = Math.max(0,this.playerHealth-o.dmg);
                 }
+            } else if(o.t == "COIN"){
+                var rCX = makeRect(o.r.x+o.vx,o.r.y,o.r.w,o.r.h-1);
+                var rCY = makeRect(o.r.x,o.r.y+o.vy,o.r.w,o.r.h);
+                var coinColX = false;
+                var coinColY = false;
+                this.visableGeom.filter(t => t.t != "SLIME" && t.t != "COIN").forEach(t => {
+                    if(intersectRect(rCX,t.r)){
+                        coinColX = true;
+                    }
+                    if(intersectRect(rCY,t.r)){
+                        coinColY = true;
+                    }
+                });
+                if(coinColX){
+                    o.vx = 0;
+                } else {
+                    o.vx *=0.8;
+                }
+                if(coinColY){
+                    o.vy = 0;
+                }else{
+                    o.vy += 0.5;
+                }
+                o.r.x += o.vx;
+                o.r.y += o.vy;
+
             }
         });
 
@@ -162,7 +191,7 @@ class GameState {
             var xColSlime = false;
             var yColSlime = false;
             var hasFloor = false;
-            this.visableGeom.filter(t => t != o).forEach(t => {
+            this.visableGeom.filter(t => t != o && t.t != "COIN").forEach(t => {
 
                 if(t.t == "SLIME"){
                     const sX = makeRect(t.x + t.vx,t.y,t.s,t.s);
@@ -210,12 +239,13 @@ class GameState {
             }
             
             var slimeRect = makeRect(o.x,o.y,o.s,o.s);
-            if(didAttack){
+            if(didAttack && !o.isDead){
                 if(intersectRect(slimeRect,this.hitBox) || intersectRect(slimeRect,this.hitBoxOpp)){
                     o.hp -= this.equipedWeapon.d;
                     o.lastHit = Date.now();
+                    this.levelGeom.get(Math.trunc(o.y/this.tileSize)).push(makeCoin(o.x,o.y,Math.random()*4*Math.sign(o.vx)+o.vx,-2));
                     if(o.hp <= 0){
-                        o.isDead = true;
+                        o.isDead = true;    
                     }
                 }
             }
@@ -243,55 +273,57 @@ class GameState {
         ctx.drawImage(this.backgroundImg,xOffset,-this.cameraY*0.5);
 
 
-        this.visableGeom.forEach(o => {
-            switch(o.t){
-                case "FLOOR":
-                    switch(o.d){
-                        case "LEFT":
-                            ctx.drawImage(textures.get(2),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
-                            break;
-                        case "RIGHT":
-                            ctx.drawImage(textures.get(3),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
-                            break;
-                        case "CENT":
-                            ctx.drawImage(textures.get(1),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
-                            break;
-                    }
-                    break;
-                case "WALL":
-                    switch(o.d){
-                        case "LEFT":
-                            ctx.drawImage(textures.get(4),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
-                            break;
-                        case "RIGHT":
-                            ctx.drawImage(textures.get(5),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
-                            break;
-                    }
-                    break;
-                case "MIRROR":
-                    switch(Math.trunc(o.r.x/this.tileSize)){
-                        case this.levelRadius-1:
-                            ctx.drawImage(textures.get(17),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
-                            break;
-                        case this.levelRadius:
-                            ctx.drawImage(textures.get(16),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
-                            break;
-                    }
-                    break;
+        var nextAnimationFrame = Date.now()-this.geomAnimationTimer>200;
+        this.visableGeom.filter(t => t.t!="SLIME").forEach(o => {
+            ctx.drawImage(textures.get(o.texture),o.r.x + xOffset,o.r.y-this.cameraY,o.r.w,o.r.h);
+            if(nextAnimationFrame){
+                switch(o.texture){
+                    case "wallRightB1":
+                        o.texture = "wallRightB2";
+                        break;
+                    case "wallRightB2":
+                        o.texture = "wallRightB3";
+                        break;
+                    case "wallRightB3":
+                        o.texture = "wallRightB4";
+                        break;
+                    case "wallRightB4":
+                        o.texture = "wallRightB5";
+                        break;
+                    case "wallRightB5":
+                        o.texture = "wallRightB6";
+                        break;
+                    case "wallRightB6":
+                        o.texture = "wallRightB1";
+                        break;
+                    case "coin1":
+                        o.texture = "coin2";
+                        break;
+                    case "coin2":
+                        o.texture = "coin3";
+                        break;
+                    case "coin3":
+                        o.texture = "coin4";
+                        break;
+                    case "coin4":
+                        o.texture = "coin5";
+                        break;
+                    case "coin5":
+                        o.texture = "coin6";
+                        break;
+                    case "coin6":
+                        o.texture = "coin1";
+                        break;
+                    
+                }
+                this.geomAnimationTimer = Date.now();
             }
             });
         this.visableGeom.filter(t => t.t=="SLIME").forEach(o => {
-            var imgOffset = o.isDead ? 2 : Date.now() - o.lastHit > o.recov ? 0 : 1;
+            var state = o.isDead ? "Dead" : Date.now() - o.lastHit > o.recov ? "Normal" : "Hit";
+            var size = o.dmg == 0 ? "small" : o.s == this.tileSize-3 ? "medium" : "large";
             var bobing = o.isDead ? 0 : Math.sin(Date.now()/100)*2;
-            if(o.dmg == 0){
-                ctx.drawImage(textures.get(6+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing);
-            } else {
-                if(o.s == this.tileSize-3){
-                    ctx.drawImage(textures.get(9+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing);
-                } else {
-                    ctx.drawImage(textures.get(12+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing);
-                }
-            }
+            ctx.drawImage(textures.get(size+state),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing);
         });
 
         ctx.fillStyle = rgbToHex(0,0,0);
@@ -299,21 +331,26 @@ class GameState {
         var jmpTime = Date.now() - this.jumpTimer;
         var squish =  (jmpTime >= 800 ? 0: 1-(jmpTime/800)) * 3;
         if(paTime < 250){
-            ctx.drawImage(textures.get(18),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
-            ctx.drawImage(textures.get(18),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get("playerFrame1"),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get("playerFrame1"),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         }else if(paTime < 500){
-            ctx.drawImage(textures.get(19),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
-            ctx.drawImage(textures.get(19),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get("playerFrame2"),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get("playerFrame2"),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         }else if(paTime < 750){
-            ctx.drawImage(textures.get(20),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
-            ctx.drawImage(textures.get(20),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get("playerFrame3"),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get("playerFrame3"),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         } else{
-            ctx.drawImage(textures.get(21),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
-            ctx.drawImage(textures.get(21),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get("playerFrame4"),this.playerPosition.x + xOffset + squish,this.playerPosition.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
+            ctx.drawImage(textures.get("playerFrame4"),this.playerPositionOpposite.x + xOffset + squish,this.playerPositionOpposite.y-this.cameraY,this.playerSize.w-squish*2,this.playerSize.h);
         }
         if(paTime >= 1000){
             this.playerAnimationTimer = Date.now();
         }
+
+        ctx.drawImage(textures.get("playerReflection"),xOffset + (this.levelRadius*this.tileSize)-this.tileSize,this.playerPosition.y-this.cameraY,5,this.playerSize.h);
+        ctx.drawImage(textures.get("playerReflection"),xOffset + (this.levelRadius*this.tileSize)+this.tileSize-5,this.playerPositionOpposite.y-this.cameraY,5,this.playerSize.h);
+        
+
 
         if(Date.now()-this.attackTimer<this.equipedWeapon.rate){
             var attackRatio = (Date.now()-this.attackTimer)/this.equipedWeapon.rate;

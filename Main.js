@@ -5,10 +5,9 @@ var canvasWidth = c.width;
 var canvasHeight = c.height;
 
 var textures = new Map();
-for(var i = 0;i<document.images.length;i++){
-    var img = document.getElementById(i.toString());
-    textures.set(i,img);
-}
+Array.from(document.images).forEach(i => {
+    textures.set(i.id,i);
+});
 
 var gameState;
 var inputs = Inputs.empty();
@@ -81,6 +80,8 @@ loadChecker = setInterval(() => {
         setInterval(() => draw(ctx),50);
     } else {
         loadedImages = true;
+        ctx.fillStyle = rgbToHex(0,0,0);
+        ctx.fillText("Loading",canvasWidth/2,canvasHeight/2);
         Array.from(textures.keys()).forEach(i => {
             if(!textures.get(i).complete){
                 loadedImages = false;
