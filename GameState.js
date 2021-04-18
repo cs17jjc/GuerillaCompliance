@@ -12,9 +12,10 @@ class GameState {
         this.playerPositionOpposite = {x: (this.levelRadius*this.tileSize) + ((this.levelRadius*this.tileSize) - this.playerPosition.x - this.playerSize.w) ,y:this.playerPosition.y};
         this.playerAnimationTimer = Date.now();
 
-        this.equipedWeapon = makeStartWeapon(this.playerSize);
+        this.equipedWeapon = makeGodWeapon(this.playerSize);
         this.hitBox;
         this.hitBoxOpp;
+        this.attackDir = "";
 
         this.attackTimer = 0;
 
@@ -54,20 +55,23 @@ class GameState {
     update(inputsArr,soundToggle) {
 
         var canAttack = Date.now() - this.attackTimer > this.equipedWeapon.rate;
-        
-        this.hitBox = null;
-        this.hitBoxOpp = null;
+        var didAttack = false;
         if(canAttack){
             if(inputsArr.includes("LEFTARROW")){
                 this.attackTimer = Date.now();
                 this.hitBox = copyRect(this.equipedWeapon.hw);
                 this.hitBoxOpp = copyRect(this.equipedWeapon.hw);
+                didAttack = true;
+                this.attackDir = "LEFT";
             }else if(inputsArr.includes("RIGHTARROW")){
                 this.attackTimer = Date.now();
                 this.hitBox = copyRect(this.equipedWeapon.he);
                 this.hitBoxOpp = copyRect(this.equipedWeapon.he);
+                didAttack = true;
+                this.attackDir = "RIGHT";
             }
         }
+        
         
         var playerTileY = Math.trunc(this.playerPosition.y/this.tileSize);
         this.visableGeom = [];
@@ -143,7 +147,7 @@ class GameState {
         this.playerPositionOpposite = {x: (this.levelRadius*this.tileSize) + ((this.levelRadius*this.tileSize) - this.playerPosition.x - this.playerSize.w),y:this.playerPosition.y};
         this.cameraY = Math.min(this.cameraY,this.playerPosition.y - canvasHeight + this.cameraYOffset);
 
-        if(this.hitBox != null && this.hitBoxOpp != null){
+        if(didAttack){
             this.hitBox.x += this.playerPosition.x;
             this.hitBox.y += this.playerPosition.y;
             this.hitBoxOpp.x += this.playerPositionOpposite.x;
@@ -206,7 +210,7 @@ class GameState {
             }
             
             var slimeRect = makeRect(o.x,o.y,o.s,o.s);
-            if(this.hitBox != null && this.hitBoxOpp != null){
+            if(didAttack){
                 if(intersectRect(slimeRect,this.hitBox) || intersectRect(slimeRect,this.hitBoxOpp)){
                     o.hp -= this.equipedWeapon.d;
                     o.lastHit = Date.now();
@@ -311,10 +315,26 @@ class GameState {
             this.playerAnimationTimer = Date.now();
         }
 
-        if(this.hitBox != null && this.hitBoxOpp != null){
-            ctx.fillStyle = rgbToHex(0,0,0);
-            ctx.fillRect(this.hitBox.x+ xOffset,this.hitBox.y-this.cameraY,this.hitBox.w,this.hitBox.h);
-            ctx.fillRect(this.hitBoxOpp.x+ xOffset,this.hitBoxOpp.y-this.cameraY,this.hitBoxOpp.w,this.hitBoxOpp.h);
+        if(Date.now()-this.attackTimer<this.equipedWeapon.rate){
+            var attackRatio = (Date.now()-this.attackTimer)/this.equipedWeapon.rate;
+            var swordImg = this.equipedWeapon.texture;
+            var swordX = xOffset + (this.attackDir=="RIGHT"?this.playerSize.w:0);
+            ctx.save();
+            ctx.translate(swordX+this.playerPosition.x,this.playerPosition.y+this.playerSize.h/2-this.cameraY);
+            if(this.attackDir == "LEFT"){
+                ctx.scale(-1, 1);
+            }
+            ctx.rotate(attackRatio*Math.PI);
+            ctx.drawImage(swordImg,0,-swordImg.height);
+            ctx.restore();
+            ctx.save();
+            ctx.translate(swordX+this.playerPositionOpposite.x,this.playerPositionOpposite.y+this.playerSize.h/2-this.cameraY);
+            if(this.attackDir == "LEFT"){
+                ctx.scale(-1, 1);
+            }
+            ctx.rotate(attackRatio*Math.PI);
+            ctx.drawImage(swordImg,0,-swordImg.height);
+            ctx.restore();
         }
 
 
