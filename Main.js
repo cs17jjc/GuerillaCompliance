@@ -48,16 +48,9 @@ function draw(ctx){
     
     
     if(!inputs.prevStates.includes("RESTART") && inputs.getInputs().includes("RESTART")){
-        var coins = gameState.coins;
-        gameState=GameState.initial();
         var coins = localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA");
-        if(coins != null){
-            gameState.coins = coins;
-        }
         var weapon = JSON.parse(localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaWeaponYRYRBHJASKWA"));
-        if(weapon != null){
-            gameState.equipedWeapon = weapon;
-        }
+        gameState=GameState.initial(coins,weapon);
     }
 
     if(!inputs.prevStates.includes("CLEARSTORAGE") && inputs.getInputs().includes("CLEARSTORAGE")){

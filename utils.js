@@ -310,3 +310,8 @@ function makeGodWeapon(playerSize) {
     makeRect(playerSize.w, 0, 30, playerSize.h),
     makeRect(-30, 0, 30, playerSize.h));
 }
+function makeFarmingWeapon(playerSize) {
+  return makeMeleeWeapon(2, 100, "sword2",
+    makeRect(playerSize.w, 0, 20, playerSize.h),
+    makeRect(-20, 0, 20, playerSize.h));
+}

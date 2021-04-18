@@ -49,7 +49,7 @@ class GameState {
     }
     static initial(coins,weapon) {
         var gState = new GameState();
-        gState.coins = coins == null ? 0 : coins;
+        gState.coins = coins == null ? 0 : parseInt(coins);
         gState.changeWeapon(weapon == null ? makeStartWeapon(gState.playerSize) : weapon);
         return gState;
     }
@@ -174,7 +174,7 @@ class GameState {
                 o.r.x += o.vx;
                 o.r.y += o.vy;
 
-                if(intersectRect(pX,o.r) || intersectRect(pOX,o.r) || intersectRect(pY,o.r) || intersectRect(pOY,o.r)){
+                if((intersectRect(pX,o.r) || intersectRect(pOX,o.r) || intersectRect(pY,o.r) || intersectRect(pOY,o.r)) && this.coins < 999){
                     o.collected = true;
                     this.coins += 1;
                     this.lastCoinTimer = Date.now();
