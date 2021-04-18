@@ -80,6 +80,9 @@ class GameState {
             this.jumpTimer = Date.now();
             this.hasLanded = false;
         }
+        if(inputsArr.includes("DOWN") && !this.hasLanded){
+            this.playerVelocity.y += 0.5;
+        }
         if(inputsArr.includes("LEFT")){
             this.playerVelocity.x = 6;
         }
@@ -113,7 +116,7 @@ class GameState {
             } else if (Date.now() - o.hitTimer > o.hitspeed){
                 var sSX = makeRect(o.x,o.y,o.s,o.s);
                 var sSY = makeRect(o.x,o.y,o.s,o.s);
-                if((intersectRect(pX,sSX) || intersectRect(pOX,sSX) || intersectRect(pY,sSY) || intersectRect(pOY,sSY)) && !o.isDead){
+                if((intersectRect(pX,sSX) || intersectRect(pOX,sSX) || intersectRect(pY,sSY) || intersectRect(pOY,sSY)) && !o.isDead && Date.now()-o.lastHit>o.recov){
                     o.hitTimer = Date.now();
                     this.playerHealth = Math.max(0,this.playerHealth-o.dmg);
                 }
@@ -277,12 +280,12 @@ class GameState {
             var imgOffset = o.isDead ? 2 : Date.now() - o.lastHit > o.recov ? 0 : 1;
             var bobing = o.isDead ? 0 : Math.sin(Date.now()/100)*2;
             if(o.dmg == 0){
-                ctx.drawImage(textures.get(6+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing*2);
+                ctx.drawImage(textures.get(6+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing);
             } else {
                 if(o.s == this.tileSize-3){
-                    ctx.drawImage(textures.get(9+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing*2);
+                    ctx.drawImage(textures.get(9+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing);
                 } else {
-                    ctx.drawImage(textures.get(12+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing*2);
+                    ctx.drawImage(textures.get(12+imgOffset),o.x + xOffset,o.y-this.cameraY - bobing,o.s,o.s + bobing);
                 }
             }
         });
