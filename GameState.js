@@ -450,7 +450,6 @@ class GameState {
             this.coinUIImage = "coin1";
         }
         ctx.drawImage(textures.get(this.coinUIImage),canvasWidth*0.89,canvasHeight*0.1,32,32);
-        
 
         ctx.shadowOffsetX = 1;
         ctx.shadowOffsetY = 1;
@@ -459,6 +458,27 @@ class GameState {
         var goldStr = this.coins.toString().padStart(3,"0");
         ctx.font = "28px Courier New";
         ctx.fillText(goldStr,canvasWidth*0.928,canvasHeight*0.15);
+
+        ctx.shadowColor = rgbToHex(20,20,20);
+        if(this.items[this.selectedItem] != null){
+            ctx.drawImage(textures.get(this.items[this.selectedItem].texture),canvasWidth*0.05,canvasHeight*0.1,32,32);
+            if(this.items[this.selectedItem-1] != null){
+                ctx.drawImage(textures.get(this.items[this.selectedItem-1].texture),canvasWidth*0.01,canvasHeight*0.1,32,32);
+            
+            }
+            if(this.items[this.selectedItem+1] != null){
+                ctx.drawImage(textures.get(this.items[this.selectedItem+1].texture),canvasWidth*0.09,canvasHeight*0.1,32,32);
+            
+            }
+            ctx.textAlign = "center";
+            ctx.fillStyle = rgbToHex(50,50,50);
+            ctx.font = "15px Courier New";
+            ctx.fillText(this.items[this.selectedItem].desc,canvasWidth*0.065,canvasHeight*0.08);
+            ctx.font = "28px Courier New";
+            ctx.fillText("Q "+(this.selectedItem+1).toString()+" E",canvasWidth*0.065,canvasHeight*0.2);
+            ctx.font = "25px Courier New";
+            ctx.fillText("Shift",canvasWidth*0.065,canvasHeight*0.25);
+        }
         
         if(this.gameOver){
             var ratio = Math.min(1,(Date.now() - this.gameOverTimer)/3000);

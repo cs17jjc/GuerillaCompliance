@@ -323,13 +323,13 @@ function makeFarmingWeapon(playerSize) {
 }
 
 function makeHealthItem(strength){
-  return {type:"HEALTH",value:strength}
+  return {type:"HEALTH",value:strength,texture:"item1",desc:"+"+strength+" HP"}
 }
 function makeHealthBoostItem(strength){
-  return {type:"HEALTHBOOST",value:strength}
+  return {type:"HEALTHBOOST",value:strength,texture:"item2",desc:"+"+strength+" Max HP"}
 }
 function makeArmorItem(){
-  return {type:"ARMOR"}
+  return {type:"ARMOR",texture:"item3",desc:"+1 Armor"}
 }
 function makeEffectItem(effectType,strength,duration){
   return {type:"EFFECT",effectType:effectType,strength:strength,duration:duration};
