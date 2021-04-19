@@ -71,6 +71,8 @@ function createBackgroundImage(levelRadius, levelHeight, tileSize) {
       } else {
         bgCtx.drawImage(textures.get("backgroundTileE"), x, y, tileSize, tileSize);
       }
+      bgCtx.fillStyle = rgbToHexAlpha(0,0,0,Math.trunc(((y/bgCanv.height)*10))*25 );
+      bgCtx.fillRect(x, y, tileSize, tileSize);
     }
   }
 
@@ -90,9 +92,9 @@ function makeFloor(x, y, w, h, tex) {
 function makeMirror(x, y, w, h, tex) {
   return { t: "MIRROR", r: makeRect(x, y, w, h), texture: tex };
 }
-function makeShop(x,y,w,h,shopNum,tex){
-  var items = [makeHealthItem(10),makeHealthItem(20),makeArmorItem(),makeJumpItem()];
-  return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex , items:items};
+function makeShop(x, y, w, h, shopNum, tex) {
+  var items = [makeHealthItem(10), makeHealthItem(20), makeArmorItem(), makeJumpItem()];
+  return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex, items: items };
 }
 function makeEnenmy(x, y, type, data) {
   return { t: "ENEMY", x: x, y: y, type: type, isDead: false, data: data };
@@ -251,9 +253,9 @@ function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorRight"));
           } else {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorMiddle"));
-            if(shopCooldown >= 20){
+            if (shopCooldown >= 20) {
               shopCooldown = 0;
-              row.push(makeShop(x * tileSize, (y-1) * tileSize, tileSize, tileSize,shopCounter ,"item3"));
+              row.push(makeShop(x * tileSize, (y - 1) * tileSize, tileSize, tileSize, shopCounter, "item3"));
               shopCounter += 1;
             }
           }
@@ -350,7 +352,7 @@ function useItem(item, gState) {
       gState.playerArmor += 1;
       break;
     case "JUMP":
-      gState.playerVelocity.y -= 12;
+      gState.playerVelocity.y = -12;
       gState.jumpTimer = Date.now();
       gState.hasLanded = false;
       break;

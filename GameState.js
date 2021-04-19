@@ -6,7 +6,7 @@ class GameState {
         this.levelGeom = generateMap(this.levelHeight, this.levelRadius, this.tileSize);
         this.visableGeom = [];
         this.geomAnimationTimer = 0;
-        
+
 
         this.playerPosition = { x: 4 * this.tileSize, y: (this.levelHeight - 4) * this.tileSize };
         this.playerSize = { w: this.tileSize * 0.8, h: this.tileSize * 0.9 };
@@ -32,7 +32,7 @@ class GameState {
         this.lastCoinTimer = 0;
         this.coinUIImage = "coin1";
 
-        this.items = [makeHealthItem(20),makeHealthItem(50),makeArmorItem(),makeJumpItem(),makeJumpItem()];
+        this.items = [makeHealthItem(20), makeHealthItem(50), makeArmorItem(), makeJumpItem(), makeJumpItem()];
         this.selectedItem = 0;
 
         this.cameraYOffset = this.tileSize * 7;
@@ -50,6 +50,9 @@ class GameState {
         this.gameOverTimer = 0;
         this.gameWon = true;
         this.gold = 0;
+
+        this.canEnterShop = false;
+        this.inShop = false;
     }
     static initial() {
         var gState = new GameState();
@@ -127,6 +130,10 @@ class GameState {
 
         this.updatePlayerPosition();
 
+        if (inputsArr.includes("ENTER") && !inputs.prevStates.includes("ENTER")) {
+            this.inShop = this.inShop ^ this.canEnterShop;
+        }
+
         if (!this.gameOver) {
             this.playerPosition = addVector(this.playerPosition, this.playerVelocity);
         }
@@ -134,21 +141,21 @@ class GameState {
 
         if (this.playerPosition.y > this.bossFloor * this.tileSize && !this.boss) {
             this.cameraY = Math.min(this.cameraY, this.playerPosition.y - canvasHeight + this.cameraYOffset);
-        } else if(!this.boss){
-            var bossFloorObjY = this.bossFloor +7;
+        } else if (!this.boss) {
+            var bossFloorObjY = this.bossFloor + 7;
             var floor = [];
             floor.push(makeWall(0, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "wallLeft"));
-            for(var floorX = this.tileSize;floorX < (this.tileSize*(this.levelRadius*2))-this.tileSize;floorX+=this.tileSize){
-                if(floorX == (this.levelRadius-1)*this.tileSize){
+            for (var floorX = this.tileSize; floorX < (this.tileSize * (this.levelRadius * 2)) - this.tileSize; floorX += this.tileSize) {
+                if (floorX == (this.levelRadius - 1) * this.tileSize) {
                     floor.push(makeMirror(floorX, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "mirrorLeft"));
-                } else if(floorX == this.levelRadius*this.tileSize){
+                } else if (floorX == this.levelRadius * this.tileSize) {
                     floor.push(makeMirror(floorX, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "mirrorRight"));
                 } else {
                     floor.push(makeFloor(floorX, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "floorMiddle"));
                 }
             }
-            floor.push(makeWall(((this.levelRadius*2)-1) * this.tileSize, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "wallRight"));
-            this.levelGeom.set(bossFloorObjY,floor);
+            floor.push(makeWall(((this.levelRadius * 2) - 1) * this.tileSize, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "wallRight"));
+            this.levelGeom.set(bossFloorObjY, floor);
             this.boss = true;
         }
 
@@ -182,7 +189,7 @@ class GameState {
         if (this.playerHealth < this.prevPlayerHealth) {
             this.hitTimer = Date.now();
         }
-        if(this.playerHealth <= 0){
+        if (this.playerHealth <= 0) {
             this.gameOver = true;
             this.gameOverTimer = Date.now();
         }
@@ -229,6 +236,17 @@ class GameState {
                 }
                 this.geomAnimationTimer = Date.now();
             }
+            if (o.t == "SHOP" && this.canEnterShop && !this.inShop) {
+                ctx.save();
+                ctx.font = "15px Arial New";
+                ctx.textAlign = "center";
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+                ctx.shadowColor = rgbToHexAlpha(10, 10, 10, 240);
+                ctx.fillStyle = rgbToHexAlpha(230, 230, 230, 240);
+                ctx.fillText("Press Enter", o.r.x + xOffset + (o.r.w / 2), o.r.y - this.cameraY - 5);
+                ctx.restore();
+            }
         });
 
         this.visableGeom.filter(t => t.t == "ENEMY").forEach(o => {
@@ -244,7 +262,7 @@ class GameState {
 
         this.visableGeom.filter(t => t.t == "COIN").forEach(o => {
             ctx.drawImage(textures.get(o.texture), o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h);
-            if(nextAnimationFrame){
+            if (nextAnimationFrame) {
                 o.texture = getNextCoinFrame(o.texture);
             }
         });
@@ -386,13 +404,14 @@ class GameState {
         //coin collsion with enviroment
         var xCollision = false;
         var yCollison = false;
+        this.canEnterShop = false;
+        const pX = { x: this.playerPosition.x + this.playerVelocity.x, y: this.playerPosition.y, w: this.playerSize.w, h: this.playerSize.h - 1 };
+        const pY = { x: this.playerPosition.x, y: this.playerPosition.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
+        const pOX = { x: this.playerPositionOpposite.x - this.playerVelocity.x, y: this.playerPositionOpposite.y, w: this.playerSize.w, h: this.playerSize.h - 1 };
+        const pOY = { x: this.playerPositionOpposite.x, y: this.playerPositionOpposite.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
         this.visableGeom.filter(o => o.t != "ENEMY").forEach(o => {
-            const pX = { x: this.playerPosition.x + this.playerVelocity.x, y: this.playerPosition.y, w: this.playerSize.w, h: this.playerSize.h - 1 };
-            const pY = { x: this.playerPosition.x, y: this.playerPosition.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
 
-            const pOX = { x: this.playerPositionOpposite.x - this.playerVelocity.x, y: this.playerPositionOpposite.y, w: this.playerSize.w, h: this.playerSize.h - 1 };
-            const pOY = { x: this.playerPositionOpposite.x, y: this.playerPositionOpposite.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
-            if (o.t != "COIN" && o.t!="SHOP") {
+            if (o.t != "COIN" && o.t != "SHOP") {
                 if (intersectRect(pX, o.r) || intersectRect(pOX, o.r)) {
                     xCollision = true;
                 }
@@ -404,12 +423,12 @@ class GameState {
                 if (intersectRect(pYJump, o.r) || intersectRect(pOYJump, o.r)) {
                     this.hasLanded = true;
                 }
-            } else if(o.t == "COIN") {
+            } else if (o.t == "COIN") {
                 var rCX = makeRect(o.r.x + o.vx, o.r.y, o.r.w, o.r.h - 1);
                 var rCY = makeRect(o.r.x, o.r.y + o.vy, o.r.w, o.r.h);
                 var coinColX = false;
                 var coinColY = false;
-                this.visableGeom.filter(t => !["SHOP","COIN","ENEMY"].includes(t.t)).forEach(t => {
+                this.visableGeom.filter(t => !["SHOP", "COIN", "ENEMY"].includes(t.t)).forEach(t => {
                     if (intersectRect(rCX, t.r)) {
                         coinColX = true;
                     }
@@ -436,8 +455,10 @@ class GameState {
                     this.lastCoinTimer = Date.now();
                     localStorage.setItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA", this.coins);
                 }
-            } else if (o.t == "SHOP"){
-
+            } else if (o.t == "SHOP") {
+                if (intersectRect(pX, o.r) || intersectRect(pOX, o.r) || intersectRect(pY, o.r) || intersectRect(pOY, o.r)) {
+                    this.canEnterShop = true;
+                }
             }
         });
 
@@ -459,15 +480,15 @@ class GameState {
 
     updateEnemeis(didAttack) {
         this.visableGeom.filter(t => t.t == "ENEMY").forEach(o => {
-            switch(o.type){
+            switch (o.type) {
                 case "SLIME":
-                    this.updateSlime(o,didAttack);
+                    this.updateSlime(o, didAttack);
                     break;
             }
         });
     }
 
-    updateSlime(o,didAttack){
+    updateSlime(o, didAttack) {
         //Handles:
         //Slime movement
         //Slime collision with enviroment
@@ -478,7 +499,7 @@ class GameState {
         var xColSlime = false;
         var yColSlime = false;
         var hasFloor = false;
-        this.visableGeom.filter(t => t != o && !["COIN","ENEMY","SHOP"].includes(t.t)).forEach(t => {
+        this.visableGeom.filter(t => t != o && !["COIN", "ENEMY", "SHOP"].includes(t.t)).forEach(t => {
 
             if (intersectRect(t.r, sSY)) {
                 yColSlime = true;
@@ -508,18 +529,18 @@ class GameState {
 
         if (xColSlime) {
             o.data.vx *= -1;
-        }else if(!hasFloor){
+        } else if (!hasFloor) {
             o.data.vx *= -1;
         }
 
         if (!o.isDead) {
-            if(Date.now() - o.data.lastHit > o.data.recov){
+            if (Date.now() - o.data.lastHit > o.data.recov) {
                 o.x += o.data.vx;
             }
             o.y += o.data.vy;
         }
 
-        
+
 
         var slimeRect = makeRect(o.x, o.y, o.data.s, o.data.s);
         if (didAttack && !o.isDead) {
@@ -535,17 +556,17 @@ class GameState {
 
         const pRect = makeRect(this.playerPosition.x, this.playerPosition.y, this.playerSize.w, this.playerSize.h);
         const pORect = makeRect(this.playerPositionOpposite.x, this.playerPositionOpposite.y, this.playerSize.w, this.playerSize.h);
-        if((intersectRect(pRect,slimeRect) || intersectRect(pORect,slimeRect))){
-            if(Date.now() - o.data.hitTimer > o.data.hitspeed && !o.isDead && o.data.dmg > 0){
-                if(this.playerArmor == 0){
-                    this.playerHealth = Math.max(0,this.playerHealth - o.data.dmg);
+        if ((intersectRect(pRect, slimeRect) || intersectRect(pORect, slimeRect))) {
+            if (Date.now() - o.data.hitTimer > o.data.hitspeed && !o.isDead && o.data.dmg > 0) {
+                if (this.playerArmor == 0) {
+                    this.playerHealth = Math.max(0, this.playerHealth - o.data.dmg);
                 } else {
-                    this.playerArmor = Math.max(0,this.playerArmor-1);
+                    this.playerArmor = Math.max(0, this.playerArmor - 1);
                 }
                 o.data.hitTimer = Date.now();
             }
         }
     }
-    
+
 
 }
