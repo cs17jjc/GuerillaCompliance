@@ -1,11 +1,12 @@
 class GameState {
     constructor() {
         this.tileSize = 30;
-        this.levelHeight = 50;
+        this.levelHeight = 60;
         this.levelRadius = 12;
         this.levelGeom = generateMap(this.levelHeight, this.levelRadius, this.tileSize);
         this.visableGeom = [];
         this.geomAnimationTimer = 0;
+        
 
         this.playerPosition = { x: 4 * this.tileSize, y: (this.levelHeight - 4) * this.tileSize };
         this.playerSize = { w: this.tileSize * 0.8, h: this.tileSize * 0.9 };
@@ -41,6 +42,7 @@ class GameState {
         this.hasLanded = false;
 
         this.boss = false;
+        this.bossFloor = 11;
 
         this.backgroundImg = createBackgroundImage(this.levelRadius, this.levelHeight, this.tileSize);
 
@@ -99,12 +101,12 @@ class GameState {
 
         var playerTileY = Math.trunc(this.playerPosition.y / this.tileSize);
         var extendedRender = 0;
-        if(playerTileY<=11){
-            extendedRender = 10;
+        if (this.boss) {
+            extendedRender = 15;
         }
         this.visableGeom = [];
-        for (var i = Math.max(0,playerTileY-15-extendedRender); i < Math.min(playerTileY + 8 + extendedRender, this.levelHeight); i++) {
-            this.levelGeom.set(i,this.levelGeom.get(i).filter(o => o.t != "COIN" ? true : !o.collected));
+        for (var i = Math.max(0, playerTileY - 18 - extendedRender); i < Math.min(playerTileY + 8 + extendedRender, this.levelHeight); i++) {
+            this.levelGeom.set(i, this.levelGeom.get(i).filter(o => o.t != "COIN" ? true : !o.collected));
             this.visableGeom = this.visableGeom.concat(this.levelGeom.get(i));
         }
 
@@ -123,98 +125,33 @@ class GameState {
             this.playerVelocity.x = -6;
         }
 
-        var xCollision = false;
-        var yCollison = false;
+        this.updatePlayerPosition();
 
-        this.visableGeom.forEach(o => {
-            const pX = { x: this.playerPosition.x + this.playerVelocity.x, y: this.playerPosition.y, w: this.playerSize.w, h: this.playerSize.h - 1 };
-            const pY = { x: this.playerPosition.x, y: this.playerPosition.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
-
-            const pOX = { x: this.playerPositionOpposite.x - this.playerVelocity.x, y: this.playerPositionOpposite.y, w: this.playerSize.w, h: this.playerSize.h - 1 };
-            const pOY = { x: this.playerPositionOpposite.x, y: this.playerPositionOpposite.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
-            if (o.t != "SLIME" && o.t != "COIN") {
-                if (intersectRect(pX, o.r) || intersectRect(pOX, o.r)) {
-                    xCollision = true;
-                }
-                if (intersectRect(pY, o.r) || intersectRect(pOY, o.r)) {
-                    yCollison = true;
-                }
-                const pOYJump = { x: this.playerPositionOpposite.x + 3, y: this.playerPositionOpposite.y + this.playerSize.h - 2 + this.playerVelocity.y, w: this.playerSize.w - 6, h: 2 };
-                const pYJump = { x: this.playerPosition.x + 3, y: this.playerPosition.y + this.playerSize.h - 2 + this.playerVelocity.y, w: this.playerSize.w - 6, h: 2 };
-                if (intersectRect(pYJump, o.r) || intersectRect(pOYJump, o.r)) {
-                    this.hasLanded = true;
-                }
-
-
-            } else if (o.t == "SLIME" && Date.now() - o.hitTimer > o.hitspeed) {
-                var sSX = makeRect(o.x, o.y, o.s, o.s);
-                var sSY = makeRect(o.x, o.y, o.s, o.s);
-                if ((intersectRect(pX, sSX) || intersectRect(pOX, sSX) || intersectRect(pY, sSY) || intersectRect(pOY, sSY)) && !o.isDead && Date.now() - o.lastHit > o.recov) {
-                    o.hitTimer = Date.now();
-                    if (this.playerArmor > 0 && o.dmg > 0) {
-                        this.playerArmor -= 1;
-                    } else {
-                        this.playerHealth = Math.max(0, this.playerHealth - o.dmg);
-                    }
-                }
-            } else if (o.t == "COIN") {
-                var rCX = makeRect(o.r.x + o.vx, o.r.y, o.r.w, o.r.h - 1);
-                var rCY = makeRect(o.r.x, o.r.y + o.vy, o.r.w, o.r.h);
-                var coinColX = false;
-                var coinColY = false;
-                this.visableGeom.filter(t => t.t != "SLIME" && t.t != "COIN").forEach(t => {
-                    if (intersectRect(rCX, t.r)) {
-                        coinColX = true;
-                    }
-                    if (intersectRect(rCY, t.r)) {
-                        coinColY = true;
-                    }
-                });
-                if (coinColX) {
-                    o.vx = 0;
-                } else {
-                    o.vx *= 0.8;
-                }
-                if (coinColY) {
-                    o.vy = 0;
-                } else {
-                    o.vy += 0.5;
-                }
-                o.r.x += o.vx;
-                o.r.y += o.vy;
-
-                if ((intersectRect(pX, o.r) || intersectRect(pOX, o.r) || intersectRect(pY, o.r) || intersectRect(pOY, o.r)) && this.coins < 999) {
-                    o.collected = true;
-                    this.coins += 1;
-                    this.lastCoinTimer = Date.now();
-                    localStorage.setItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA", this.coins);
-                }
-            }
-        });
-
-        if (xCollision) {
-            this.playerVelocity.x = 0;
-        } else {
-            this.playerVelocity.x *= 0.8;
-        }
-        if (yCollison) {
-            this.playerVelocity.y = 0;
-        } else {
-            this.playerVelocity.y += 0.5;
-        }
-        if (xCollision && yCollison) {
-            this.playerVelocity.x = 0;
-            this.playerVelocity.y = 0;
-        }
         if (!this.gameOver) {
             this.playerPosition = addVector(this.playerPosition, this.playerVelocity);
         }
         this.playerPositionOpposite = { x: (this.levelRadius * this.tileSize) + ((this.levelRadius * this.tileSize) - this.playerPosition.x - this.playerSize.w), y: this.playerPosition.y };
 
-        if(this.playerPosition.y>11*this.tileSize){
+        if (this.playerPosition.y > this.bossFloor * this.tileSize && !this.boss) {
             this.cameraY = Math.min(this.cameraY, this.playerPosition.y - canvasHeight + this.cameraYOffset);
+        } else if(!this.boss){
+            var bossFloorObjY = this.bossFloor +7;
+            var floor = [];
+            floor.push(makeWall(0, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "wallLeft"));
+            for(var floorX = this.tileSize;floorX < (this.tileSize*(this.levelRadius*2))-this.tileSize;floorX+=this.tileSize){
+                if(floorX == (this.levelRadius-1)*this.tileSize){
+                    floor.push(makeMirror(floorX, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "mirrorLeft"));
+                } else if(floorX == this.levelRadius*this.tileSize){
+                    floor.push(makeMirror(floorX, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "mirrorRight"));
+                } else {
+                    floor.push(makeFloor(floorX, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "floorMiddle"));
+                }
+            }
+            floor.push(makeWall(((this.levelRadius*2)-1) * this.tileSize, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "wallRight"));
+            this.levelGeom.set(bossFloorObjY,floor);
+            this.boss = true;
         }
-        
+
         if (didAttack) {
             this.hitBox.x += this.playerPosition.x;
             this.hitBox.y += this.playerPosition.y;
@@ -222,73 +159,7 @@ class GameState {
             this.hitBoxOpp.y += this.playerPositionOpposite.y;
         }
 
-        this.visableGeom.filter(t => t.t == "SLIME").forEach(o => {
-            o.vy += 0.1;
-            o.move = false;
-            var sSX = makeRect(o.x + o.vx, o.y, o.s, o.s - 1);
-            var sSY = makeRect(o.x - 1, o.y + o.vy, o.s + 2, o.s);
-            var xColSlime = false;
-            var yColSlime = false;
-            var hasFloor = false;
-            this.visableGeom.filter(t => t != o && t.t != "COIN").forEach(t => {
-
-                if (t.t == "SLIME") {
-                    const sX = makeRect(t.x + t.vx, t.y, t.s, t.s);
-
-                    if (intersectRect(sX, sSX)) {
-                        o.vx *= -1;
-                    }
-                } else {
-                    if (intersectRect(t.r, sSY)) {
-                        yColSlime = true;
-                    }
-
-                    if (intersectRect(t.r, sSX)) {
-                        xColSlime = true;
-                    }
-
-                    var slimeTileX = Math.trunc(o.x / this.tileSize);
-                    var slimeTileY = Math.trunc(o.y / this.tileSize);
-                    if (o.vx > 0) {
-                        if (t.r.x == (slimeTileX + 1) * this.tileSize && t.r.y == (slimeTileY + 1) * this.tileSize) {
-                            hasFloor = true;
-                        }
-                    } else {
-                        slimeTileX = Math.trunc((o.x + o.s) / this.tileSize);
-                        if (t.r.x == (slimeTileX - 1) * this.tileSize && t.r.y == (slimeTileY + 1) * this.tileSize) {
-                            hasFloor = true;
-                        }
-                    }
-                }
-            });
-
-            if (yColSlime) {
-                o.vy = 0;
-                o.move = true;
-            }
-
-            if (xColSlime ^ !hasFloor) {
-                o.vx *= -1;
-            }
-            if (!o.isDead) {
-                if (o.move) {
-                    o.x += o.vx;
-                }
-                o.y += o.vy;
-            }
-
-            var slimeRect = makeRect(o.x, o.y, o.s, o.s);
-            if (didAttack && !o.isDead) {
-                if (intersectRect(slimeRect, this.hitBox) || intersectRect(slimeRect, this.hitBoxOpp)) {
-                    o.hp -= this.equipedWeapon.d;
-                    o.lastHit = Date.now();
-                    this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, Math.random() * 4 * Math.sign(o.vx) + o.vx, -2));
-                    if (o.hp <= 0) {
-                        o.isDead = true;
-                    }
-                }
-            }
-        });
+        this.updateEnemeis(didAttack);
 
         if (!inputs.prevStates.includes("PREVITEM") && inputsArr.includes("PREVITEM") && this.selectedItem > 0) {
             this.selectedItem -= 1;
@@ -308,9 +179,12 @@ class GameState {
 
         }
 
-
         if (this.playerHealth < this.prevPlayerHealth) {
             this.hitTimer = Date.now();
+        }
+        if(this.playerHealth <= 0){
+            this.gameOver = true;
+            this.gameOverTimer = Date.now();
         }
         this.prevPlayerHealth = this.playerHealth;
 
@@ -329,9 +203,20 @@ class GameState {
 
         ctx.drawImage(this.backgroundImg, xOffset, -this.cameraY * 0.5);
 
+        this.visableGeom.filter(t => t.t == "ENEMY").forEach(o => {
+            switch (o.type) {
+                case "SLIME":
+                    var textureStr = o.isDead ? "Dead" : Date.now() - o.data.lastHit > o.data.recov ? "Normal" : "Hit";
+                    textureStr = o.data.type + textureStr;
+                    var bobing = o.isDead ? 0 : Math.sin(Date.now() / 100) * 2;
+                    ctx.drawImage(textures.get(textureStr), o.x + xOffset, o.y - this.cameraY - bobing, o.data.s, o.data.s + bobing);
+                    break;
+            }
+        });
+
 
         var nextAnimationFrame = Date.now() - this.geomAnimationTimer > 200;
-        this.visableGeom.filter(t => t.t != "SLIME").forEach(o => {
+        this.visableGeom.filter(t => t.t != "ENEMY").forEach(o => {
             ctx.drawImage(textures.get(o.texture), o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h);
             if (nextAnimationFrame) {
                 switch (o.texture) {
@@ -364,12 +249,6 @@ class GameState {
                 }
                 this.geomAnimationTimer = Date.now();
             }
-        });
-        this.visableGeom.filter(t => t.t == "SLIME").forEach(o => {
-            var state = o.isDead ? "Dead" : Date.now() - o.lastHit > o.recov ? "Normal" : "Hit";
-            var size = o.dmg == 0 ? "small" : o.s == this.tileSize - 3 ? "medium" : "large";
-            var bobing = o.isDead ? 0 : Math.sin(Date.now() / 100) * 2;
-            ctx.drawImage(textures.get(size + state), o.x + xOffset, o.y - this.cameraY - bobing, o.s, o.s + bobing);
         });
 
         ctx.fillStyle = rgbToHex(0, 0, 0);
@@ -487,8 +366,6 @@ class GameState {
             ctx.fillText("No Items", (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.74);
         }
 
-        
-
         if (this.gameOver) {
             var ratio = Math.min(1, (Date.now() - this.gameOverTimer) / 3000);
             ctx.textAlign = "center";
@@ -503,4 +380,172 @@ class GameState {
         }
         ctx.restore();
     }
+
+    updatePlayerPosition() {
+        //handles:
+        //player collision with enviroment
+        //player collision with coins
+        //coin collsion with enviroment
+        var xCollision = false;
+        var yCollison = false;
+        this.visableGeom.filter(o => o.t != "ENEMY").forEach(o => {
+            const pX = { x: this.playerPosition.x + this.playerVelocity.x, y: this.playerPosition.y, w: this.playerSize.w, h: this.playerSize.h - 1 };
+            const pY = { x: this.playerPosition.x, y: this.playerPosition.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
+
+            const pOX = { x: this.playerPositionOpposite.x - this.playerVelocity.x, y: this.playerPositionOpposite.y, w: this.playerSize.w, h: this.playerSize.h - 1 };
+            const pOY = { x: this.playerPositionOpposite.x, y: this.playerPositionOpposite.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
+            if (o.t != "COIN") {
+                if (intersectRect(pX, o.r) || intersectRect(pOX, o.r)) {
+                    xCollision = true;
+                }
+                if (intersectRect(pY, o.r) || intersectRect(pOY, o.r)) {
+                    yCollison = true;
+                }
+                const pOYJump = { x: this.playerPositionOpposite.x + 3, y: this.playerPositionOpposite.y + this.playerSize.h - 2 + this.playerVelocity.y, w: this.playerSize.w - 6, h: 2 };
+                const pYJump = { x: this.playerPosition.x + 3, y: this.playerPosition.y + this.playerSize.h - 2 + this.playerVelocity.y, w: this.playerSize.w - 6, h: 2 };
+                if (intersectRect(pYJump, o.r) || intersectRect(pOYJump, o.r)) {
+                    this.hasLanded = true;
+                }
+            } else {
+                var rCX = makeRect(o.r.x + o.vx, o.r.y, o.r.w, o.r.h - 1);
+                var rCY = makeRect(o.r.x, o.r.y + o.vy, o.r.w, o.r.h);
+                var coinColX = false;
+                var coinColY = false;
+                this.visableGeom.filter(t => t.t != "ENEMY" && t.t != "COIN").forEach(t => {
+                    if (intersectRect(rCX, t.r)) {
+                        coinColX = true;
+                    }
+                    if (intersectRect(rCY, t.r)) {
+                        coinColY = true;
+                    }
+                });
+                if (coinColX) {
+                    o.vx = 0;
+                } else {
+                    o.vx *= 0.8;
+                }
+                if (coinColY) {
+                    o.vy = 0;
+                } else {
+                    o.vy += 0.5;
+                }
+                o.r.x += o.vx;
+                o.r.y += o.vy;
+
+                if ((intersectRect(pX, o.r) || intersectRect(pOX, o.r) || intersectRect(pY, o.r) || intersectRect(pOY, o.r)) && this.coins < 999) {
+                    o.collected = true;
+                    this.coins += 1;
+                    this.lastCoinTimer = Date.now();
+                    localStorage.setItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA", this.coins);
+                }
+            }
+        });
+
+        if (xCollision) {
+            this.playerVelocity.x = 0;
+        } else {
+            this.playerVelocity.x *= 0.8;
+        }
+        if (yCollison) {
+            this.playerVelocity.y = 0;
+        } else {
+            this.playerVelocity.y += 0.5;
+        }
+        if (xCollision && yCollison) {
+            this.playerVelocity.x = 0;
+            this.playerVelocity.y = 0;
+        }
+    }
+
+    updateEnemeis(didAttack) {
+        this.visableGeom.filter(t => t.t == "ENEMY").forEach(o => {
+            switch(o.type){
+                case "SLIME":
+                    this.updateSlime(o,didAttack);
+                    break;
+            }
+        });
+    }
+
+    updateSlime(o,didAttack){
+        //Handles:
+        //Slime movement
+        //Slime collision with enviroment
+        //Slime interaction with weapon
+        o.data.vy += 0.5;
+        var sSX = makeRect(o.x + o.data.vx, o.y, o.data.s, o.data.s - 1);
+        var sSY = makeRect(o.x - 1, o.y + o.data.vy, o.data.s + 2, o.data.s);
+        var xColSlime = false;
+        var yColSlime = false;
+        var hasFloor = false;
+        this.visableGeom.filter(t => t != o && t.t != "COIN" && t.t != "ENEMY").forEach(t => {
+
+            if (intersectRect(t.r, sSY)) {
+                yColSlime = true;
+            }
+
+            if (intersectRect(t.r, sSX)) {
+                xColSlime = true;
+            }
+
+            var slimeTileX = Math.trunc(o.x / this.tileSize);
+            var slimeTileY = Math.trunc(o.y / this.tileSize);
+            if (o.data.vx > 0) {
+                if (t.r.x == (slimeTileX + 1) * this.tileSize && t.r.y == (slimeTileY + 1) * this.tileSize) {
+                    hasFloor = true;
+                }
+            } else {
+                slimeTileX = Math.trunc((o.x + o.data.s) / this.tileSize);
+                if (t.r.x == (slimeTileX - 1) * this.tileSize && t.r.y == (slimeTileY + 1) * this.tileSize) {
+                    hasFloor = true;
+                }
+            }
+        });
+
+        if (yColSlime) {
+            o.data.vy = 0;
+        }
+
+        if (xColSlime) {
+            o.data.vx *= -1;
+        }else if(!hasFloor){
+            o.data.vx *= -1;
+        }
+
+        if (!o.isDead) {
+            if(Date.now() - o.data.lastHit > o.data.recov){
+                o.x += o.data.vx;
+            }
+            o.y += o.data.vy;
+        }
+
+        
+
+        var slimeRect = makeRect(o.x, o.y, o.data.s, o.data.s);
+        if (didAttack && !o.isDead) {
+            if (intersectRect(slimeRect, this.hitBox) || intersectRect(slimeRect, this.hitBoxOpp)) {
+                o.data.hp -= this.equipedWeapon.d;
+                o.data.lastHit = Date.now();
+                this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, Math.random() * 4 * Math.sign(o.data.vx) + o.data.vx, -2));
+                if (o.data.hp <= 0) {
+                    o.isDead = true;
+                }
+            }
+        }
+
+        const pRect = makeRect(this.playerPosition.x, this.playerPosition.y, this.playerSize.w, this.playerSize.h);
+        const pORect = makeRect(this.playerPositionOpposite.x, this.playerPositionOpposite.y, this.playerSize.w, this.playerSize.h);
+        if((intersectRect(pRect,slimeRect) || intersectRect(pORect,slimeRect))){
+            if(Date.now() - o.data.hitTimer > o.data.hitspeed && !o.isDead && o.data.dmg > 0){
+                if(this.playerArmor == 0){
+                    this.playerHealth = Math.max(0,this.playerHealth - o.data.dmg);
+                } else {
+                    this.playerArmor = Math.max(0,this.playerArmor-1);
+                }
+                o.data.hitTimer = Date.now();
+            }
+        }
+    }
+    
+
 }

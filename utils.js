@@ -90,11 +90,11 @@ function makeFloor(x, y, w, h, tex) {
 function makeMirror(x, y, w, h, tex) {
   return { t: "MIRROR", r: makeRect(x, y, w, h), texture: tex };
 }
-function makeSlime(x, y, vx, hp, dmg, s, hs, recov) {
-  return { t: "SLIME", x: x, y: y, vx: vx, vy: 0, s: s, hp: hp, dmg: dmg, move: false, hitTimer: 0, hitspeed: hs, lastHit: 0, recov: recov, isDead: false };
+function makeEnenmy(x, y, type, data) {
+  return { t: "ENEMY", x: x, y: y, type: type, isDead: false, data: data };
 }
-function makeBoss(x,y,hp,recov){
-  return {t:"BOSS"}
+function makeSlime(x, y, vx, type, hp, dmg, s, hs, recov) {
+  return makeEnenmy(x, y, "SLIME", { type: type, vx: vx, vy: 0, s: s, hp: hp, dmg: dmg, hitTimer: 0, hitspeed: hs, lastHit: 0, recov: recov})
 }
 function makeCoin(x, y, vx, vy) {
   return { t: "COIN", vx: vx, vy: vy, texture: "coin1", r: makeRect(x, y, 8, 8), collected: false };
@@ -267,38 +267,23 @@ function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
           row.push(makeMirror(x * tileSize, y * tileSize, tileSize, tileSize, "mirrorRight"));
           break;
         case "SLIME":
-          if (y > height - 30) {
-            row.push(makeSlime(x * tileSize, y * tileSize, 1, 10, 0, tileSize - 4, 1000, 200));
-          } else if (y > height - 80) {
-            if (Math.random() > 0.5) {
-              var dmg = Math.max(30, Math.trunc(40 * Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize, 2, 30, dmg, tileSize - 3, 1500, 500));
-            } else {
-              row.push(makeSlime(x * tileSize, y * tileSize, 1, 10, 0, tileSize - 4, 1000, 800));
-            }
-          } else if (y > height - 90) {
-            if (Math.random() > 0.5) {
-              var dmg = Math.max(60, Math.trunc(70 * Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize, 4, 40, dmg, tileSize - 3, 800, 400));
-            } else {
-              var dmg = Math.max(60, Math.trunc(90 * Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize, 2, 50, dmg, tileSize - 2, 500, 300));
-            }
-          } else if (y > height - 10) {
-            if (Math.random() > 0.7) {
-              var dmg = Math.max(60, Math.trunc(70 * Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize, 4, 40, dmg, tileSize - 3, 800, 400));
-            } else {
-              var dmg = Math.max(60, Math.trunc(90 * Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize, 2, 50, dmg, tileSize - 2, 500, 300));
-            }
+          var section = Math.trunc(y / (height / 3));
+          switch (section) {
+            case 2:
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
+              break;
+            case 1:
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 10, tileSize * 0.8, 800, 500));
+              break;
+            case 0:
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize, 500, 400));
+              break;
           }
           break;
       }
     }
     tileMap.set(y, row);
   }
-  tileMap.get(1).push()
   return tileMap;
 }
 function makeMeleeWeapon(dmg, rate, texture, hitAreaEast, hitAreaWest) {
@@ -326,23 +311,23 @@ function makeFarmingWeapon(playerSize) {
     makeRect(-20, 0, 20, playerSize.h));
 }
 
-function makeHealthItem(strength){
-  return {type:"HEALTH",value:strength,texture:"item1",desc:"+"+strength+" HP"}
+function makeHealthItem(strength) {
+  return { type: "HEALTH", value: strength, texture: "item1", desc: "+" + strength + " HP" }
 }
-function makeHealthBoostItem(strength){
-  return {type:"HEALTHBOOST",value:strength,texture:"item2",desc:"+"+strength+" Max HP"}
+function makeHealthBoostItem(strength) {
+  return { type: "HEALTHBOOST", value: strength, texture: "item2", desc: "+" + strength + " Max HP" }
 }
-function makeArmorItem(){
-  return {type:"ARMOR",texture:"item3",desc:"+1 Armor"}
+function makeArmorItem() {
+  return { type: "ARMOR", texture: "item3", desc: "+1 Armor" }
 }
-function makeEffectItem(effectType,strength,duration){
-  return {type:"EFFECT",effectType:effectType,strength:strength,duration:duration};
+function makeEffectItem(effectType, strength, duration) {
+  return { type: "EFFECT", effectType: effectType, strength: strength, duration: duration };
 }
 
-function useItem(item,gState){
-  switch(item.type){
+function useItem(item, gState) {
+  switch (item.type) {
     case "HEALTH":
-      gState.playerHealth = Math.min(gState.maxHealth,gState.playerHealth+item.value);
+      gState.playerHealth = Math.min(gState.maxHealth, gState.playerHealth + item.value);
       break;
     case "HEALTHBOOST":
       gState.maxHealth += item.value;
@@ -354,8 +339,8 @@ function useItem(item,gState){
   }
 }
 
-function canUse(item,gState){
-  switch(item.type){
+function canUse(item, gState) {
+  switch (item.type) {
     case "HEALTH":
       return gState.playerHealth != gState.maxHealth;
     case "HEALTHBOOST":

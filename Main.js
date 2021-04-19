@@ -32,7 +32,7 @@ var paused = false;
 
 function draw(ctx){
     ctx.clearRect(0,0,canvasWidth,canvasHeight);
-    if(!this.paused){
+    if(!this.paused && !gameState.gameOver){
         gameState.update(inputs.getInputs(),soundToggle);
     }
     ctx.save();
