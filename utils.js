@@ -90,8 +90,11 @@ function makeFloor(x, y, w, h, tex) {
 function makeMirror(x, y, w, h, tex) {
   return { t: "MIRROR", r: makeRect(x, y, w, h), texture: tex };
 }
-function makeSlime(x, y, vx, hp, loot, dmg, s, hs, recov) {
-  return { t: "SLIME", x: x, y: y, vx: vx, vy: 0, s: s, hp: hp, loot: loot, dmg: dmg, move: false, hitTimer: 0, hitspeed: hs, lastHit: 0, recov: recov, isDead: false };
+function makeSlime(x, y, vx, hp, dmg, s, hs, recov) {
+  return { t: "SLIME", x: x, y: y, vx: vx, vy: 0, s: s, hp: hp, dmg: dmg, move: false, hitTimer: 0, hitspeed: hs, lastHit: 0, recov: recov, isDead: false };
+}
+function makeBoss(x,y,hp,recov){
+  return {t:"BOSS"}
 }
 function makeCoin(x, y, vx, vy) {
   return { t: "COIN", vx: vx, vy: vy, texture: "coin1", r: makeRect(x, y, 8, 8), collected: false };
@@ -125,7 +128,7 @@ function countFloors(map, x, y, size) {
   }
   return count;
 }
-function generateMap(height, levelRadius, tileSize) {
+function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
   var tileMapLeft = [];
   var tileMapRight = [];
   for (var i = 0; i < levelRadius; i++) {
@@ -206,7 +209,7 @@ function generateMap(height, levelRadius, tileSize) {
             tileMapLeft[x][y] = "EMPTY";
           }
 
-          if (y < height - 10 && Math.random() > 0.5 && slimeCooldown == 0) {
+          if (y < height - 10 && y > 10 && Math.random() > 0.5 && slimeCooldown == 0) {
             if (tileMapLeft[x][y] == "FLOOR") {
               tileMapLeft[x][y - 1] = "SLIME";
               slimeCooldown = levelRadius - 2;
@@ -265,29 +268,29 @@ function generateMap(height, levelRadius, tileSize) {
           break;
         case "SLIME":
           if (y > height - 30) {
-            row.push(makeSlime(x * tileSize, y * tileSize, 1, 10, null, 0, tileSize - 4, 1000, 200));
+            row.push(makeSlime(x * tileSize, y * tileSize, 1, 10, 0, tileSize - 4, 1000, 200));
           } else if (y > height - 80) {
             if (Math.random() > 0.5) {
               var dmg = Math.max(30, Math.trunc(40 * Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize, 2, 30, null, dmg, tileSize - 3, 1500, 500));
+              row.push(makeSlime(x * tileSize, y * tileSize, 2, 30, dmg, tileSize - 3, 1500, 500));
             } else {
-              row.push(makeSlime(x * tileSize, y * tileSize, 1, 10, null, 0, tileSize - 4, 1000, 800));
+              row.push(makeSlime(x * tileSize, y * tileSize, 1, 10, 0, tileSize - 4, 1000, 800));
             }
           } else if (y > height - 90) {
             if (Math.random() > 0.5) {
               var dmg = Math.max(60, Math.trunc(70 * Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize, 4, 40, null, dmg, tileSize - 3, 800, 400));
+              row.push(makeSlime(x * tileSize, y * tileSize, 4, 40, dmg, tileSize - 3, 800, 400));
             } else {
               var dmg = Math.max(60, Math.trunc(90 * Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize, 2, 50, null, dmg, tileSize - 2, 500, 300));
+              row.push(makeSlime(x * tileSize, y * tileSize, 2, 50, dmg, tileSize - 2, 500, 300));
             }
-          } else {
+          } else if (y > height - 10) {
             if (Math.random() > 0.7) {
               var dmg = Math.max(60, Math.trunc(70 * Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize, 4, 40, null, dmg, tileSize - 3, 800, 400));
+              row.push(makeSlime(x * tileSize, y * tileSize, 4, 40, dmg, tileSize - 3, 800, 400));
             } else {
               var dmg = Math.max(60, Math.trunc(90 * Math.random()));
-              row.push(makeSlime(x * tileSize, y * tileSize, 2, 50, null, dmg, tileSize - 2, 500, 300));
+              row.push(makeSlime(x * tileSize, y * tileSize, 2, 50, dmg, tileSize - 2, 500, 300));
             }
           }
           break;
@@ -295,6 +298,7 @@ function generateMap(height, levelRadius, tileSize) {
     }
     tileMap.set(y, row);
   }
+  tileMap.get(1).push()
   return tileMap;
 }
 function makeMeleeWeapon(dmg, rate, texture, hitAreaEast, hitAreaWest) {

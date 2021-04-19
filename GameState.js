@@ -1,7 +1,7 @@
 class GameState {
     constructor() {
         this.tileSize = 30;
-        this.levelHeight = 200;
+        this.levelHeight = 50;
         this.levelRadius = 12;
         this.levelGeom = generateMap(this.levelHeight, this.levelRadius, this.tileSize);
         this.visableGeom = [];
@@ -31,7 +31,7 @@ class GameState {
         this.lastCoinTimer = 0;
         this.coinUIImage = "coin1";
 
-        this.items = [makeHealthItem(10), makeHealthBoostItem(20), makeArmorItem(), makeArmorItem(), makeArmorItem()];
+        this.items = [makeArmorItem()];
         this.selectedItem = 0;
 
         this.cameraYOffset = this.tileSize * 7;
@@ -39,6 +39,8 @@ class GameState {
 
         this.jumpTimer = 0;
         this.hasLanded = false;
+
+        this.boss = false;
 
         this.backgroundImg = createBackgroundImage(this.levelRadius, this.levelHeight, this.tileSize);
 
@@ -96,16 +98,14 @@ class GameState {
 
 
         var playerTileY = Math.trunc(this.playerPosition.y / this.tileSize);
+        var extendedRender = 0;
+        if(playerTileY<=11){
+            extendedRender = 10;
+        }
         this.visableGeom = [];
-        for (var i = Math.max(0, playerTileY - 20); i < Math.min(playerTileY + 8, this.levelHeight); i++) {
-            this.visableGeom = this.visableGeom.concat(this.levelGeom.get(i).filter(o => {
-                //Remove already collected coins from visable area.
-                if (o.t != "COIN") {
-                    return true;
-                } else {
-                    return !o.collected;
-                }
-            }));
+        for (var i = Math.max(0,playerTileY-15-extendedRender); i < Math.min(playerTileY + 8 + extendedRender, this.levelHeight); i++) {
+            this.levelGeom.set(i,this.levelGeom.get(i).filter(o => o.t != "COIN" ? true : !o.collected));
+            this.visableGeom = this.visableGeom.concat(this.levelGeom.get(i));
         }
 
         if (inputsArr.includes("UP") && Date.now() - this.jumpTimer > 1000 && this.hasLanded) {
@@ -210,8 +210,11 @@ class GameState {
             this.playerPosition = addVector(this.playerPosition, this.playerVelocity);
         }
         this.playerPositionOpposite = { x: (this.levelRadius * this.tileSize) + ((this.levelRadius * this.tileSize) - this.playerPosition.x - this.playerSize.w), y: this.playerPosition.y };
-        this.cameraY = Math.min(this.cameraY, this.playerPosition.y - canvasHeight + this.cameraYOffset);
 
+        if(this.playerPosition.y>11*this.tileSize){
+            this.cameraY = Math.min(this.cameraY, this.playerPosition.y - canvasHeight + this.cameraYOffset);
+        }
+        
         if (didAttack) {
             this.hitBox.x += this.playerPosition.x;
             this.hitBox.y += this.playerPosition.y;
@@ -474,16 +477,17 @@ class GameState {
                 ctx.drawImage(textures.get(this.items[this.selectedItem + 1].texture), (canvasWidth * 0.91) + (canvasWidth * 0.025) + 16, canvasHeight * 0.74, 32, 32);
                 ctx.fillText("E", (canvasWidth * 0.91) + (canvasWidth * 0.025) + 32, canvasHeight * 0.84, 32, 32);
             }
+            ctx.font = "15px Courier New";
+            ctx.fillText(this.items[this.selectedItem].desc, (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.88);
+            ctx.font = "16px Courier New";
+            ctx.fillText("Use:Shift", (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.92);
         } else {
             ctx.textAlign = "center";
             ctx.font = "15px Courier New";
-            ctx.fillText("No Items", (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.74, 32, 32);
+            ctx.fillText("No Items", (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.74);
         }
 
-        ctx.font = "15px Courier New";
-        ctx.fillText(this.items[this.selectedItem].desc, (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.88);
-        ctx.font = "16px Courier New";
-        ctx.fillText("Use:Shift", (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.92);
+        
 
         if (this.gameOver) {
             var ratio = Math.min(1, (Date.now() - this.gameOverTimer) / 3000);
