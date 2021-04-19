@@ -90,6 +90,10 @@ function makeFloor(x, y, w, h, tex) {
 function makeMirror(x, y, w, h, tex) {
   return { t: "MIRROR", r: makeRect(x, y, w, h), texture: tex };
 }
+function makeShop(x,y,w,h,shopNum,tex){
+  var items = [makeHealthItem(10),makeHealthItem(20),makeArmorItem(),makeJumpItem()];
+  return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex , items:items};
+}
 function makeEnenmy(x, y, type, data) {
   return { t: "ENEMY", x: x, y: y, type: type, isDead: false, data: data };
 }
@@ -218,8 +222,6 @@ function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
               slimeCooldown = levelRadius - 2;
             }
           }
-
-
         }
 
         slimeCooldown = Math.max(0, slimeCooldown - 1);
@@ -227,8 +229,11 @@ function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
     }
   }
 
+  var shopCooldown = 0;
+  var shopCounter = 0;
   var tileMap = new Map();
   for (var y = 0; y < height; y++) {
+    shopCooldown += 1;
     var rowTiles = [];
     for (var x = 0; x < levelRadius; x++) {
       rowTiles.push(tileMapLeft[x][y]);
@@ -246,6 +251,11 @@ function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorRight"));
           } else {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorMiddle"));
+            if(shopCooldown >= 20){
+              shopCooldown = 0;
+              row.push(makeShop(x * tileSize, (y-1) * tileSize, tileSize, tileSize,shopCounter ,"item3"));
+              shopCounter += 1;
+            }
           }
           break;
         case "WALL":
@@ -273,7 +283,7 @@ function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
               row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
               break;
             case 1:
-              row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 10, tileSize * 0.8, 800, 500));
+              row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 500));
               break;
             case 0:
               row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize, 500, 400));
@@ -291,7 +301,7 @@ function makeMeleeWeapon(dmg, rate, texture, hitAreaEast, hitAreaWest) {
 }
 
 function makeStartWeapon(playerSize) {
-  return makeMeleeWeapon(5, 500, "sword1",
+  return makeMeleeWeapon(5, 1000, "sword1",
     makeRect(playerSize.w, 0, 20, playerSize.h),
     makeRect(-20, 0, 20, playerSize.h));
 }

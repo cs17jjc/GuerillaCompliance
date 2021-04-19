@@ -32,7 +32,7 @@ class GameState {
         this.lastCoinTimer = 0;
         this.coinUIImage = "coin1";
 
-        this.items = [makeArmorItem(),makeJumpItem(),makeJumpItem(),makeJumpItem()];
+        this.items = [makeHealthItem(20),makeHealthItem(50),makeArmorItem(),makeJumpItem(),makeJumpItem()];
         this.selectedItem = 0;
 
         this.cameraYOffset = this.tileSize * 7;
@@ -203,20 +203,8 @@ class GameState {
 
         ctx.drawImage(this.backgroundImg, xOffset, -this.cameraY * 0.5);
 
-        this.visableGeom.filter(t => t.t == "ENEMY").forEach(o => {
-            switch (o.type) {
-                case "SLIME":
-                    var textureStr = o.isDead ? "Dead" : Date.now() - o.data.lastHit > o.data.recov ? "Normal" : "Hit";
-                    textureStr = o.data.type + textureStr;
-                    var bobing = o.isDead ? 0 : Math.sin(Date.now() / 100) * 2;
-                    ctx.drawImage(textures.get(textureStr), o.x + xOffset, o.y - this.cameraY - bobing, o.data.s, o.data.s + bobing);
-                    break;
-            }
-        });
-
-
         var nextAnimationFrame = Date.now() - this.geomAnimationTimer > 200;
-        this.visableGeom.filter(t => t.t != "ENEMY").forEach(o => {
+        this.visableGeom.filter(t => t.t != "ENEMY" && t.t != "COIN").forEach(o => {
             ctx.drawImage(textures.get(o.texture), o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h);
             if (nextAnimationFrame) {
                 switch (o.texture) {
@@ -238,16 +226,26 @@ class GameState {
                     case "wallRightB6":
                         o.texture = "wallRightB1";
                         break;
-                    case "coin1":
-                    case "coin2":
-                    case "coin3":
-                    case "coin4":
-                    case "coin5":
-                    case "coin6":
-                        o.texture = getNextCoinFrame(o.texture);
-                        break;
                 }
                 this.geomAnimationTimer = Date.now();
+            }
+        });
+
+        this.visableGeom.filter(t => t.t == "ENEMY").forEach(o => {
+            switch (o.type) {
+                case "SLIME":
+                    var textureStr = o.isDead ? "Dead" : Date.now() - o.data.lastHit > o.data.recov ? "Normal" : "Hit";
+                    textureStr = o.data.type + textureStr;
+                    var bobing = o.isDead ? 0 : Math.sin(Date.now() / 100) * 2;
+                    ctx.drawImage(textures.get(textureStr), o.x + xOffset, o.y - this.cameraY - bobing, o.data.s, o.data.s + bobing);
+                    break;
+            }
+        });
+
+        this.visableGeom.filter(t => t.t == "COIN").forEach(o => {
+            ctx.drawImage(textures.get(o.texture), o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h);
+            if(nextAnimationFrame){
+                o.texture = getNextCoinFrame(o.texture);
             }
         });
 
@@ -394,7 +392,7 @@ class GameState {
 
             const pOX = { x: this.playerPositionOpposite.x - this.playerVelocity.x, y: this.playerPositionOpposite.y, w: this.playerSize.w, h: this.playerSize.h - 1 };
             const pOY = { x: this.playerPositionOpposite.x, y: this.playerPositionOpposite.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
-            if (o.t != "COIN") {
+            if (o.t != "COIN" && o.t!="SHOP") {
                 if (intersectRect(pX, o.r) || intersectRect(pOX, o.r)) {
                     xCollision = true;
                 }
@@ -406,12 +404,12 @@ class GameState {
                 if (intersectRect(pYJump, o.r) || intersectRect(pOYJump, o.r)) {
                     this.hasLanded = true;
                 }
-            } else {
+            } else if(o.t == "COIN") {
                 var rCX = makeRect(o.r.x + o.vx, o.r.y, o.r.w, o.r.h - 1);
                 var rCY = makeRect(o.r.x, o.r.y + o.vy, o.r.w, o.r.h);
                 var coinColX = false;
                 var coinColY = false;
-                this.visableGeom.filter(t => t.t != "ENEMY" && t.t != "COIN").forEach(t => {
+                this.visableGeom.filter(t => !["SHOP","COIN","ENEMY"].includes(t.t)).forEach(t => {
                     if (intersectRect(rCX, t.r)) {
                         coinColX = true;
                     }
@@ -438,6 +436,8 @@ class GameState {
                     this.lastCoinTimer = Date.now();
                     localStorage.setItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA", this.coins);
                 }
+            } else if (o.t == "SHOP"){
+
             }
         });
 
@@ -478,7 +478,7 @@ class GameState {
         var xColSlime = false;
         var yColSlime = false;
         var hasFloor = false;
-        this.visableGeom.filter(t => t != o && t.t != "COIN" && t.t != "ENEMY").forEach(t => {
+        this.visableGeom.filter(t => t != o && !["COIN","ENEMY","SHOP"].includes(t.t)).forEach(t => {
 
             if (intersectRect(t.r, sSY)) {
                 yColSlime = true;
