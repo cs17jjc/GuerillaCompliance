@@ -94,7 +94,7 @@ function makeEnenmy(x, y, type, data) {
   return { t: "ENEMY", x: x, y: y, type: type, isDead: false, data: data };
 }
 function makeSlime(x, y, vx, type, hp, dmg, s, hs, recov) {
-  return makeEnenmy(x, y, "SLIME", { type: type, vx: vx, vy: 0, s: s, hp: hp, dmg: dmg, hitTimer: 0, hitspeed: hs, lastHit: 0, recov: recov})
+  return makeEnenmy(x, y, "SLIME", { type: type, vx: vx, vy: 0, s: s, hp: hp, dmg: dmg, hitTimer: 0, hitspeed: hs, lastHit: 0, recov: recov })
 }
 function makeCoin(x, y, vx, vy) {
   return { t: "COIN", vx: vx, vy: vy, texture: "coin1", r: makeRect(x, y, 8, 8), collected: false };
@@ -270,13 +270,13 @@ function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
           var section = Math.trunc(y / (height / 3));
           switch (section) {
             case 2:
-                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
+              row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
               break;
             case 1:
-                row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 10, tileSize * 0.8, 800, 500));
+              row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 10, tileSize * 0.8, 800, 500));
               break;
             case 0:
-                row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize, 500, 400));
+              row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize, 500, 400));
               break;
           }
           break;
@@ -323,6 +323,9 @@ function makeArmorItem() {
 function makeEffectItem(effectType, strength, duration) {
   return { type: "EFFECT", effectType: effectType, strength: strength, duration: duration };
 }
+function makeJumpItem() {
+  return { type: "JUMP", texture: "item3", desc: "Jump" };
+}
 
 function useItem(item, gState) {
   switch (item.type) {
@@ -336,6 +339,11 @@ function useItem(item, gState) {
     case "ARMOR":
       gState.playerArmor += 1;
       break;
+    case "JUMP":
+      gState.playerVelocity.y -= 12;
+      gState.jumpTimer = Date.now();
+      gState.hasLanded = false;
+      break;
   }
 }
 
@@ -347,5 +355,7 @@ function canUse(item, gState) {
       return gState.maxHealth < 300;
     case "ARMOR":
       return gState.playerArmor < gState.maxArmor;
+    default:
+      return Date.now() - gState.jumpTimer > 500;
   }
 }

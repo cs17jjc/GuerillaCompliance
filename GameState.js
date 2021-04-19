@@ -32,7 +32,7 @@ class GameState {
         this.lastCoinTimer = 0;
         this.coinUIImage = "coin1";
 
-        this.items = [makeArmorItem()];
+        this.items = [makeArmorItem(),makeJumpItem(),makeJumpItem(),makeJumpItem()];
         this.selectedItem = 0;
 
         this.cameraYOffset = this.tileSize * 7;
