@@ -324,7 +324,7 @@ function makeEffectItem(effectType, strength, duration) {
   return { type: "EFFECT", effectType: effectType, strength: strength, duration: duration };
 }
 function makeJumpItem() {
-  return { type: "JUMP", texture: "item3", desc: "Jump" };
+  return { type: "JUMP", texture: "item4", desc: "Jump" };
 }
 
 function useItem(item, gState) {
