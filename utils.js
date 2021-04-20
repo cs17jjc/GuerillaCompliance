@@ -104,15 +104,21 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
     prices = priceItems(items);
     text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
   } else if (shopNum == 1) {
-    weapon = makeMediumWeapon(playerSize);
-    items = nRandomShopItems(3,["HEALTH","ARMOR"],5,5)
+    var weapon = makeMediumWeapon(playerSize);
+    items = nRandomShopItems(3,["HEALTH","ARMOR"],5,5);
+    items.push(makeSwordItem(weapon,makeSwordDesc(weapon,true)));
+    prices = priceItems(items);
+    text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
+  } else if (shopNum == 2) {
+    var weapon = makeMidWeapon(playerSize);
+    items = nRandomShopItems(4,["HEALTH","ARMOR","HEALTHBOOST","JUMP"],10,30);
     items.push(makeSwordItem(weapon,makeSwordDesc(weapon,true)));
     prices = priceItems(items);
     text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
   } else {
-    items = [];
-    prices = [];
-    text = [];
+    items = nRandomShopItems(5,["HEALTH","ARMOR","HEALTHBOOST","JUMP"],10,30);
+    prices = priceItems(items);
+    text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
   }
 
   return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex, items: items, prices: prices, text: text };
@@ -342,16 +348,32 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
               }
               break;
             case 4:
-              row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 500));
+              if (Math.random() > 0.3) {
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
+              } else {
+                if(Math.random() > 0.5){
+                  row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 400));
+                } else {
+                  row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 15, tileSize * 0.6, 500, 400));
+                }
+              }
               break;
             case 3:
-              row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize, 500, 400));
+              if (Math.random() > 0.8) {
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize, 500, 400));
+              } else {
+                if(Math.random() > 0.5){
+                  row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 400));
+                } else {
+                  row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 15, tileSize * 0.6, 500, 400));
+                }
+              }
               break;
             case 2:
-              row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
+              row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize * 0.6, 400, 600));
               break;
             case 1:
-              row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 500));
+              row.push(makeSlime(x * tileSize, y * tileSize, 2, "large", 15, 20, tileSize * 0.8, 500, 500));
               break;
             case 0:
               row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize, 500, 400));
@@ -374,7 +396,12 @@ function makeStartWeapon(playerSize) {
     makeRect(-30, 0, 20, playerSize.h));
 }
 function makeMediumWeapon(playerSize) {
-  return makeMeleeWeapon("Steel Sword", 6, 800, "sword1",
+  return makeMeleeWeapon("Steel Sword", 6 , 800, "sword1",
+    makeRect(playerSize.w, 0, 30, playerSize.h),
+    makeRect(-30, 0, 30, playerSize.h));
+}
+function makeMidWeapon(playerSize) {
+  return makeMeleeWeapon("TentaSword", 8 , 500, "sword2",
     makeRect(playerSize.w, 0, 30, playerSize.h),
     makeRect(-30, 0, 30, playerSize.h));
 }
@@ -414,7 +441,7 @@ function randomShopItem(pool,minStrength, range) {
   switch(random_item(pool)){
     case "HEALTH":
       return makeHealthItem(minStrength + Math.trunc(Math.random() * range));
-    case "HEATHBOOST":
+    case "HEALTHBOOST":
       return makeHealthBoostItem( minStrength + Math.trunc(Math.random() * range) )
     case "ARMOR":
       return makeArmorItem();
