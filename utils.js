@@ -37,6 +37,9 @@ function drawRectCenter(ctx, x, y, w, h) {
 function getRandomArbitrary(min, max) {
   return Math.random() * (max - min) + min;
 }
+function random_item(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
 function createParticle(pos, xvel, yvel, lifeDec) {
   return { x: pos.x, y: pos.y, xvel: xvel, yvel: yvel, life: 255, lifeDec: lifeDec };
 }
@@ -96,11 +99,15 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
   var items;
   var prices;
   var text;
-  console.log(shopNum);
-  if (shopNum > 0) {
+  if (shopNum == 0) {
+    items = nRandomShopItems(3,["HEALTH","ARMOR"],5,5);
+    prices = priceItems(items);
+    text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
+  } else if (shopNum == 1) {
     weapon = makeMediumWeapon(playerSize);
-    items = [makeHealthItem(Math.trunc(5 + (Math.random() * 15))), makeArmorItem(), makeSwordItem(weapon, makeSwordDesc(weapon, true))];
-    prices = [5, 10, 15];
+    items = nRandomShopItems(3,["HEALTH","ARMOR"],5,5)
+    items.push(makeSwordItem(weapon,makeSwordDesc(weapon,true)));
+    prices = priceItems(items);
     text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
   } else {
     items = [];
@@ -266,7 +273,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
   var shopCooldown = 0;
   var shopCounter = 0;
   var tileMap = new Map();
-  for (var y = 0; y < height; y++) {
+  for (var y = height - 1; y >= 0; y--) {
     shopCooldown += 1;
     var rowTiles = [];
     for (var x = 0; x < levelRadius; x++) {
@@ -285,7 +292,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorRight"));
           } else {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorMiddle"));
-            if (shopCooldown >= 20) {
+            if (shopCooldown >= 25) {
               shopCooldown = 0;
               row.push(makeShop(x * tileSize, (y - 1) * tileSize, tileSize, tileSize, shopCounter, "shop1", playerSize));
               shopCounter += 1;
@@ -311,8 +318,35 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           row.push(makeMirror(x * tileSize, y * tileSize, tileSize, tileSize, "mirrorRight"));
           break;
         case "SLIME":
-          var section = Math.trunc(y / (height / 3));
+          var section = Math.trunc(y / 25);
           switch (section) {
+            case 7:
+              row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
+              break;
+            case 6:
+              if (Math.random() > 0.5) {
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
+              } else {
+                row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 10, 15, tileSize * 0.6, 500, 500));
+              }
+              break;
+            case 5:
+              if (Math.random() > 0.5) {
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
+              } else {
+                if(Math.random() > 0.5){
+                  row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 400));
+                } else {
+                  row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 15, tileSize * 0.6, 500, 400));
+                }
+              }
+              break;
+            case 4:
+              row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 500));
+              break;
+            case 3:
+              row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize, 500, 400));
+              break;
             case 2:
               row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
               break;
@@ -336,11 +370,11 @@ function makeMeleeWeapon(name, dmg, rate, texture, hitAreaEast, hitAreaWest) {
 
 function makeStartWeapon(playerSize) {
   return makeMeleeWeapon("Iron Sword", 5, 1000, "sword1",
-    makeRect(playerSize.w, 0, 20, playerSize.h),
-    makeRect(-20, 0, 20, playerSize.h));
+    makeRect(playerSize.w, 0, 30, playerSize.h),
+    makeRect(-30, 0, 20, playerSize.h));
 }
 function makeMediumWeapon(playerSize) {
-  return makeMeleeWeapon("Steel Sword", 8, 400, "sword1",
+  return makeMeleeWeapon("Steel Sword", 6, 800, "sword1",
     makeRect(playerSize.w, 0, 30, playerSize.h),
     makeRect(-30, 0, 30, playerSize.h));
 }
@@ -375,6 +409,41 @@ function makeSwordItem(sword, desc) {
 }
 function makeSwordDesc(sword, name) {
   return (name ? sword.name + " with " : "") + sword.d + " dmg and " + sword.rate + " hit speed."
+}
+function randomShopItem(pool,minStrength, range) {
+  switch(random_item(pool)){
+    case "HEALTH":
+      return makeHealthItem(minStrength + Math.trunc(Math.random() * range));
+    case "HEATHBOOST":
+      return makeHealthBoostItem( minStrength + Math.trunc(Math.random() * range) )
+    case "ARMOR":
+      return makeArmorItem();
+    case "JUMP":
+      return makeJumpItem();
+  }
+}
+function nRandomShopItems(n,pool,min,range){
+  var items = [];
+  while(items.length < n){
+    items.push(randomShopItem(pool,min,range));
+  }
+  return items;
+}
+function priceItems(items){
+  return items.map(i => {
+    switch(i.type){
+      case "HEALTH":
+        return 5 + Math.trunc(i.value/5);
+      case "HEALTHBOOST":
+        return 20 + Math.trunc(i.value/5);
+      case "JUMP":
+        return 10;
+      case "ARMOR":
+        return 15;
+      case "SWORD":
+        return Math.trunc( (i.sword.d/i.sword.rate)*1000 );
+    }
+  });
 }
 
 function useItem(item, gState) {

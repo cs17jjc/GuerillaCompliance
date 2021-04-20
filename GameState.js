@@ -1,7 +1,7 @@
 class GameState {
     constructor() {
         this.tileSize = 30;
-        this.levelHeight = 60;
+        this.levelHeight = 200;
         this.levelRadius = 12;
 
         this.playerPosition = { x: 4 * this.tileSize, y: (this.levelHeight - 4) * this.tileSize };
@@ -24,7 +24,7 @@ class GameState {
         this.playerHealth = this.maxHealth;
         this.prevPlayerHealth = this.playerHealth;
         this.maxArmor = 3;
-        this.playerArmor = this.maxArmor;
+        this.playerArmor = 1;
         this.prevPlayerArmor = this.playerArmor;
         this.hitTimer = 0;
 
@@ -664,7 +664,7 @@ class GameState {
         if (this.currentShop.items[this.selectedShopItem].type == "SWORD") {
             this.currentShop.text.push({ text: "My " + this.equipedWeapon.name + " has " + makeSwordDesc(this.equipedWeapon, false), side: "R" });
         }
-        while (this.currentShop.text.length > 3) {
+        while (this.currentShop.text.length > 4) {
             this.currentShop.text.shift();
         }
     }
