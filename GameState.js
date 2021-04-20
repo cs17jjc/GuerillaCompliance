@@ -3,16 +3,16 @@ class GameState {
         this.tileSize = 30;
         this.levelHeight = 60;
         this.levelRadius = 12;
-        this.levelGeom = generateMap(this.levelHeight, this.levelRadius, this.tileSize);
-        this.visableGeom = [];
-        this.geomAnimationTimer = 0;
-
 
         this.playerPosition = { x: 4 * this.tileSize, y: (this.levelHeight - 4) * this.tileSize };
         this.playerSize = { w: this.tileSize * 0.8, h: this.tileSize * 0.9 };
         this.playerVelocity = { x: 0, y: 0 };
         this.playerPositionOpposite = { x: (this.levelRadius * this.tileSize) + ((this.levelRadius * this.tileSize) - this.playerPosition.x - this.playerSize.w), y: this.playerPosition.y };
         this.playerAnimationTimer = Date.now();
+
+        this.levelGeom = generateMap(this.levelHeight, this.levelRadius, this.tileSize, this.playerSize);
+        this.visableGeom = [];
+        this.geomAnimationTimer = 0;
 
         this.equipedWeapon;
         this.hitBox;
@@ -32,7 +32,7 @@ class GameState {
         this.lastCoinTimer = 0;
         this.coinUIImage = "coin1";
 
-        this.items = [makeHealthItem(20), makeHealthItem(50), makeArmorItem(), makeJumpItem(), makeJumpItem()];
+        this.items = [];
         this.selectedItem = 0;
 
         this.cameraYOffset = this.tileSize * 7;
@@ -53,6 +53,8 @@ class GameState {
 
         this.canEnterShop = false;
         this.inShop = false;
+        this.selectedShopItem = 0;
+        this.currentShop = null;
     }
     static initial() {
         var gState = new GameState();
@@ -85,7 +87,7 @@ class GameState {
 
         var canAttack = Date.now() - this.attackTimer > this.equipedWeapon.rate;
         var didAttack = false;
-        if (canAttack && !this.gameOver) {
+        if (canAttack && !this.gameOver && !this.inShop) {
             if (inputsArr.includes("LEFTARROW")) {
                 this.attackTimer = Date.now();
                 this.hitBox = copyRect(this.equipedWeapon.hw);
@@ -113,25 +115,27 @@ class GameState {
             this.visableGeom = this.visableGeom.concat(this.levelGeom.get(i));
         }
 
-        if (inputsArr.includes("UP") && Date.now() - this.jumpTimer > 1000 && this.hasLanded) {
-            this.playerVelocity.y -= 12;
-            this.jumpTimer = Date.now();
-            this.hasLanded = false;
-        }
-        if (inputsArr.includes("DOWN") && !this.hasLanded) {
-            this.playerVelocity.y += 0.2;
-        }
-        if (inputsArr.includes("LEFT")) {
-            this.playerVelocity.x = 6;
-        }
-        if (inputsArr.includes("RIGHT")) {
-            this.playerVelocity.x = -6;
+        if (!this.inShop) {
+            if (inputsArr.includes("UP") && Date.now() - this.jumpTimer > 1000 && this.hasLanded) {
+                this.playerVelocity.y -= 12;
+                this.jumpTimer = Date.now();
+                this.hasLanded = false;
+            }
+            if (inputsArr.includes("DOWN") && !this.hasLanded) {
+                this.playerVelocity.y += 0.2;
+            }
+            if (inputsArr.includes("LEFT")) {
+                this.playerVelocity.x = 6;
+            }
+            if (inputsArr.includes("RIGHT")) {
+                this.playerVelocity.x = -6;
+            }
         }
 
         this.updatePlayerPosition();
 
         if (inputsArr.includes("ENTER") && !inputs.prevStates.includes("ENTER")) {
-            this.inShop = this.inShop ^ this.canEnterShop;
+            this.inShop = this.inShop ? false : this.canEnterShop;
         }
 
         if (!this.gameOver) {
@@ -168,23 +172,50 @@ class GameState {
 
         this.updateEnemeis(didAttack);
 
-        if (!inputs.prevStates.includes("PREVITEM") && inputsArr.includes("PREVITEM") && this.selectedItem > 0) {
-            this.selectedItem -= 1;
+        if (!inputs.prevStates.includes("PREVITEM") && inputsArr.includes("PREVITEM")) {
+            if (!this.inShop && this.selectedItem > 0) {
+                this.selectedItem -= 1;
+            } else if (this.inShop && this.selectedShopItem > 0) {
+                this.shiftShopItems(-1);
+            }
         }
-        if (!inputs.prevStates.includes("NEXTITEM") && inputsArr.includes("NEXTITEM") && this.selectedItem < this.items.length - 1) {
-            this.selectedItem += 1;
-        }
-        if (!inputs.prevStates.includes("USEITEM") && inputsArr.includes("USEITEM") && this.items[this.selectedItem] != null) {
-
-            if (canUse(this.items[this.selectedItem], this)) {
-                useItem(this.items[this.selectedItem], this);
-                this.items.splice(this.selectedItem, 1);
-                this.selectedItem = Math.min(this.items.length - 1, this.selectedItem);
-            } else {
-
+        if (!inputs.prevStates.includes("NEXTITEM") && inputsArr.includes("NEXTITEM")) {
+            if (!this.inShop && this.selectedItem < this.items.length - 1) {
+                this.selectedItem += 1;
+            } else if (this.inShop && this.selectedShopItem < this.currentShop.items.length - 1) {
+                this.shiftShopItems(1);
             }
 
         }
+        if (!inputs.prevStates.includes("USEITEM") && inputsArr.includes("USEITEM")) {
+
+            if (this.items[this.selectedItem] != null && !this.inShop) {
+                if (canUse(this.items[this.selectedItem], this)) {
+                    useItem(this.items[this.selectedItem], this);
+                    this.items.splice(this.selectedItem, 1);
+                    this.selectedItem = Math.min(this.items.length - 1, this.selectedItem);
+                } else {
+
+                }
+            } else if (this.inShop) {
+                if (this.currentShop.prices[this.selectedShopItem] <= this.coins) {
+                    this.coins -= this.currentShop.prices[this.selectedShopItem]
+                    if (this.currentShop.items[this.selectedShopItem].type != "SWORD") {
+                        this.items.unshift(this.currentShop.items[this.selectedShopItem]);
+                    } else {
+                        this.changeWeapon(this.currentShop.items[this.selectedShopItem].sword);
+                    }
+                    this.currentShop.items.splice(this.selectedShopItem,1);
+                    this.currentShop.prices.splice(this.selectedShopItem,1);
+                    this.shiftShopItems(0);
+                    this.lastCoinTimer = Date.now();
+                }
+            }
+
+
+
+        }
+
 
         if (this.playerHealth < this.prevPlayerHealth) {
             this.hitTimer = Date.now();
@@ -233,6 +264,11 @@ class GameState {
                     case "wallRightB6":
                         o.texture = "wallRightB1";
                         break;
+                    default:
+                        if (o.t == "SHOP") {
+                            o.texture = getNextShopFrame(o.texture);
+                        }
+                        break
                 }
                 this.geomAnimationTimer = Date.now();
             }
@@ -338,25 +374,6 @@ class GameState {
             ctx.fillText("🛡️", canvasWidth * 0.91 + xHealthBarOffset + canvasWidth * 0.025 + 30, canvasHeight * 0.72);
         }
 
-        ctx.textAlign = "left";
-        var coinImageTime = Date.now() - this.lastCoinTimer;
-        var spinTime = 500;
-        if (coinImageTime < spinTime) {
-            var frameProg = Math.trunc(coinImageTime / (spinTime / 6)) + 1;
-            this.coinUIImage = "coin" + frameProg.toString();
-        } else {
-            this.coinUIImage = "coin1";
-        }
-        ctx.drawImage(textures.get(this.coinUIImage), canvasWidth * 0.89, canvasHeight * 0.1, 32, 32);
-
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
-        ctx.shadowColor = rgbToHex(150, 50, 0);
-        ctx.fillStyle = rgbToHex(255, 215, 0);
-        var goldStr = this.coins.toString().padStart(3, "0");
-        ctx.font = "28px Courier New";
-        ctx.fillText(goldStr, canvasWidth * 0.928, canvasHeight * 0.15);
-
         ctx.textAlign = "center";
         ctx.fillStyle = rgbToHex(50, 50, 50);
 
@@ -379,7 +396,7 @@ class GameState {
         } else {
             ctx.textAlign = "center";
             ctx.font = "15px Courier New";
-            ctx.fillText("No Items", (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.74);
+            ctx.fillText("No Items", (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.84);
         }
 
         if (this.gameOver) {
@@ -394,6 +411,73 @@ class GameState {
             ctx.font = "70px Arial";
             ctx.fillText("Press R To Restart", canvasWidth / 2, canvasHeight / 2 - (25 * ratio) + 100);
         }
+
+        if (!this.gameOver && this.inShop) {
+
+            ctx.drawImage(textures.get("shopBG"), 0, 0, canvasWidth, canvasHeight);
+            for (var i = 0; i < this.currentShop.items.length; i++) {
+                ctx.drawImage(textures.get("shopEl"), 290 + (i * 110), i == this.selectedShopItem ? -80 : 0);
+                var itemImg = textures.get(this.currentShop.items[i].texture);
+                if (this.currentShop.items[i].type != "SWORD") {
+                    ctx.drawImage(itemImg, 297 + (i * 110), 270 + (i == this.selectedShopItem ? -80 : 0), 64, 64);
+                } else {
+                    ctx.save();
+                    ctx.translate(340 + (i * 110), 270 + (i == this.selectedShopItem ? -80 : 0));
+                    ctx.rotate(Math.PI / 4);
+                    ctx.drawImage(itemImg, 0, 0, 64 * (itemImg.width / itemImg.height), 64);
+                    ctx.restore();
+                }
+                ctx.drawImage(textures.get("coin1"), 296 + (i * 110), 366 + (i == this.selectedShopItem ? -80 : 0), 18, 18);
+
+                ctx.save();
+                ctx.textAlign = "left";
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+                ctx.shadowColor = rgbToHex(50, 50, 50);
+                ctx.fillStyle = rgbToHex(255, 215, 0);
+                var goldStr = this.currentShop.prices[i].toString().padStart(3, "0");
+                ctx.font = "24px Courier New";
+                ctx.fillText(goldStr, 318 + (i * 110), 382 + (i == this.selectedShopItem ? -80 : 0));
+                ctx.restore();
+            }
+            ctx.save();
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.shadowColor = rgbToHex(0, 0, 0);
+            ctx.font = "20px Courier New";
+            for (var i = 0; i < Math.min(4, this.currentShop.text.length); i++) {
+                if (this.currentShop.text[i].side == "L") {
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = rgbToHex(250, 180, 250);
+                    ctx.fillText(this.currentShop.text[i].text, 240, 435 + (25 * i));
+                } else {
+                    ctx.textAlign = "right";
+                    ctx.fillStyle = rgbToHex(250, 250, 250);
+                    ctx.fillText(this.currentShop.text[i].text, 780, 435 + (25 * i));
+                }
+            }
+            ctx.restore();
+        }
+
+        ctx.textAlign = "left";
+        var coinImageTime = Date.now() - this.lastCoinTimer;
+        var spinTime = 500;
+        if (coinImageTime < spinTime) {
+            var frameProg = Math.trunc(coinImageTime / (spinTime / 6)) + 1;
+            this.coinUIImage = "coin" + frameProg.toString();
+        } else {
+            this.coinUIImage = "coin1";
+        }
+        ctx.drawImage(textures.get(this.coinUIImage), canvasWidth * 0.89, canvasHeight * 0.1, 32, 32);
+
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        ctx.shadowColor = rgbToHex(150, 50, 0);
+        ctx.fillStyle = rgbToHex(255, 215, 0);
+        var goldStr = this.coins.toString().padStart(3, "0");
+        ctx.font = "28px Courier New";
+        ctx.fillText(goldStr, canvasWidth * 0.928, canvasHeight * 0.15);
+
         ctx.restore();
     }
 
@@ -456,8 +540,9 @@ class GameState {
                     localStorage.setItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA", this.coins);
                 }
             } else if (o.t == "SHOP") {
-                if (intersectRect(pX, o.r) || intersectRect(pOX, o.r) || intersectRect(pY, o.r) || intersectRect(pOY, o.r)) {
+                if ((intersectRect(pX, o.r) || intersectRect(pOX, o.r) || intersectRect(pY, o.r) || intersectRect(pOY, o.r)) && !this.inShop && o.items.length > 0) {
                     this.canEnterShop = true;
+                    this.currentShop = o;
                 }
             }
         });
@@ -564,7 +649,23 @@ class GameState {
                     this.playerArmor = Math.max(0, this.playerArmor - 1);
                 }
                 o.data.hitTimer = Date.now();
+                this.inShop = false;
             }
+        }
+    }
+
+    shiftShopItems(dir) {
+        if(this.currentShop.items.length == 0){
+            this.inShop = false;
+            return;
+        }
+        this.selectedShopItem = Math.min(this.currentShop.items.length-1,Math.max(0,this.selectedShopItem + dir));
+        this.currentShop.text.push({ text: this.currentShop.items[this.selectedShopItem].desc, side: "L" });
+        if (this.currentShop.items[this.selectedShopItem].type == "SWORD") {
+            this.currentShop.text.push({ text: "My " + this.equipedWeapon.name + " has " + makeSwordDesc(this.equipedWeapon, false), side: "R" });
+        }
+        while (this.currentShop.text.length > 3) {
+            this.currentShop.text.shift();
         }
     }
 

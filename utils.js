@@ -71,7 +71,7 @@ function createBackgroundImage(levelRadius, levelHeight, tileSize) {
       } else {
         bgCtx.drawImage(textures.get("backgroundTileE"), x, y, tileSize, tileSize);
       }
-      bgCtx.fillStyle = rgbToHexAlpha(0,0,0,Math.trunc(((y/bgCanv.height)*10))*25 );
+      bgCtx.fillStyle = rgbToHexAlpha(0, 0, 0, Math.trunc(((y / bgCanv.height) * 10)) * 25);
       bgCtx.fillRect(x, y, tileSize, tileSize);
     }
   }
@@ -92,9 +92,23 @@ function makeFloor(x, y, w, h, tex) {
 function makeMirror(x, y, w, h, tex) {
   return { t: "MIRROR", r: makeRect(x, y, w, h), texture: tex };
 }
-function makeShop(x, y, w, h, shopNum, tex) {
-  var items = [makeHealthItem(10), makeHealthItem(20), makeArmorItem(), makeJumpItem()];
-  return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex, items: items };
+function makeShop(x, y, w, h, shopNum, tex, playerSize) {
+  var items;
+  var prices;
+  var text;
+  console.log(shopNum);
+  if (shopNum > 0) {
+    weapon = makeMediumWeapon(playerSize);
+    items = [makeHealthItem(Math.trunc(5 + (Math.random() * 15))), makeArmorItem(), makeSwordItem(weapon, makeSwordDesc(weapon, true))];
+    prices = [5, 10, 15];
+    text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
+  } else {
+    items = [];
+    prices = [];
+    text = [];
+  }
+
+  return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex, items: items, prices: prices, text: text };
 }
 function makeEnenmy(x, y, type, data) {
   return { t: "ENEMY", x: x, y: y, type: type, isDead: false, data: data };
@@ -122,6 +136,24 @@ function getNextCoinFrame(frame) {
       return "coin1";
   }
 }
+function getNextShopFrame(frame) {
+  switch (frame) {
+    case "shop1":
+      return "shop2";
+    case "shop2":
+      return "shop3";
+    case "shop3":
+      return "shop4";
+    case "shop4":
+      return "shop5";
+    case "shop5":
+      return "shop6";
+    case "shop6":
+      return "shop7";
+    case "shop7":
+      return "shop1";
+  }
+}
 function countFloors(map, x, y, size) {
   if (y < 0 || y > map[0].length - 1) {
     return 0;
@@ -134,7 +166,7 @@ function countFloors(map, x, y, size) {
   }
   return count;
 }
-function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
+function generateMap(height, levelRadius, tileSize, playerSize) {
   var tileMapLeft = [];
   var tileMapRight = [];
   for (var i = 0; i < levelRadius; i++) {
@@ -255,7 +287,7 @@ function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorMiddle"));
             if (shopCooldown >= 20) {
               shopCooldown = 0;
-              row.push(makeShop(x * tileSize, (y - 1) * tileSize, tileSize, tileSize, shopCounter, "item3"));
+              row.push(makeShop(x * tileSize, (y - 1) * tileSize, tileSize, tileSize, shopCounter, "shop1", playerSize));
               shopCounter += 1;
             }
           }
@@ -298,27 +330,27 @@ function generateMap(height, levelRadius, tileSize, bossHeightTrigger) {
   }
   return tileMap;
 }
-function makeMeleeWeapon(dmg, rate, texture, hitAreaEast, hitAreaWest) {
-  return { t: "MELEE", d: dmg, rate: rate, texture: texture, he: hitAreaEast, hw: hitAreaWest };
+function makeMeleeWeapon(name, dmg, rate, texture, hitAreaEast, hitAreaWest) {
+  return { t: "MELEE", name: name, d: dmg, rate: rate, texture: texture, he: hitAreaEast, hw: hitAreaWest };
 }
 
 function makeStartWeapon(playerSize) {
-  return makeMeleeWeapon(5, 1000, "sword1",
+  return makeMeleeWeapon("Iron Sword", 5, 1000, "sword1",
     makeRect(playerSize.w, 0, 20, playerSize.h),
     makeRect(-20, 0, 20, playerSize.h));
 }
 function makeMediumWeapon(playerSize) {
-  return makeMeleeWeapon(8, 400, "sword1",
+  return makeMeleeWeapon("Steel Sword", 8, 400, "sword1",
     makeRect(playerSize.w, 0, 30, playerSize.h),
     makeRect(-30, 0, 30, playerSize.h));
 }
 function makeGodWeapon(playerSize) {
-  return makeMeleeWeapon(50, 200, "sword2",
+  return makeMeleeWeapon("BFG 100", 50, 200, "sword2",
     makeRect(playerSize.w, 0, 30, playerSize.h),
     makeRect(-30, 0, 30, playerSize.h));
 }
 function makeFarmingWeapon(playerSize) {
-  return makeMeleeWeapon(2, 100, "sword2",
+  return makeMeleeWeapon("Gold Sword", 2, 100, "sword2",
     makeRect(playerSize.w, 0, 20, playerSize.h),
     makeRect(-20, 0, 20, playerSize.h));
 }
@@ -337,6 +369,12 @@ function makeEffectItem(effectType, strength, duration) {
 }
 function makeJumpItem() {
   return { type: "JUMP", texture: "item4", desc: "Jump" };
+}
+function makeSwordItem(sword, desc) {
+  return { type: "SWORD", texture: sword.texture, desc: desc, sword: sword }
+}
+function makeSwordDesc(sword, name) {
+  return (name ? sword.name + " with " : "") + sword.d + " dmg and " + sword.rate + " hit speed."
 }
 
 function useItem(item, gState) {
