@@ -7,25 +7,3 @@ zzfxR=44100
 zzfxX=new(top.AudioContext||webkitAudioContext);
 //zzfxM
 zzfxM=(n,f,t,e=125)=>{let l,o,z,r,g,h,x,a,u,c,d,i,m,p,G,M=0,R=[],b=[],j=[],k=0,q=0,s=1,v={},w=zzfxR/e*60>>2;for(;s;k++)R=[s=a=d=m=0],t.map((e,d)=>{for(x=f[e][k]||[0,0,0],s|=!!f[e][k],G=m+(f[e][0].length-2-!a)*w,p=d==t.length-1,o=2,r=m;o<x.length+p;a=++o){for(g=x[o],u=o==x.length+p-1&&p||c!=(x[0]||0)|g|0,z=0;z<w&&a;z++>w-99&&u?i+=(i<1)/99:0)h=(1-i)*R[M++]/2||0,b[r]=(b[r]||0)-h*q+h,j[r]=(j[r++]||0)+h*q+h;g&&(i=g%1,q=x[1]||0,(g|=0)&&(R=v[[c=x[M=0]||0,g]]=v[[c,g]]||(l=[...n[c]],l[2]*=2**((g-12)/12),g>0?zzfxG(...l):[])))}m=G});return[b,j]}
-
-let s = (snd) => zzfx(...snd).start();
-var gArr = (n) => Array.from(new Array(n).keys());
-//Music
-//Generate drum patterns
-var drm = [gArr(18).map(i => i == 2 ? 15 : 0),gArr(18).map(i => i == 2 ? 15 : 0),gArr(18).map(i => i == 10 ? 15 : i == 0 ? 1 : 0),gArr(18).map(i => i == 0 ? 2 : (i % 4 == 0 && i != 12) ? 15 : 0)];
-drm[1][14] = 15;
-//Generate note patterns
-var mkEch = (n) => gArr(18).map(i => i == 0 ? 3 : [2,6,10,14].includes(i) ? n + [0,0.1,0.5,0.7][[2,6,10,14].indexOf(i)] : i == 1 ? -0.1 : 0);
-var Ech = [mkEch(18),mkEch(22),mkEch(24),mkEch(30)];
-//Generate song pattern
-var wrp = (n) => n - (Math.trunc(n/4)*4);
-var ptrn = gArr(4).map(i => i < 8 ? wrp(i) : i < 16 ? 4 + wrp(i) : 8 + wrp(i));
-var song = [
-[
-[,0,86,,,,,.7,,,,.5,,6.7,1,.05],             //Kick
-[.7,0,270,,,.12,3,1.65,-2,,,,,4.5,,.02],    //Snare
-[.4,0,2200,,,.04,3,2,,,800,.02,,4.8,,.01,.1],  //Hi-hat
-[,0,130.81 ,,,1] //Echo Synth
-],
-[[Ech[0]],[Ech[1]],[Ech[2]],[Ech[3]]],
-ptrn,100];

@@ -20,10 +20,10 @@ document.addEventListener('keyup', (e) => {
     inputs.update(e.key,false);
 });
 
-let mySongData = zzfxM(...song);
+let mySongData = zzfxM(...bgMusicSong);
 let myAudioNode = zzfxP(...mySongData);
 myAudioNode.loop = true;
-//myAudioNode.start();
+myAudioNode.start();
 var musicToggle = true;
 var soundToggle = true;
 
