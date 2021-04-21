@@ -55,6 +55,10 @@ class GameState {
         this.inShop = false;
         this.selectedShopItem = 0;
         this.currentShop = null;
+        this.shopCutsceneTimer = 0;
+        this.shopCutscene = false;
+        this.currentShopText = [];
+        this.shopCutsceneLine = 0;
     }
     static initial() {
         var gState = new GameState();
@@ -135,7 +139,30 @@ class GameState {
         this.updatePlayerPosition();
 
         if (inputsArr.includes("ENTER") && !inputs.prevStates.includes("ENTER")) {
-            this.inShop = this.inShop ? false : this.canEnterShop;
+            if(this.shopCutscene){
+                this.shopCutscene = false;
+            } else {
+                if(this.inShop){
+                    this.inShop = false;
+                } else if(this.canEnterShop){
+                    this.inShop = true;
+                    this.shopCutsceneTimer = Date.now();
+                    this.shopCutscene = true;
+                    this.currentShopText = [this.currentShop.text[0]];
+                    this.shopCutsceneLine = 1;
+                    this.selectedShopItem = 0;
+                }
+            }
+        }
+        if(this.inShop){
+            if(((Date.now() - this.shopCutsceneTimer) > (this.shopCutscene ? 1000 : 1) ) && this.shopCutsceneLine < this.currentShop.text.length){
+                this.currentShopText.push(this.currentShop.text[this.shopCutsceneLine]);
+                this.shopCutsceneLine += 1;
+                if(this.shopCutsceneLine == this.currentShop.text.length){
+                    this.shopCutscene = false;
+                }
+                this.shopCutsceneTimer = Date.now();
+            }
         }
 
         if (!this.gameOver) {
@@ -175,14 +202,14 @@ class GameState {
         if (!inputs.prevStates.includes("PREVITEM") && inputsArr.includes("PREVITEM")) {
             if (!this.inShop && this.selectedItem > 0) {
                 this.selectedItem -= 1;
-            } else if (this.inShop && this.selectedShopItem > 0) {
+            } else if (this.inShop && this.selectedShopItem > 0 && !this.shopCutscene) {
                 this.shiftShopItems(-1);
             }
         }
         if (!inputs.prevStates.includes("NEXTITEM") && inputsArr.includes("NEXTITEM")) {
             if (!this.inShop && this.selectedItem < this.items.length - 1) {
                 this.selectedItem += 1;
-            } else if (this.inShop && this.selectedShopItem < this.currentShop.items.length - 1) {
+            } else if (this.inShop && this.selectedShopItem < this.currentShop.items.length - 1 && !this.shopCutscene) {
                 this.shiftShopItems(1);
             }
 
@@ -193,12 +220,12 @@ class GameState {
                 if (canUse(this.items[this.selectedItem], this)) {
                     useItem(this.items[this.selectedItem], this);
                     this.items.splice(this.selectedItem, 1);
-                    this.selectedItem = Math.min(this.items.length - 1, this.selectedItem);
+                    this.selectedItem =  Math.max(0,Math.min(this.items.length - 1, this.selectedItem));
                 } else {
 
                 }
             } else if (this.inShop) {
-                if (this.currentShop.prices[this.selectedShopItem] <= this.coins) {
+                if (this.currentShop.prices[this.selectedShopItem] <= this.coins && !this.shopCutscene) {
                     this.coins -= this.currentShop.prices[this.selectedShopItem]
                     if (this.currentShop.items[this.selectedShopItem].type != "SWORD") {
                         this.items.unshift(this.currentShop.items[this.selectedShopItem]);
@@ -376,8 +403,7 @@ class GameState {
 
         ctx.textAlign = "center";
         ctx.fillStyle = rgbToHex(50, 50, 50);
-
-        ctx.shadowColor = rgbToHex(20, 20, 20);
+        ctx.shadowColor = rgbToHex(0, 0, 0);
         if (this.items[this.selectedItem] != null) {
             ctx.drawImage(textures.get(this.items[this.selectedItem].texture), (canvasWidth * 0.91) + (canvasWidth * 0.025) - 16, canvasHeight * 0.74, 32, 32);
             if (this.items[this.selectedItem - 1] != null) {
@@ -436,24 +462,40 @@ class GameState {
                 ctx.shadowColor = rgbToHex(50, 50, 50);
                 ctx.fillStyle = rgbToHex(255, 215, 0);
                 var goldStr = this.currentShop.prices[i].toString().padStart(3, "0");
-                ctx.font = "24px Courier New";
+                ctx.font = "22px Courier New";
                 ctx.fillText(goldStr, 318 + (i * 110), 382 + (i == this.selectedShopItem ? -80 : 0));
-                ctx.restore();
+                if(i == this.selectedShopItem && !this.shopCutscene){
+                    ctx.shadowColor = rgbToHex(10, 10, 10);
+                    ctx.fillStyle = rgbToHex(230, 230, 200);
+                    ctx.font = "28px Courier New";
+                    ctx.textAlign = "left";
+                    ctx.fillText(" E", 330 + (i * 110), 410 + (i == this.selectedShopItem ? -80 : 0));
+                    ctx.textAlign = "right";
+                    ctx.fillText("Q ", 330 + (i * 110), 410 + (i == this.selectedShopItem ? -80 : 0));
+                    ctx.textAlign = "center";
+                    ctx.font = "14px Courier New";
+                    ctx.fillText("Buy:Shift", 330 + (i * 110), 428 + (i == this.selectedShopItem ? -80 : 0));
+                    ctx.restore();
+                }
             }
+            ctx.fillStyle = rgbToHexAlpha(0,0,0,150);
+            ctx.fillRect(230,500,550,24);
             ctx.save();
             ctx.shadowOffsetX = 2;
             ctx.shadowOffsetY = 2;
             ctx.shadowColor = rgbToHex(0, 0, 0);
             ctx.font = "20px Courier New";
-            for (var i = 0; i < Math.min(4, this.currentShop.text.length); i++) {
-                if (this.currentShop.text[i].side == "L") {
+            var visableText = this.currentShopText.slice(Math.max(0,this.currentShopText.length-4));
+            //console.log(visableText);
+            for (var i = 0; i < visableText.length; i++) {
+                if (visableText[i].side == "L") {
                     ctx.textAlign = "left";
                     ctx.fillStyle = rgbToHex(250, 180, 250);
-                    ctx.fillText(this.currentShop.text[i].text, 240, 435 + (25 * i));
+                    ctx.fillText(visableText[i].text, 240, 543 - (25 * (visableText.length-i) ));
                 } else {
                     ctx.textAlign = "right";
                     ctx.fillStyle = rgbToHex(250, 250, 250);
-                    ctx.fillText(this.currentShop.text[i].text, 780, 435 + (25 * i));
+                    ctx.fillText(visableText[i].text, 780, 543 - (25 * (visableText.length-i) ));
                 }
             }
             ctx.restore();
@@ -660,13 +702,11 @@ class GameState {
             return;
         }
         this.selectedShopItem = Math.min(this.currentShop.items.length-1,Math.max(0,this.selectedShopItem + dir));
-        this.currentShop.text.push({ text: this.currentShop.items[this.selectedShopItem].desc, side: "L" });
+        this.currentShopText.push({ text: this.currentShop.items[this.selectedShopItem].desc, side: "L" });
         if (this.currentShop.items[this.selectedShopItem].type == "SWORD") {
-            this.currentShop.text.push({ text: "My " + this.equipedWeapon.name + " has " + makeSwordDesc(this.equipedWeapon, false), side: "R" });
+            this.currentShopText.push({ text: "My " + this.equipedWeapon.name + " has " + makeSwordDesc(this.equipedWeapon, false), side: "R" });
         }
-        while (this.currentShop.text.length > 4) {
-            this.currentShop.text.shift();
-        }
+        
     }
 
 
