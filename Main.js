@@ -38,6 +38,14 @@ function draw(ctx){
     ctx.save();
     gameState.draw(ctx);
     ctx.restore();
+    if(this.paused){
+        ctx.font = "99px Courier New";
+        ctx.fillStyle = rgbToHex(50,50,50);
+        ctx.fillText("PAUSED",canvasWidth*0.32,canvasHeight*0.4);
+        ctx.font = "100px Courier New";
+        ctx.fillStyle = rgbToHex(0,0,0);
+        ctx.fillText("PAUSED",canvasWidth*0.32 - 3,canvasHeight*0.4);
+    }
     ctx.font = "15px Courier New";
     ctx.fillStyle = rgbToHex(0,0,0);
     ctx.fillText("Toggle M",canvasWidth*0.01,canvasHeight*0.92);

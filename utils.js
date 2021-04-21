@@ -100,7 +100,7 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
   var prices;
   var text;
   if (shopNum == 0) {
-    items = nRandomShopItems(3,["HEALTH","ARMOR"],5,5);
+    items = nRandomShopItems(3,["HEALTH"],5,5);
     prices = priceItems(items);
     text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
   } else if (shopNum == 1) {
@@ -263,7 +263,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           if (y < height - 10 && y > 10 && Math.random() > 0.5 && slimeCooldown == 0) {
             if (tileMapLeft[x][y] == "FLOOR") {
               tileMapLeft[x][y - 1] = "SLIME";
-              slimeCooldown = levelRadius - 2;
+              slimeCooldown = levelRadius - 5;
             } else if (tileMapRight[x][y] == "FLOOR") {
               tileMapRight[x][y - 1] = "SLIME";
               slimeCooldown = levelRadius - 2;
@@ -327,18 +327,18 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           var section = Math.trunc(y / 25);
           switch (section) {
             case 7:
-              row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
+              row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 5, 0, tileSize * 0.6, 5000, 600));
               break;
             case 6:
               if (Math.random() > 0.5) {
-                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 5, 0, tileSize * 0.6, 5000, 600));
               } else {
                 row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 10, 15, tileSize * 0.6, 500, 500));
               }
               break;
             case 5:
               if (Math.random() > 0.5) {
-                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.6, 5000, 600));
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 5, 0, tileSize * 0.6, 5000, 600));
               } else {
                 if(Math.random() > 0.5){
                   row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 400));
@@ -460,9 +460,9 @@ function priceItems(items){
   return items.map(i => {
     switch(i.type){
       case "HEALTH":
-        return 5 + Math.trunc(i.value/5);
+        return 2 + Math.trunc(i.value/10);
       case "HEALTHBOOST":
-        return 20 + Math.trunc(i.value/5);
+        return 20 + Math.trunc(i.value/10);
       case "JUMP":
         return 10;
       case "ARMOR":
