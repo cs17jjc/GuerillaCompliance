@@ -155,15 +155,37 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
     items.push(makeSwordItem(weapon, makeSwordDesc(weapon, true)));
     prices = priceItems(items);
     text = [
-      { text: ".", side: "R" },
-      { text: "Poggers.", side: "R" }];
+      { text: "Poggers.", side: "R" },
+      { text: "Poggers.", side: "L" }];
+  } else if (shopNum == 3) {
+    var weapon1 = makeQuickWeapon1(playerSize);
+    var weapon2 = makeHeavyWeapon1(playerSize);
+    items = nRandomShopItems(2, ["HEALTH", "ARMOR", "JUMP"], 10, 30);
+    items.push(makeHealthItem(20));
+    items.push(makeSwordItem(weapon1, makeSwordDesc(weapon1, true)));
+    items.push(makeSwordItem(weapon2, makeSwordDesc(weapon2, true)));
+    prices = priceItems(items);
+    text = [
+      { text: "Poggers.", side: "R" },
+      { text: "Poggers.", side: "L" }];
+  } else if (shopNum == 4) {
+    var weapon1 = makeQuickWeapon2(playerSize);
+    var weapon2 = makeHeavyWeapon2(playerSize);
+    items = nRandomShopItems(2, ["HEALTH", "ARMOR", "JUMP"], 10, 30);
+    items.push(makeHealthItem(20));
+    items.push(makeSwordItem(weapon1, makeSwordDesc(weapon1, true)));
+    items.push(makeSwordItem(weapon2, makeSwordDesc(weapon2, true)));
+    prices = priceItems(items);
+    text = [
+      { text: "Poggers.", side: "R" },
+      { text: "Poggers.", side: "L" }];
   } else {
     items = nRandomShopItems(5, ["HEALTH", "ARMOR", "HEALTHBOOST", "JUMP"], 10, 30);
     prices = priceItems(items);
     text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
   }
 
-  return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex, items: items, prices: prices, text: text,beenEntered:false};
+  return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex, items: items, prices: prices, text: text, beenEntered: false };
 }
 function makeEnenmy(x, y, type, data) {
   return { t: "ENEMY", x: x, y: y, type: type, isDead: false, data: data };
@@ -301,13 +323,13 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
             tileMapLeft[x][y] = "EMPTY";
           }
 
-          if (y < height - 10 && y > 10 && Math.random() > 0.5 && slimeCooldown == 0) {
+          if ((y > 10 && Math.random() > 0.3 && slimeCooldown == 0)) {
             if (tileMapLeft[x][y] == "FLOOR") {
               tileMapLeft[x][y - 1] = "SLIME";
               slimeCooldown = levelRadius - 5;
             } else if (tileMapRight[x][y] == "FLOOR") {
               tileMapRight[x][y - 1] = "SLIME";
-              slimeCooldown = levelRadius - 2;
+              slimeCooldown = levelRadius - 5;
             }
           }
         }
@@ -317,7 +339,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
     }
   }
 
-  var shopCooldown = 0;
+  var shopCooldown = 20;
   var shopCounter = 0;
   var tileMap = new Map();
   for (var y = height - 1; y >= 0; y--) {
@@ -338,7 +360,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           } else if (rowTiles[x + 1] != "FLOOR") {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorRight"));
           } else {
-            
+
             if (shopCooldown >= 25) {
               shopCooldown = 0;
               row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorMiddleShop"));
@@ -371,64 +393,58 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           var section = Math.trunc(y / 25);
           switch (section) {
             case 7:
-              if (Math.random() > 0.5) {
-                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.8, 5000, 600));
+              if (Math.random() > 0.8) {
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 6, 0, tileSize * 0.8, 5000, 600));
               } else {
-                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 5, 0, tileSize * 0.6, 5000, 600));
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 2, 0, tileSize * 0.6, 5000, 600));
               }
               break;
             case 6:
-              if (Math.random() > 0.5) {
-                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 5, 0, tileSize * 0.6, 5000, 600));
+              if (Math.random() > 0.4) {
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 2, 0, tileSize * 0.6, 5000, 600));
               } else {
-                row.push(makeSlime(x * tileSize, y * tileSize, 1.5, "medium", 5, 5, tileSize * 0.6, 1000, 300));
+                row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 4, 5, tileSize * 0.6, 900, 300));
               }
               break;
             case 5:
               if (Math.random() > 0.5) {
-                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 5, 0, tileSize * 0.6, 5000, 600));
+                row.push(makeSlime(x * tileSize, y * tileSize, 2.5, "medium", 15, 20, tileSize * 0.8, 500, 300));
               } else {
-                if (Math.random() > 0.5) {
-                  row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 10, tileSize * 0.8, 800, 300));
-                } else {
-                  row.push(makeSlime(x * tileSize, y * tileSize, 1.5, "medium", 10, 5, tileSize * 0.6, 1000, 300));
-                }
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 4, 15, tileSize * 0.6, 500, 300));
               }
               break;
             case 4:
-              if (Math.random() > 0.7) {
-                row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 20, 0, tileSize * 0.8, 5000, 600));
+              if (Math.random() > 0.5) {
+                row.push(makeSlime(x * tileSize, y * tileSize, 2.5, "medium", 15, 20, tileSize * 0.8, 500, 300));
               } else {
-                if (Math.random() > 0.5) {
-                  row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 400));
-                } else {
-                  row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 15, tileSize * 0.6, 500, 400));
-                }
+                row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 4, 15, tileSize * 0.6, 500, 300));
               }
               break;
             case 3:
-              if (Math.random() > 0.8) {
                 if (Math.random() > 0.5) {
-                  row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 20, 0, tileSize * 0.8, 5000, 600));
+                  row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 300));
                 } else {
-                  row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 20, 20, tileSize, 500, 200));
+                  row.push(makeSlime(x * tileSize, y * tileSize, 3, "large", 30, 20, tileSize, 500, 100));
                 }
-              } else {
-                if (Math.random() > 0.5) {
-                  row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 400));
-                } else {
-                  row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 15, tileSize * 0.6, 500, 400));
-                }
-              }
               break;
             case 2:
-              row.push(makeSlime(x * tileSize, y * tileSize, 2, "large", 20, 20, tileSize * 0.6, 400, 200));
+              if (Math.random() > 0.5) {
+                row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 200));
+              } else {
+                row.push(makeSlime(x * tileSize, y * tileSize, 4, "large", 30, 20, tileSize * 0.6, 400, 200));
+              }
               break;
             case 1:
-              row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 25, 20, tileSize * 0.8, 500, 200));
+              if (Math.random() > 0.2) {
+                row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 200));
+              } else if(Math.random() > 0.2) {
+                row.push(makeSlime(x * tileSize, y * tileSize, 3, "large", 40, 20, tileSize * 0.8, 400, 200));
+              } else {
+                row.push(makeSlime(x * tileSize, y * tileSize, 3, "large", 30, 20, tileSize * 0.6, 500, 150));
+              }
               break;
             case 0:
-              row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 25, 20, tileSize, 500, 200));
+              row.push(makeSlime(x * tileSize, y * tileSize, 3, "large", 45, 20, tileSize, 500, 100));
               break;
           }
           break;
@@ -443,34 +459,46 @@ function makeMeleeWeapon(name, dmg, rate, texture, hitAreaEast, hitAreaWest) {
 }
 
 function makeStartWeapon(playerSize) {
-  var texture = "sword1";
-  return makeMeleeWeapon("Iron Sword", 2, 1000,texture,
-  makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
-  makeRect(-1*textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
+  var texture = "sword0";
+  return makeMeleeWeapon("Iron Dagger", 2, 800, texture,
+    makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+    makeRect(-1 * textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
 }
 function makeMediumWeapon(playerSize) {
   var texture = "sword1";
-  return makeMeleeWeapon("Steel Sword", 6, 800, texture,
+  return makeMeleeWeapon("Iron Sword", 6, 800, texture,
     makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
-    makeRect(-1*textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
+    makeRect(-1 * textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
 }
 function makeMidWeapon(playerSize) {
-  var texture = "sword2";
-  return makeMeleeWeapon("TentaSword", 8, 500, texture,
-  makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
-  makeRect(-1*textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
+  var texture = "sword5";
+  return makeMeleeWeapon("Steel Sword", 8, 500, texture,
+    makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+    makeRect(-1 * textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
 }
-function makeGodWeapon(playerSize) {
-  var texture = "sword2";
-  return makeMeleeWeapon("BFG 100", 50, 200, texture,
-  makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
-  makeRect(-1*textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
+function makeQuickWeapon1(playerSize) {
+  var texture = "sword6";
+  return makeMeleeWeapon("Diamond Sword", 8, 250, texture,
+    makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+    makeRect(-1 * textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
 }
-function makeFarmingWeapon(playerSize) {
+function makeHeavyWeapon1(playerSize) {
+  var texture = "sword3";
+  return makeMeleeWeapon("Saphire Sword", 16, 500, texture,
+    makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+    makeRect(-1 * textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
+}
+function makeQuickWeapon2(playerSize) {
   var texture = "sword2";
-  return makeMeleeWeapon("Gold Sword", 2, 100, texture,
-  makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
-  makeRect(-1*textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
+  return makeMeleeWeapon("TentaBlade", 8, 150, texture,
+    makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+    makeRect(-1 * textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
+}
+function makeHeavyWeapon2(playerSize) {
+  var texture = "sword4";
+  return makeMeleeWeapon("BFG 100", 25, 450, texture,
+    makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+    makeRect(-1 * textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
 }
 
 function makeHealthItem(strength) {

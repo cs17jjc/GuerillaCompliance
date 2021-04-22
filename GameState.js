@@ -149,7 +149,7 @@ class GameState {
                     this.shopCutscene = false;
                 }
             } else {
-                if(!this.inShop){
+                if(!this.inShop && this.canEnterShop){
                     this.inShop = true;
                     this.shopCutsceneTimer = Date.now();
                     this.shopCutscene = true;
@@ -665,9 +665,13 @@ class GameState {
         var slimeRect = makeRect(o.x, o.y, o.data.s, o.data.s);
         if (didAttack && !o.isDead) {
             if (intersectRect(slimeRect, this.hitBox) || intersectRect(slimeRect, this.hitBoxOpp)) {
+
+                for(var i = 0; i < Math.max(1,o.data.hp-this.equipedWeapon.d); i+= 4){
+                    this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, Math.random() * 4 * Math.sign(o.data.vx) + o.data.vx, -2));
+                }
                 o.data.hp -= this.equipedWeapon.d;
                 o.data.lastHit = Date.now();
-                this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, Math.random() * 4 * Math.sign(o.data.vx) + o.data.vx, -2));
+                
                 if (o.data.hp <= 0) {
                     o.isDead = true;
                 }
