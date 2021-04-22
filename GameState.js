@@ -51,6 +51,7 @@ class GameState {
         this.gameWon = true;
         this.gold = 0;
 
+        this.hasEnteredShop = true;
         this.canEnterShop = false;
         this.inShop = false;
         this.selectedShopItem = 0;
@@ -146,9 +147,7 @@ class GameState {
                     this.shopCutscene = false;
                 }
             } else {
-                if(this.inShop){
-                    this.inShop = false;
-                } else if(this.canEnterShop){
+                if(!this.inShop){
                     this.inShop = true;
                     this.shopCutsceneTimer = Date.now();
                     this.shopCutscene = true;
@@ -164,7 +163,7 @@ class GameState {
         }
         this.playerPositionOpposite = { x: (this.levelRadius * this.tileSize) + ((this.levelRadius * this.tileSize) - this.playerPosition.x - this.playerSize.w), y: this.playerPosition.y };
 
-        if (this.playerPosition.y > this.bossFloor * this.tileSize && !this.boss) {
+        if (this.playerPosition.y > this.bossFloor * this.tileSize && !this.boss && this.hasEnteredShop) {
             this.cameraY = Math.min(this.cameraY, this.playerPosition.y - canvasHeight + this.cameraYOffset);
         } else if (!this.boss) {
             var bossFloorObjY = this.bossFloor + 7;
@@ -685,6 +684,7 @@ class GameState {
                 this.hitTimer = Date.now();
                 o.data.hitTimer = Date.now();
                 this.inShop = false;
+                this.shopCutscene = false;
             }
         }
     }

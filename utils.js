@@ -337,11 +337,14 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           } else if (rowTiles[x + 1] != "FLOOR") {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorRight"));
           } else {
-            row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorMiddle"));
+            
             if (shopCooldown >= 25) {
               shopCooldown = 0;
+              row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorMiddleShop"));
               row.push(makeShop(x * tileSize, (y - 1) * tileSize, tileSize, tileSize, shopCounter, "shop1", playerSize));
               shopCounter += 1;
+            } else {
+              row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorMiddle"));
             }
           }
           break;

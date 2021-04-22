@@ -61,7 +61,12 @@ function draw(ctx){
     }
     
     if(!inputs.prevStates.includes("ESC") && inputs.getInputs().includes("ESC")){
-        this.paused = !this.paused;
+        if(gameState.inShop){
+            gameState.inShop = false;
+            gameState.shopCutscene = false;
+        } else {
+            this.paused = !this.paused;
+        }
     }
     
     if(!inputs.prevStates.includes("RESTART") && inputs.getInputs().includes("RESTART")){
