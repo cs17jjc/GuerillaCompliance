@@ -41,6 +41,8 @@ class GameState {
         this.jumpTimer = 0;
         this.hasLanded = false;
 
+        this.dashTimer = 0;
+
         this.boss = false;
         this.bossFloor = 11;
 
@@ -630,7 +632,7 @@ class GameState {
             var slimeTileX = Math.trunc(o.x / this.tileSize);
             var slimeTileY = Math.trunc(o.y / this.tileSize);
             if (o.data.vx > 0) {
-                if (t.r.x == (slimeTileX + 1) * this.tileSize && t.r.y == (slimeTileY + 1) * this.tileSize) {
+                if (t.r.x == (slimeTileX+1) * this.tileSize && t.r.y == (slimeTileY + 1) * this.tileSize) {
                     hasFloor = true;
                 }
             } else {

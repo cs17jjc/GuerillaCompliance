@@ -134,7 +134,8 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
     ];
   } else if (shopNum == 1) {
     var weapon = makeMediumWeapon(playerSize);
-    items = nRandomShopItems(3, ["HEALTH", "ARMOR"], 5, 5);
+    items = nRandomShopItems(2, ["HEALTH", "ARMOR"], 5, 5);
+    items.push(makeHealthItem(15));
     items.push(makeSwordItem(weapon, makeSwordDesc(weapon, true)));
     prices = priceItems(items);
     text = [
@@ -145,7 +146,7 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
       { text: "You also retain any gold you collect.", side: "L" },
       { text: "If you cannot afford an item,", side: "L" },
       { text: "it may be worth to 'restart',", side: "L" },
-      { text: "so to speak.", side: "L" }
+      { text: "and come back with more gold.", side: "L" }
     ];
   } else if (shopNum == 2) {
     var weapon = makeMidWeapon(playerSize);
@@ -154,7 +155,7 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
     items.push(makeSwordItem(weapon, makeSwordDesc(weapon, true)));
     prices = priceItems(items);
     text = [
-      { text: "Hello.", side: "L" },
+      { text: ".", side: "R" },
       { text: "Poggers.", side: "R" }];
   } else {
     items = nRandomShopItems(5, ["HEALTH", "ARMOR", "HEALTHBOOST", "JUMP"], 10, 30);
@@ -162,7 +163,7 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
     text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
   }
 
-  return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex, items: items, prices: prices, text: text };
+  return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex, items: items, prices: prices, text: text,beenEntered:false};
 }
 function makeEnenmy(x, y, type, data) {
   return { t: "ENEMY", x: x, y: y, type: type, isDead: false, data: data };
@@ -395,7 +396,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
               }
               break;
             case 4:
-              if (Math.random() > 0.3) {
+              if (Math.random() > 0.7) {
                 row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 20, 0, tileSize * 0.8, 5000, 600));
               } else {
                 if (Math.random() > 0.5) {
@@ -442,29 +443,34 @@ function makeMeleeWeapon(name, dmg, rate, texture, hitAreaEast, hitAreaWest) {
 }
 
 function makeStartWeapon(playerSize) {
-  return makeMeleeWeapon("Iron Sword", 2, 1000, "sword1",
-    makeRect(playerSize.w, 0, 30, playerSize.h),
-    makeRect(-30, 0, 20, playerSize.h));
+  var texture = "sword1";
+  return makeMeleeWeapon("Iron Sword", 2, 1000,texture,
+  makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+  makeRect(-1*textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
 }
 function makeMediumWeapon(playerSize) {
-  return makeMeleeWeapon("Steel Sword", 6, 800, "sword1",
-    makeRect(playerSize.w, 0, 30, playerSize.h),
-    makeRect(-30, 0, 30, playerSize.h));
+  var texture = "sword1";
+  return makeMeleeWeapon("Steel Sword", 6, 800, texture,
+    makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+    makeRect(-1*textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
 }
 function makeMidWeapon(playerSize) {
-  return makeMeleeWeapon("TentaSword", 8, 500, "sword2",
-    makeRect(playerSize.w, 0, 30, playerSize.h),
-    makeRect(-30, 0, 30, playerSize.h));
+  var texture = "sword2";
+  return makeMeleeWeapon("TentaSword", 8, 500, texture,
+  makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+  makeRect(-1*textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
 }
 function makeGodWeapon(playerSize) {
-  return makeMeleeWeapon("BFG 100", 50, 200, "sword2",
-    makeRect(playerSize.w, 0, 30, playerSize.h),
-    makeRect(-30, 0, 30, playerSize.h));
+  var texture = "sword2";
+  return makeMeleeWeapon("BFG 100", 50, 200, texture,
+  makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+  makeRect(-1*textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
 }
 function makeFarmingWeapon(playerSize) {
-  return makeMeleeWeapon("Gold Sword", 2, 100, "sword2",
-    makeRect(playerSize.w, 0, 20, playerSize.h),
-    makeRect(-20, 0, 20, playerSize.h));
+  var texture = "sword2";
+  return makeMeleeWeapon("Gold Sword", 2, 100, texture,
+  makeRect(playerSize.w, 0, textures.get(texture).height, playerSize.h),
+  makeRect(-1*textures.get(texture).height, 0, textures.get(texture).height, playerSize.h));
 }
 
 function makeHealthItem(strength) {
@@ -511,7 +517,7 @@ function priceItems(items) {
   return items.map(i => {
     switch (i.type) {
       case "HEALTH":
-        return 2 + Math.trunc(i.value / 10);
+        return 2 + Math.trunc(i.value / 8);
       case "HEALTHBOOST":
         return 20 + Math.trunc(i.value / 10);
       case "JUMP":
