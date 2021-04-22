@@ -140,7 +140,11 @@ class GameState {
 
         if (inputsArr.includes("ENTER") && !inputs.prevStates.includes("ENTER")) {
             if(this.shopCutscene){
-                this.shopCutscene = false;
+                this.currentShopText.push(this.currentShop.text[this.shopCutsceneLine]);
+                this.shopCutsceneLine += 1;
+                if(this.shopCutsceneLine == this.currentShop.text.length){
+                    this.shopCutscene = false;
+                }
             } else {
                 if(this.inShop){
                     this.inShop = false;
@@ -152,16 +156,6 @@ class GameState {
                     this.shopCutsceneLine = 1;
                     this.selectedShopItem = 0;
                 }
-            }
-        }
-        if(this.inShop){
-            if(((Date.now() - this.shopCutsceneTimer) > (this.shopCutscene ? 1000 : 1) ) && this.shopCutsceneLine < this.currentShop.text.length){
-                this.currentShopText.push(this.currentShop.text[this.shopCutsceneLine]);
-                this.shopCutsceneLine += 1;
-                if(this.shopCutsceneLine == this.currentShop.text.length){
-                    this.shopCutscene = false;
-                }
-                this.shopCutsceneTimer = Date.now();
             }
         }
 
@@ -243,10 +237,6 @@ class GameState {
 
         }
 
-
-        if (this.playerHealth < this.prevPlayerHealth) {
-            this.hitTimer = Date.now();
-        }
         if (this.playerHealth <= 0) {
             this.gameOver = true;
             this.gameOverTimer = Date.now();
@@ -264,10 +254,12 @@ class GameState {
         ctx.fillStyle = rgbToHex(50, 50, 250);
         ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
+        var xHealthBarOffset = Date.now() - this.hitTimer < 250 ? Math.sin((Date.now() - this.hitTimer) / 25) * 2 : 0;
         var xOffset = ((canvasWidth / 2) - (this.levelRadius * this.tileSize));
 
         ctx.drawImage(this.backgroundImg, xOffset, -this.cameraY * 0.5);
 
+        xOffset += xHealthBarOffset;
         var nextAnimationFrame = Date.now() - this.geomAnimationTimer > 200;
         this.visableGeom.filter(t => t.t != "ENEMY" && t.t != "COIN").forEach(o => {
             ctx.drawImage(textures.get(o.texture), o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h);
@@ -379,12 +371,12 @@ class GameState {
         }
 
 
-        var xHealthBarOffset = Date.now() - this.hitTimer < 500 ? Math.sin((Date.now() - this.hitTimer) / 25) * 3 : 0;
+        
         ctx.fillStyle = rgbToHex(150, 20, 20);
-        ctx.fillRect(canvasWidth * 0.91 + xHealthBarOffset, canvasHeight * 0.2, canvasWidth * 0.05, canvasHeight * 0.4);
+        ctx.fillRect(canvasWidth * 0.91, canvasHeight * 0.2, canvasWidth * 0.05, canvasHeight * 0.4);
         ctx.fillStyle = rgbToHex(250, 20, 20);
         var healthOffset = canvasHeight * 0.4 * (1 - (this.playerHealth / this.maxHealth));
-        ctx.fillRect(canvasWidth * 0.91 + xHealthBarOffset, canvasHeight * 0.2 + healthOffset, canvasWidth * 0.05, canvasHeight * 0.4 - healthOffset);
+        ctx.fillRect(canvasWidth * 0.91, canvasHeight * 0.2 + healthOffset, canvasWidth * 0.05, canvasHeight * 0.4 - healthOffset);
         ctx.font = "28px Courier New";
         ctx.textAlign = "center";
         ctx.fillText(Math.round(this.playerHealth), canvasWidth * 0.91 + xHealthBarOffset + canvasWidth * 0.025, canvasHeight * 0.65);
@@ -392,13 +384,13 @@ class GameState {
         ctx.font = "28px Courier New";
         ctx.fillStyle = rgbToHex(180, 180, 180);
         if (this.playerArmor == 3) {
-            ctx.fillText("🛡️", canvasWidth * 0.91 + xHealthBarOffset + canvasWidth * 0.025 - 30, canvasHeight * 0.72);
+            ctx.fillText("🛡️", canvasWidth * 0.91 + canvasWidth * 0.025 - 30, canvasHeight * 0.72);
         }
         if (this.playerArmor >= 2) {
-            ctx.fillText("🛡️", canvasWidth * 0.91 + xHealthBarOffset + canvasWidth * 0.025, canvasHeight * 0.72);
+            ctx.fillText("🛡️", canvasWidth * 0.91 + canvasWidth * 0.025, canvasHeight * 0.72);
         }
         if (this.playerArmor >= 1) {
-            ctx.fillText("🛡️", canvasWidth * 0.91 + xHealthBarOffset + canvasWidth * 0.025 + 30, canvasHeight * 0.72);
+            ctx.fillText("🛡️", canvasWidth * 0.91 + canvasWidth * 0.025 + 30, canvasHeight * 0.72);
         }
 
         ctx.textAlign = "center";
@@ -484,7 +476,7 @@ class GameState {
             ctx.shadowOffsetX = 2;
             ctx.shadowOffsetY = 2;
             ctx.shadowColor = rgbToHex(0, 0, 0);
-            ctx.font = "20px Courier New";
+            ctx.font = "18px Courier New";
             var visableText = this.currentShopText.slice(Math.max(0,this.currentShopText.length-4));
             //console.log(visableText);
             for (var i = 0; i < visableText.length; i++) {
@@ -690,6 +682,7 @@ class GameState {
                 } else {
                     this.playerArmor = Math.max(0, this.playerArmor - 1);
                 }
+                this.hitTimer = Date.now();
                 o.data.hitTimer = Date.now();
                 this.inShop = false;
             }
@@ -702,9 +695,11 @@ class GameState {
             return;
         }
         this.selectedShopItem = Math.min(this.currentShop.items.length-1,Math.max(0,this.selectedShopItem + dir));
-        this.currentShopText.push({ text: this.currentShop.items[this.selectedShopItem].desc, side: "L" });
         if (this.currentShop.items[this.selectedShopItem].type == "SWORD") {
+            this.currentShopText.push({ text: this.currentShop.items[this.selectedShopItem].desc, side: "L" });
             this.currentShopText.push({ text: "My " + this.equipedWeapon.name + " has " + makeSwordDesc(this.equipedWeapon, false), side: "R" });
+        } else {
+            this.currentShopText.push({ text: "This item gives " + this.currentShop.items[this.selectedShopItem].desc, side: "L" });
         }
         
     }

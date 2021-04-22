@@ -100,23 +100,64 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
   var prices;
   var text;
   if (shopNum == 0) {
-    items = nRandomShopItems(3,["HEALTH"],5,5);
+    items = nRandomShopItems(2, ["HEALTH"], 5, 5);
+    items.push(makeArmorItem());
     prices = priceItems(items);
-    text = [{ text: "Where am I?", side: "R" }, { text: "Somewhere not good.", side: "L" },{ text: "Pogn't", side: "R" }];
+    text = [
+      { text: "Where am I?", side: "R" },
+      { text: "Hello spirit.", side: "L" },
+      { text: "This is a Tower of Mirroria.", side: "L" },
+      { text: "How did I get here?", side: "R" },
+      { text: "When you died,", side: "L" },
+      { text: "your soul was captured by the slimes.", side: "L" },
+      { text: "I'm dead?", side: "R" },
+      { text: "Unfortunately.", side: "L" },
+      { text: "But you are still bound to this world.", side: "L" },
+      { text: "Your soul is divided.", side: "L" },
+      { text: "The void mirror prevents each half from touching.", side: "L" },
+      { text: "To leave this world you must recombine.", side: "L" },
+      { text: "How do I do that?", side: "R" },
+      { text: "These towers extract soul energy.", side: "L" },
+      { text: "This energy is beamed to the sludgemines,", side: "L" },
+      { text: "and used to produce more slimes.", side: "L" },
+      { text: "The transmitter is at the top of the tower.", side: "L" },
+      { text: "Destroying the transmitter is the only way,", side: "L" },
+      { text: "to create a hole through the mirror.", side: "L" },
+      { text: "Thank you.", side: "R" },
+      { text: "We have some items that might help.", side: "L" },
+      { text: "A health item restores your health when used.", side: "L" },
+      { text: "An armor item replenishes one armor when used.", side: "L" },
+      { text: "All damage is prevented while you have armor.", side: "L" },
+      { text: "We have collected more exotic items higher up.", side: "L" },
+      { text: "Do you accept Crypt-O-Currency?", side: "R" },
+      { text: "Regular gold coins are fine.", side: "L" }
+    ];
   } else if (shopNum == 1) {
     var weapon = makeMediumWeapon(playerSize);
-    items = nRandomShopItems(3,["HEALTH","ARMOR"],5,5);
-    items.push(makeSwordItem(weapon,makeSwordDesc(weapon,true)));
+    items = nRandomShopItems(3, ["HEALTH", "ARMOR"], 5, 5);
+    items.push(makeSwordItem(weapon, makeSwordDesc(weapon, true)));
     prices = priceItems(items);
-    text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
+    text = [
+      { text: "Are you the same tentacle?", side: "R" },
+      { text: "We are, yes.", side: "L" },
+      { text: "The sword, you should take it.", side: "L" },
+      { text: "You will retain the sword if you perish.", side: "L" },
+      { text: "You also retain any gold you collect.", side: "L" },
+      { text: "If you cannot afford an item,", side: "L" },
+      { text: "it may be worth to 'restart',", side: "L" },
+      { text: "so to speak.", side: "L" }
+    ];
   } else if (shopNum == 2) {
     var weapon = makeMidWeapon(playerSize);
-    items = nRandomShopItems(4,["HEALTH","ARMOR","HEALTHBOOST","JUMP"],10,30);
-    items.push(makeSwordItem(weapon,makeSwordDesc(weapon,true)));
+    items = nRandomShopItems(3, ["HEALTH", "ARMOR"], 10, 30);
+    items.push(makeHealthBoostItem(20));
+    items.push(makeSwordItem(weapon, makeSwordDesc(weapon, true)));
     prices = priceItems(items);
-    text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
+    text = [
+      { text: "Hello.", side: "L" },
+      { text: "Poggers.", side: "R" }];
   } else {
-    items = nRandomShopItems(5,["HEALTH","ARMOR","HEALTHBOOST","JUMP"],10,30);
+    items = nRandomShopItems(5, ["HEALTH", "ARMOR", "HEALTHBOOST", "JUMP"], 10, 30);
     prices = priceItems(items);
     text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
   }
@@ -326,7 +367,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           var section = Math.trunc(y / 25);
           switch (section) {
             case 7:
-              if(Math.random() > 0.5){
+              if (Math.random() > 0.5) {
                 row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 10, 0, tileSize * 0.8, 5000, 600));
               } else {
                 row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 5, 0, tileSize * 0.6, 5000, 600));
@@ -336,14 +377,14 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
               if (Math.random() > 0.5) {
                 row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 5, 0, tileSize * 0.6, 5000, 600));
               } else {
-                row.push(makeSlime(x * tileSize, y * tileSize, 1.5, "medium", 10, 5, tileSize * 0.6, 1000, 300));
+                row.push(makeSlime(x * tileSize, y * tileSize, 1.5, "medium", 5, 5, tileSize * 0.6, 1000, 300));
               }
               break;
             case 5:
               if (Math.random() > 0.5) {
                 row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 5, 0, tileSize * 0.6, 5000, 600));
               } else {
-                if(Math.random() > 0.5){
+                if (Math.random() > 0.5) {
                   row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 10, tileSize * 0.8, 800, 300));
                 } else {
                   row.push(makeSlime(x * tileSize, y * tileSize, 1.5, "medium", 10, 5, tileSize * 0.6, 1000, 300));
@@ -354,7 +395,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
               if (Math.random() > 0.3) {
                 row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 20, 0, tileSize * 0.8, 5000, 600));
               } else {
-                if(Math.random() > 0.5){
+                if (Math.random() > 0.5) {
                   row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 400));
                 } else {
                   row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 15, tileSize * 0.6, 500, 400));
@@ -363,13 +404,13 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
               break;
             case 3:
               if (Math.random() > 0.8) {
-                if(Math.random() > 0.5){
+                if (Math.random() > 0.5) {
                   row.push(makeSlime(x * tileSize, y * tileSize, 1, "small", 20, 0, tileSize * 0.8, 5000, 600));
                 } else {
-                  row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize, 500, 400));
+                  row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 20, 20, tileSize, 500, 200));
                 }
               } else {
-                if(Math.random() > 0.5){
+                if (Math.random() > 0.5) {
                   row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 400));
                 } else {
                   row.push(makeSlime(x * tileSize, y * tileSize, 1, "medium", 10, 15, tileSize * 0.6, 500, 400));
@@ -377,13 +418,13 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
               }
               break;
             case 2:
-              row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize * 0.6, 400, 600));
+              row.push(makeSlime(x * tileSize, y * tileSize, 2, "large", 20, 20, tileSize * 0.6, 400, 200));
               break;
             case 1:
-              row.push(makeSlime(x * tileSize, y * tileSize, 2, "large", 15, 20, tileSize * 0.8, 500, 500));
+              row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 25, 20, tileSize * 0.8, 500, 200));
               break;
             case 0:
-              row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 10, 20, tileSize, 500, 400));
+              row.push(makeSlime(x * tileSize, y * tileSize, 1, "large", 25, 20, tileSize, 500, 200));
               break;
           }
           break;
@@ -403,12 +444,12 @@ function makeStartWeapon(playerSize) {
     makeRect(-30, 0, 20, playerSize.h));
 }
 function makeMediumWeapon(playerSize) {
-  return makeMeleeWeapon("Steel Sword", 6 , 800, "sword1",
+  return makeMeleeWeapon("Steel Sword", 6, 800, "sword1",
     makeRect(playerSize.w, 0, 30, playerSize.h),
     makeRect(-30, 0, 30, playerSize.h));
 }
 function makeMidWeapon(playerSize) {
-  return makeMeleeWeapon("TentaSword", 8 , 500, "sword2",
+  return makeMeleeWeapon("TentaSword", 8, 500, "sword2",
     makeRect(playerSize.w, 0, 30, playerSize.h),
     makeRect(-30, 0, 30, playerSize.h));
 }
@@ -444,38 +485,38 @@ function makeSwordItem(sword, desc) {
 function makeSwordDesc(sword, name) {
   return (name ? sword.name + " with " : "") + sword.d + " dmg and " + sword.rate + " cooldown."
 }
-function randomShopItem(pool,minStrength, range) {
-  switch(random_item(pool)){
+function randomShopItem(pool, minStrength, range) {
+  switch (random_item(pool)) {
     case "HEALTH":
       return makeHealthItem(minStrength + Math.trunc(Math.random() * range));
     case "HEALTHBOOST":
-      return makeHealthBoostItem( minStrength + Math.trunc(Math.random() * range) )
+      return makeHealthBoostItem(minStrength + Math.trunc(Math.random() * range))
     case "ARMOR":
       return makeArmorItem();
     case "JUMP":
       return makeJumpItem();
   }
 }
-function nRandomShopItems(n,pool,min,range){
+function nRandomShopItems(n, pool, min, range) {
   var items = [];
-  while(items.length < n){
-    items.push(randomShopItem(pool,min,range));
+  while (items.length < n) {
+    items.push(randomShopItem(pool, min, range));
   }
   return items;
 }
-function priceItems(items){
+function priceItems(items) {
   return items.map(i => {
-    switch(i.type){
+    switch (i.type) {
       case "HEALTH":
-        return 2 + Math.trunc(i.value/10);
+        return 2 + Math.trunc(i.value / 10);
       case "HEALTHBOOST":
-        return 20 + Math.trunc(i.value/10);
+        return 20 + Math.trunc(i.value / 10);
       case "JUMP":
         return 10;
       case "ARMOR":
         return 15;
       case "SWORD":
-        return Math.trunc( (i.sword.d/i.sword.rate)*1000 );
+        return Math.trunc((i.sword.d / i.sword.rate) * 1000);
     }
   });
 }
