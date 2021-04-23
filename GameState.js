@@ -1,7 +1,7 @@
 class GameState {
     constructor() {
         this.tileSize = 30;
-        this.levelHeight = 200;
+        this.levelHeight = 150;
         this.levelRadius = 12;
 
         this.playerPosition = { x: 4 * this.tileSize, y: (this.levelHeight - 4) * this.tileSize };
@@ -649,7 +649,7 @@ class GameState {
 
         if (xColSlime) {
             o.data.vx *= -1;
-        } else if (!hasFloor) {
+        } else if (!hasFloor && yColSlime) {
             o.data.vx *= -1;
         }
 
@@ -666,8 +666,8 @@ class GameState {
         if (didAttack && !o.isDead) {
             if (intersectRect(slimeRect, this.hitBox) || intersectRect(slimeRect, this.hitBoxOpp)) {
 
-                for(var i = 0; i < Math.max(1,o.data.hp-this.equipedWeapon.d); i+= 4){
-                    this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, Math.random() * 4 * Math.sign(o.data.vx) + o.data.vx, -2));
+                for(var i = 0; i < this.equipedWeapon.d; i+= 3){
+                    this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, Math.random() * 6 * Math.sign(o.data.vx) + o.data.vx, -2 + (Math.random() * -4)));
                 }
                 o.data.hp -= this.equipedWeapon.d;
                 o.data.lastHit = Date.now();
