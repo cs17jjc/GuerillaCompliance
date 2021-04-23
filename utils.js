@@ -274,7 +274,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           case 0:
             tileMapLeft[x].push("WALL");
             if (y <= 6 && y >= 4) {
-              tileMapRight[x].push("TRANSMITTERRIGHT");
+              tileMapRight[x].push("EMPTY");
             } else {
               tileMapRight[x].push("MIRRORRIGHT");
             }
@@ -282,7 +282,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           case levelRadius - 1:
             tileMapRight[x].push("WALL");
             if (y <= 6 && y >= 4) {
-              tileMapLeft[x].push("TRANSMITTERLEFT");
+              tileMapLeft[x].push("EMPTY");
             } else {
               tileMapLeft[x].push("MIRRORLEFT");
             }
@@ -416,12 +416,6 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
         case "MIRRORRIGHT":
           row.push(makeMirror(x * tileSize, y * tileSize, tileSize, tileSize, "mirrorRight"));
           break;
-        case "TRANSMITTERLEFT":
-          row.push(makeTransmitter(x * tileSize, y * tileSize, tileSize, tileSize, 100, "smallNormal"));
-          break;
-        case "TRANSMITTERRIGHT":
-          row.push(makeTransmitter(x * tileSize, y * tileSize, tileSize, tileSize, 100, "smallNormal"));
-          break;
         case "SLIME":
           var section = Math.trunc(y / 22);
           switch (section) {
@@ -479,6 +473,9 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           }
           break;
       }
+    }
+    if(y == 4){
+      row.push(makeTransmitter((levelRadius-1) * tileSize, 4 * tileSize, tileSize*2, tileSize*3, 100, "TB1"));
     }
     tileMap.set(y, row);
   }

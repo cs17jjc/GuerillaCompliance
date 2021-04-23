@@ -14,6 +14,7 @@ class GameState {
         this.levelGeom = generateMap(this.levelHeight, this.levelRadius, this.tileSize, this.playerSize);
         this.visableGeom = [];
         this.geomAnimationTimer = 0;
+        this.geomAnimationTimer2 = 0;
 
         this.equipedWeapon;
         this.hitBox;
@@ -273,6 +274,7 @@ class GameState {
 
         xOffset += xHealthBarOffset;
         var nextAnimationFrame = Date.now() - this.geomAnimationTimer > 200;
+        var nextAnimationFrame2 = Date.now() - this.geomAnimationTimer2 > 100;
         this.visableGeom.filter(t => t.t != "ENEMY" && t.t != "COIN").forEach(o => {
             ctx.drawImage(textures.get(o.texture), o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h);
             if (nextAnimationFrame) {
@@ -303,6 +305,12 @@ class GameState {
                 }
                 this.geomAnimationTimer = Date.now();
             }
+            if(o.t == "TRANSMITTER" && nextAnimationFrame2){
+                var i = parseInt(o.texture[o.texture.length-1])
+                i = (i+1) > 5 ? 1 : i+1;
+                o.texture = o.texture.slice(0,-1) + i.toString();
+                this.geomAnimationTimer2 = Date.now();
+            }
             if (o.t == "SHOP" && this.canEnterShop && !this.inShop) {
                 ctx.save();
                 ctx.font = "15px Arial New";
@@ -319,15 +327,20 @@ class GameState {
         this.visableGeom.filter(t => t.t == "ENEMY").forEach(o => {
             switch (o.type) {
                 case "SLIME":
+
                     var textureStr = o.isDead ? "Dead" : Date.now() - o.data.lastHit > o.data.recov ? "Normal" : "Hit";
                     textureStr = o.data.type + textureStr;
                     var bobing = o.isDead ? 0 : Math.sin(Date.now() / 100) * 2;
-                    ctx.drawImage(textures.get(textureStr), o.x + xOffset, o.y - this.cameraY - bobing, o.data.s, o.data.s + bobing);
-                    break;
-                case "TRANSMITTER":
-                    var textureStr = o.isDead ? "Dead" : Date.now() - o.data.lastHit > o.data.recov ? "Normal" : "Hit";
-                    textureStr = o.data.texture + textureStr;
-                    ctx.drawImage(textures.get(textureStr), o.x + xOffset, o.y - this.cameraY, this.tileSize, this.tileSize);
+                    if(o.data.type != "boss"){
+                        ctx.drawImage(textures.get(textureStr), o.x + xOffset, o.y - this.cameraY - bobing, o.data.s, o.data.s + bobing);
+                    } else {
+                        ctx.save();
+                        ctx.translate(o.x + xOffset + (o.data.s/2),o.y - this.cameraY + (o.data.s/2));
+                        ctx.rotate((o.isDead||(Date.now() - o.data.lastHit < o.data.recov)) ? 0 : Math.sin(Date.now() / 200) * 0.2);
+                        bobing = (Date.now() - o.data.lastHit > o.data.recov) ? 0 : bobing;
+                        ctx.drawImage(textures.get(textureStr), -(o.data.s/2), -bobing-(o.data.s/2), o.data.s, o.data.s + bobing);
+                        ctx.restore();
+                    }
                     break;
             }
         });
@@ -689,7 +702,7 @@ class GameState {
         if(yColSlime){
             o.data.vy = 0;
         }
-        if(o.data.type == "boss" && (Math.random() > 0.1) && hasFloor && (Date.now() - o.data.lastHit > o.data.recov)){
+        if(o.data.type == "boss" && (Math.random() > 0.9) && hasFloor && (Date.now() - o.data.lastHit > o.data.recov)){
             o.data.vy = -12;
         }
 
