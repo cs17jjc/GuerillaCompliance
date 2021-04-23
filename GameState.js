@@ -4,7 +4,8 @@ class GameState {
         this.levelHeight = 150;
         this.levelRadius = 12;
 
-        this.playerPosition = { x: 4 * this.tileSize, y: (this.levelHeight - 4) * this.tileSize };
+        //this.playerPosition = { x: 4 * this.tileSize, y: (this.levelHeight - 4) * this.tileSize };
+        this.playerPosition = { x: 4 * this.tileSize, y: (14) * this.tileSize };
         this.playerSize = { w: this.tileSize * 0.8, h: this.tileSize * 0.9 };
         this.playerVelocity = { x: 0, y: 0 };
         this.playerPositionOpposite = { x: (this.levelRadius * this.tileSize) + ((this.levelRadius * this.tileSize) - this.playerPosition.x - this.playerSize.w), y: this.playerPosition.y };
@@ -45,6 +46,7 @@ class GameState {
 
         this.boss = false;
         this.bossFloor = 11;
+        this.spawnBoss = false;
 
         this.backgroundImg = createBackgroundImage(this.levelRadius, this.levelHeight, this.tileSize);
 
@@ -139,17 +141,24 @@ class GameState {
             }
         }
 
-        this.updatePlayerPosition();
+        if (didAttack) {
+            this.hitBox.x += this.playerPosition.x;
+            this.hitBox.y += this.playerPosition.y;
+            this.hitBoxOpp.x += this.playerPositionOpposite.x;
+            this.hitBoxOpp.y += this.playerPositionOpposite.y;
+        }
+
+        this.updatePlayerPosition(didAttack);
 
         if (inputsArr.includes("ENTER") && !inputs.prevStates.includes("ENTER")) {
-            if(this.shopCutscene){
+            if (this.shopCutscene) {
                 this.currentShopText.push(this.currentShop.text[this.shopCutsceneLine]);
                 this.shopCutsceneLine += 1;
-                if(this.shopCutsceneLine == this.currentShop.text.length){
+                if (this.shopCutsceneLine == this.currentShop.text.length) {
                     this.shopCutscene = false;
                 }
             } else {
-                if(!this.inShop && this.canEnterShop){
+                if (!this.inShop && this.canEnterShop) {
                     this.inShop = true;
                     this.shopCutsceneTimer = Date.now();
                     this.shopCutscene = true;
@@ -168,7 +177,7 @@ class GameState {
         if (this.playerPosition.y > this.bossFloor * this.tileSize && !this.boss && this.hasEnteredShop) {
             this.cameraY = Math.min(this.cameraY, this.playerPosition.y - canvasHeight + this.cameraYOffset);
         } else if (!this.boss) {
-            var bossFloorObjY = this.bossFloor + 7;
+            var bossFloorObjY = this.bossFloor + 5;
             var floor = [];
             floor.push(makeWall(0, bossFloorObjY * this.tileSize, this.tileSize, this.tileSize, "wallLeft"));
             for (var floorX = this.tileSize; floorX < (this.tileSize * (this.levelRadius * 2)) - this.tileSize; floorX += this.tileSize) {
@@ -185,11 +194,14 @@ class GameState {
             this.boss = true;
         }
 
-        if (didAttack) {
-            this.hitBox.x += this.playerPosition.x;
-            this.hitBox.y += this.playerPosition.y;
-            this.hitBoxOpp.x += this.playerPositionOpposite.x;
-            this.hitBoxOpp.y += this.playerPositionOpposite.y;
+        if(this.boss){
+            if(this.visableGeom.filter(o => o.t == "ENEMY" && o.data.type == "boss" && !o.isDead).length == 0){
+                if(Math.random() > 0.5){
+                    this.levelGeom.get(3).push(makeSlime(5 * this.tileSize, 3 * this.tileSize, 2.5, "boss", 40, 20, this.tileSize * 0.9, 500, 10000));
+                } else {
+                    this.levelGeom.get(3).push(makeSlime(16 * this.tileSize, 3 * this.tileSize, 2.5, "boss", 40, 20, this.tileSize * 0.9, 500, 10000));
+                }
+            }
         }
 
         this.updateEnemeis(didAttack);
@@ -210,12 +222,11 @@ class GameState {
 
         }
         if (!inputs.prevStates.includes("USEITEM") && inputsArr.includes("USEITEM")) {
-
             if (this.items[this.selectedItem] != null && !this.inShop) {
                 if (canUse(this.items[this.selectedItem], this)) {
                     useItem(this.items[this.selectedItem], this);
                     this.items.splice(this.selectedItem, 1);
-                    this.selectedItem =  Math.max(0,Math.min(this.items.length - 1, this.selectedItem));
+                    this.selectedItem = Math.max(0, Math.min(this.items.length - 1, this.selectedItem));
                 } else {
 
                 }
@@ -227,8 +238,8 @@ class GameState {
                     } else {
                         this.changeWeapon(this.currentShop.items[this.selectedShopItem].sword);
                     }
-                    this.currentShop.items.splice(this.selectedShopItem,1);
-                    this.currentShop.prices.splice(this.selectedShopItem,1);
+                    this.currentShop.items.splice(this.selectedShopItem, 1);
+                    this.currentShop.prices.splice(this.selectedShopItem, 1);
                     this.shiftShopItems(0);
                     this.lastCoinTimer = Date.now();
                 }
@@ -313,6 +324,11 @@ class GameState {
                     var bobing = o.isDead ? 0 : Math.sin(Date.now() / 100) * 2;
                     ctx.drawImage(textures.get(textureStr), o.x + xOffset, o.y - this.cameraY - bobing, o.data.s, o.data.s + bobing);
                     break;
+                case "TRANSMITTER":
+                    var textureStr = o.isDead ? "Dead" : Date.now() - o.data.lastHit > o.data.recov ? "Normal" : "Hit";
+                    textureStr = o.data.texture + textureStr;
+                    ctx.drawImage(textures.get(textureStr), o.x + xOffset, o.y - this.cameraY, this.tileSize, this.tileSize);
+                    break;
             }
         });
 
@@ -372,7 +388,7 @@ class GameState {
         }
 
 
-        
+
         ctx.fillStyle = rgbToHex(150, 20, 20);
         ctx.fillRect(canvasWidth * 0.91, canvasHeight * 0.2, canvasWidth * 0.05, canvasHeight * 0.4);
         ctx.fillStyle = rgbToHex(250, 20, 20);
@@ -457,7 +473,7 @@ class GameState {
                 var goldStr = this.currentShop.prices[i].toString().padStart(3, "0");
                 ctx.font = "22px Courier New";
                 ctx.fillText(goldStr, 318 + (i * 110), 382 + (i == this.selectedShopItem ? -80 : 0));
-                if(i == this.selectedShopItem && !this.shopCutscene){
+                if (i == this.selectedShopItem && !this.shopCutscene) {
                     ctx.shadowColor = rgbToHex(10, 10, 10);
                     ctx.fillStyle = rgbToHex(230, 230, 200);
                     ctx.font = "28px Courier New";
@@ -471,24 +487,24 @@ class GameState {
                     ctx.restore();
                 }
             }
-            ctx.fillStyle = rgbToHexAlpha(0,0,0,150);
-            ctx.fillRect(230,500,550,24);
+            ctx.fillStyle = rgbToHexAlpha(0, 0, 0, 150);
+            ctx.fillRect(230, 500, 550, 24);
             ctx.save();
             ctx.shadowOffsetX = 2;
             ctx.shadowOffsetY = 2;
             ctx.shadowColor = rgbToHex(0, 0, 0);
             ctx.font = "18px Courier New";
-            var visableText = this.currentShopText.slice(Math.max(0,this.currentShopText.length-4));
+            var visableText = this.currentShopText.slice(Math.max(0, this.currentShopText.length - 4));
             //console.log(visableText);
             for (var i = 0; i < visableText.length; i++) {
                 if (visableText[i].side == "L") {
                     ctx.textAlign = "left";
                     ctx.fillStyle = rgbToHex(250, 180, 250);
-                    ctx.fillText(visableText[i].text, 240, 543 - (25 * (visableText.length-i) ));
+                    ctx.fillText(visableText[i].text, 240, 543 - (25 * (visableText.length - i)));
                 } else {
                     ctx.textAlign = "right";
                     ctx.fillStyle = rgbToHex(250, 250, 250);
-                    ctx.fillText(visableText[i].text, 780, 543 - (25 * (visableText.length-i) ));
+                    ctx.fillText(visableText[i].text, 780, 543 - (25 * (visableText.length - i)));
                 }
             }
             ctx.restore();
@@ -516,7 +532,7 @@ class GameState {
         ctx.restore();
     }
 
-    updatePlayerPosition() {
+    updatePlayerPosition(didAttack) {
         //handles:
         //player collision with enviroment
         //player collision with coins
@@ -530,7 +546,7 @@ class GameState {
         const pOY = { x: this.playerPositionOpposite.x, y: this.playerPositionOpposite.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
         this.visableGeom.filter(o => o.t != "ENEMY").forEach(o => {
 
-            if (o.t != "COIN" && o.t != "SHOP") {
+            if (o.t != "COIN" && o.t != "SHOP" && o.t != "TRANSMITTER") {
                 if (intersectRect(pX, o.r) || intersectRect(pOX, o.r)) {
                     xCollision = true;
                 }
@@ -578,6 +594,21 @@ class GameState {
                 if ((intersectRect(pX, o.r) || intersectRect(pOX, o.r) || intersectRect(pY, o.r) || intersectRect(pOY, o.r)) && !this.inShop && o.items.length > 0) {
                     this.canEnterShop = true;
                     this.currentShop = o;
+                }
+            } else if (o.t == "TRANSMITTER"){
+                if(o.hp > 0){
+                    if (intersectRect(pX, o.r) || intersectRect(pOX, o.r)) {
+                        xCollision = true;
+                    }
+                    if (didAttack) {
+                        if (intersectRect(o.r, this.hitBox) || intersectRect(o.r, this.hitBoxOpp)) {
+                            if(Date.now() - o.lastHit > 1000){
+                                o.hp -= this.equipedWeapon.d;
+                                o.lastHit = Date.now();
+                            }
+                            console.log(o.hp);
+                        }
+                    }
                 }
             }
         });
@@ -629,28 +660,37 @@ class GameState {
                 xColSlime = true;
             }
 
-            var slimeTileX = Math.trunc(o.x / this.tileSize);
-            var slimeTileY = Math.trunc(o.y / this.tileSize);
-            if (o.data.vx > 0) {
-                if (t.r.x == (slimeTileX+1) * this.tileSize && t.r.y == (slimeTileY + 1) * this.tileSize) {
-                    hasFloor = true;
-                }
-            } else {
-                slimeTileX = Math.trunc((o.x + o.data.s) / this.tileSize);
-                if (t.r.x == (slimeTileX - 1) * this.tileSize && t.r.y == (slimeTileY + 1) * this.tileSize) {
-                    hasFloor = true;
+            if(t.t == "FLOOR"){
+                var slimeTileX = Math.trunc(o.x / this.tileSize);
+                var slimeTileY = Math.trunc(o.y / this.tileSize);
+                if (o.data.vx > 0) {
+                    if (t.r.x == (slimeTileX + 1) * this.tileSize && t.r.y == (slimeTileY + 1) * this.tileSize) {
+                        hasFloor = true;
+                    }
+                } else {
+                    slimeTileX = Math.trunc((o.x + o.data.s) / this.tileSize);
+                    if (t.r.x == (slimeTileX - 1) * this.tileSize && t.r.y == (slimeTileY + 1) * this.tileSize) {
+                        hasFloor = true;
+                    }
                 }
             }
+            
         });
 
-        if (yColSlime) {
+        
+        if(xColSlime){
+            o.data.vx *= -1;
+        }
+        if(!hasFloor){
+            if(o.data.type != "boss"){
+                o.data.vx *= -1;
+            }
+        }
+        if(yColSlime){
             o.data.vy = 0;
         }
-
-        if (xColSlime) {
-            o.data.vx *= -1;
-        } else if (!hasFloor && yColSlime) {
-            o.data.vx *= -1;
+        if(o.data.type == "boss" && (Math.random() > 0.1) && hasFloor && (Date.now() - o.data.lastHit > o.data.recov)){
+            o.data.vy = -12;
         }
 
         if (!o.isDead) {
@@ -660,28 +700,28 @@ class GameState {
             o.y += o.data.vy;
         }
 
-
-
         var slimeRect = makeRect(o.x, o.y, o.data.s, o.data.s);
         if (didAttack && !o.isDead) {
             if (intersectRect(slimeRect, this.hitBox) || intersectRect(slimeRect, this.hitBoxOpp)) {
-
-                for(var i = 0; i < this.equipedWeapon.d; i+= 3){
-                    this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, Math.random() * 6 * Math.sign(o.data.vx) + o.data.vx, -2 + (Math.random() * -4)));
+                if(o.data.type != "boss" || (Date.now() - o.data.lastHit > o.data.recov)){
+                    for (var i = 0; i < this.equipedWeapon.d; i += 3) {
+                        this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, Math.random() * 6 * Math.sign(o.data.vx) + o.data.vx, -2 + (Math.random() * -4)));
+                    }
+                    o.data.hp -= this.equipedWeapon.d;
+                    o.data.lastHit = Date.now();
+    
+                    if (o.data.hp <= 0) {
+                        o.isDead = true;
+                    }
                 }
-                o.data.hp -= this.equipedWeapon.d;
-                o.data.lastHit = Date.now();
                 
-                if (o.data.hp <= 0) {
-                    o.isDead = true;
-                }
             }
         }
 
         const pRect = makeRect(this.playerPosition.x, this.playerPosition.y, this.playerSize.w, this.playerSize.h);
         const pORect = makeRect(this.playerPositionOpposite.x, this.playerPositionOpposite.y, this.playerSize.w, this.playerSize.h);
         if ((intersectRect(pRect, slimeRect) || intersectRect(pORect, slimeRect))) {
-            if (Date.now() - o.data.hitTimer > o.data.hitspeed && !o.isDead && o.data.dmg > 0) {
+            if ((Date.now() - o.data.hitTimer > o.data.hitspeed) && (Date.now() - o.data.lastHit > o.data.recov) &&  !o.isDead && (o.data.dmg > 0)) {
                 if (this.playerArmor == 0) {
                     this.playerHealth = Math.max(0, this.playerHealth - o.data.dmg);
                 } else {
@@ -696,18 +736,18 @@ class GameState {
     }
 
     shiftShopItems(dir) {
-        if(this.currentShop.items.length == 0){
+        if (this.currentShop.items.length == 0) {
             this.inShop = false;
             return;
         }
-        this.selectedShopItem = Math.min(this.currentShop.items.length-1,Math.max(0,this.selectedShopItem + dir));
+        this.selectedShopItem = Math.min(this.currentShop.items.length - 1, Math.max(0, this.selectedShopItem + dir));
         if (this.currentShop.items[this.selectedShopItem].type == "SWORD") {
             this.currentShopText.push({ text: this.currentShop.items[this.selectedShopItem].desc, side: "L" });
             this.currentShopText.push({ text: "My " + this.equipedWeapon.name + " has " + makeSwordDesc(this.equipedWeapon, false), side: "R" });
         } else {
             this.currentShopText.push({ text: "This item gives " + this.currentShop.items[this.selectedShopItem].desc, side: "L" });
         }
-        
+
     }
 
 

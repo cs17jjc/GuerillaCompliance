@@ -204,6 +204,9 @@ function makeEnenmy(x, y, type, data) {
 function makeSlime(x, y, vx, type, hp, dmg, s, hs, recov) {
   return makeEnenmy(x, y, "SLIME", { type: type, vx: vx, vy: 0, s: s, hp: hp, dmg: dmg, hitTimer: 0, hitspeed: hs, lastHit: 0, recov: recov })
 }
+function makeTransmitter(x, y, w, h, hp, tex) {
+  return { t: "TRANSMITTER", r: makeRect(x, y, w, h), texture: tex, hp: hp, lastHit: 0};
+}
 function makeCoin(x, y, vx, vy) {
   return { t: "COIN", vx: vx, vy: vy, texture: "coin1", r: makeRect(x, y, 8, 8), collected: false };
 
@@ -266,19 +269,27 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
       if (y == height - 1) {
         tileMapLeft[x].push("FLOOR");
         tileMapRight[x].push("FLOOR");
-      }else {
+      } else {
         switch (x) {
           case 0:
             tileMapLeft[x].push("WALL");
-            tileMapRight[x].push("MIRRORRIGHT");
+            if (y <= 6 && y >= 4) {
+              tileMapRight[x].push("TRANSMITTERRIGHT");
+            } else {
+              tileMapRight[x].push("MIRRORRIGHT");
+            }
             break;
           case levelRadius - 1:
             tileMapRight[x].push("WALL");
-            tileMapLeft[x].push("MIRRORLEFT");
+            if (y <= 6 && y >= 4) {
+              tileMapLeft[x].push("TRANSMITTERLEFT");
+            } else {
+              tileMapLeft[x].push("MIRRORLEFT");
+            }
             break;
 
           default:
-            if(y == height-2 && [2,4,6].includes(x)){
+            if (y == height - 2 && [2, 4, 6].includes(x)) {
               tileMapLeft[x].push("SlIME");
               tileMapRight[x].push("SLIME");
             } else {
@@ -405,9 +416,14 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
         case "MIRRORRIGHT":
           row.push(makeMirror(x * tileSize, y * tileSize, tileSize, tileSize, "mirrorRight"));
           break;
+        case "TRANSMITTERLEFT":
+          row.push(makeTransmitter(x * tileSize, y * tileSize, tileSize, tileSize, 100, "smallNormal"));
+          break;
+        case "TRANSMITTERRIGHT":
+          row.push(makeTransmitter(x * tileSize, y * tileSize, tileSize, tileSize, 100, "smallNormal"));
+          break;
         case "SLIME":
           var section = Math.trunc(y / 22);
-          console.log(section);
           switch (section) {
             case 6:
               if (Math.random() > 0.8) {
