@@ -72,7 +72,7 @@ function draw(ctx){
     if(!inputs.prevStates.includes("RESTART") && inputs.getInputs().includes("RESTART")){
         var coins = localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA");
         var weapon = JSON.parse(localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaWeaponYRYRBHJASKWA"));
-        gameState=GameState.initial(coins,weapon);
+        gameState=GameState.initial(coins,weapon,gameState.lastShopNum);
     }
 
     if(!inputs.prevStates.includes("CLEARSTORAGE") && inputs.getInputs().includes("CLEARSTORAGE")){
@@ -109,7 +109,7 @@ loadChecker = setInterval(() => {
         clearInterval(loadChecker);
         var coins = localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA");
         var weapon = JSON.parse(localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaWeaponYRYRBHJASKWA"));
-        gameState = GameState.initial(coins,weapon);
+        gameState = GameState.initial(coins,weapon,-1);
         setInterval(() => draw(ctx),50);
     } else {
         loadedImages = true;

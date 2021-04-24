@@ -191,12 +191,12 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
       { text: "Poggers.", side: "R" },
       { text: "Poggers.", side: "L" }];
   } else {
-    items = nRandomShopItems(5, ["HEALTH", "ARMOR", "HEALTHBOOST", "JUMP"], 10, 30);
+    items = nRandomShopItems(6, ["HEALTH", "ARMOR", "HEALTHBOOST", "JUMP"], 20, 30);
     prices = priceItems(items);
     text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
   }
 
-  return { t: "SHOP", r: makeRect(x, y, w, h), texture: tex, items: items, prices: prices, text: text, beenEntered: false };
+  return { t: "SHOP", shopNum:shopNum, r: makeRect(x, y, w, h), texture: tex, items: items, prices: prices, text: text, beenEntered: false };
 }
 function makeEnenmy(x, y, type, data) {
   return { t: "ENEMY", x: x, y: y, type: type, isDead: false, data: data };
@@ -204,8 +204,8 @@ function makeEnenmy(x, y, type, data) {
 function makeSlime(x, y, vx, type, hp, dmg, s, hs, recov) {
   return makeEnenmy(x, y, "SLIME", { type: type, vx: vx, vy: 0, s: s, hp: hp, dmg: dmg, hitTimer: 0, hitspeed: hs, lastHit: 0, recov: recov })
 }
-function makeTransmitter(x, y, w, h, hp, tex) {
-  return { t: "TRANSMITTER", r: makeRect(x, y, w, h), texture: tex, hp: hp, lastHit: 0};
+function makeTransmitter(x, y, w, h, maxHp, tex) {
+  return { t: "TRANSMITTER", r: makeRect(x, y, w, h), texture: tex,maxHp:maxHp, hp: maxHp, lastHit: 0};
 }
 function makeCoin(x, y, vx, vy) {
   return { t: "COIN", vx: vx, vy: vy, texture: "coin1", r: makeRect(x, y, 8, 8), collected: false };
@@ -388,7 +388,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorRight"));
           } else {
 
-            if (shopCooldown >= 25) {
+            if (shopCooldown >= (25 - (y < 20 && y > 15 ? 20 : 0) )) {
               shopCooldown = 0;
               row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorMiddleShop"));
               row.push(makeShop(x * tileSize, (y - 1) * tileSize, tileSize, tileSize, shopCounter, "shop1", playerSize));
@@ -418,6 +418,10 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           break;
         case "SLIME":
           var section = Math.trunc(y / 22);
+          //I've been working on this game jam for days, please dont judge me on this.
+          if(tileMap.get(y+1).filter(o => o.t == "SHOP").length >= 1){
+            section = 9999999;
+          }
           switch (section) {
             case 6:
               if (Math.random() > 0.8) {
@@ -463,8 +467,6 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
               break;
             case 0:
               if (Math.random() > 0.2) {
-                row.push(makeSlime(x * tileSize, y * tileSize, 2, "medium", 15, 20, tileSize * 0.8, 500, 200));
-              } else if (Math.random() > 0.2) {
                 row.push(makeSlime(x * tileSize, y * tileSize, 2.5, "large", 50, 20, tileSize * 0.8, 400, 200));
               } else {
                 row.push(makeSlime(x * tileSize, y * tileSize, 2.5, "large", 40, 20, tileSize * 0.6, 500, 150));
@@ -475,7 +477,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
       }
     }
     if(y == 4){
-      row.push(makeTransmitter((levelRadius-1) * tileSize, 4 * tileSize, tileSize*2, tileSize*3, 100, "TB1"));
+      row.push(makeTransmitter((levelRadius-1) * tileSize, 4 * tileSize, tileSize*2, tileSize*3, 500, "TB1"));
     }
     tileMap.set(y, row);
   }
