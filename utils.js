@@ -519,7 +519,7 @@ function makeHeavyWeapon1(playerSize) {
 }
 function makeQuickWeapon2(playerSize) {
   var texture = "sword2";
-  return makeMeleeWeapon("TentaBlade", 8, 60, texture,
+  return makeMeleeWeapon("TentaBlade", 8, 100, texture,
     makeRect(playerSize.w, -10, textures.get(texture).height, playerSize.h + 10),
     makeRect(-1 * textures.get(texture).height, -10, textures.get(texture).height, playerSize.h + 10));
 }
