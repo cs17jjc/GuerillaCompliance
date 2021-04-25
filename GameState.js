@@ -6,7 +6,7 @@ class GameState {
 
         this.playerPosition = { x: 4 * this.tileSize, y: (this.levelHeight - 4) * this.tileSize };
         //this.playerPosition = { x: 4 * this.tileSize, y: (14) * this.tileSize };
-    
+
         this.playerSize = { w: this.tileSize * 0.8, h: this.tileSize * 0.9 };
         this.playerVelocity = { x: 0, y: 0 };
         this.playerPositionOpposite = { x: (this.levelRadius * this.tileSize) + ((this.levelRadius * this.tileSize) - this.playerPosition.x - this.playerSize.w), y: this.playerPosition.y };
@@ -83,7 +83,7 @@ class GameState {
         gState.lastShopNum = lastShopNum;
         gState.coins = coins == null ? 0 : parseInt(coins);
         gState.changeWeapon(weapon == null ? makeStartWeapon(gState.playerSize) : weapon);
-        if(lastShopNum != -1){
+        if (lastShopNum != -1) {
             var lastShop = Array.from(gState.levelGeom.values()).flat().filter(o => o.shopNum == lastShopNum)[0];
             gState.playerPosition = { x: lastShop.r.x, y: lastShop.r.y };
         }
@@ -103,7 +103,7 @@ class GameState {
         localStorage.setItem("AJSNDJNSAJKJNDSKJMirroriaWeaponYRYRBHJASKWA", JSON.stringify(this.equipedWeapon));
     }
 
-    updateGame(inputsArr,soundToggle){
+    updateGame(inputsArr, soundToggle) {
         var canAttack = Date.now() - this.attackTimer > this.equipedWeapon.rate;
         var didAttack = false;
         if (canAttack && !this.gameOver && !this.inShop) {
@@ -131,10 +131,10 @@ class GameState {
         this.visableGeom = [];
         for (var i = Math.max(0, playerTileY - 18 - extendedRender); i < Math.min(playerTileY + 8 + extendedRender, this.levelHeight); i++) {
             this.levelGeom.set(i, this.levelGeom.get(i)
-            .filter(o => o.t != "COIN" ? true : !o.collected)
-            .filter(o => o.t != "ENEMY" ? true : !o.isDead || Date.now() - o.data.lastHit < 2000  )
-            .filter(o => o.t != "SHOP" ? true : !this.spawnBoss)
-            .filter(o => o.t != "ENEMY" ? true : o.data.type == "boss" ? !o.isDead : true));
+                .filter(o => o.t != "COIN" ? true : !o.collected)
+                .filter(o => o.t != "ENEMY" ? true : !o.isDead || Date.now() - o.data.lastHit < 2000)
+                .filter(o => o.t != "SHOP" ? true : !this.spawnBoss)
+                .filter(o => o.t != "ENEMY" ? true : o.data.type == "boss" ? !o.isDead : true));
             this.visableGeom = this.visableGeom.concat(this.levelGeom.get(i));
         }
 
@@ -149,7 +149,7 @@ class GameState {
             }
             //Change input direction based on which side the player position is
             //This can change due to shop respawn
-            if(this.playerPosition.x > this.levelRadius*this.tileSize){
+            if (this.playerPosition.x > this.levelRadius * this.tileSize) {
                 if (inputsArr.includes("RIGHT")) {
                     this.playerVelocity.x = 6;
                 }
@@ -164,7 +164,7 @@ class GameState {
                     this.playerVelocity.x = -6;
                 }
             }
-            
+
         }
 
         if (didAttack) {
@@ -221,12 +221,12 @@ class GameState {
             this.boss = true;
         }
 
-        if(this.spawnBoss){
-            if(this.visableGeom.filter(o => o.t == "ENEMY" && o.data.type == "boss" && !o.isDead).length == 0){
-                if(this.bossLeft){
-                    this.bossObj = makeSlime(5 * this.tileSize, 3 * this.tileSize, 4 * (Math.random>0.5?-1:1), "boss", 50, 20, this.tileSize * 0.9, 500, 10000);
+        if (this.spawnBoss) {
+            if (this.visableGeom.filter(o => o.t == "ENEMY" && o.data.type == "boss" && !o.isDead).length == 0) {
+                if (this.bossLeft) {
+                    this.bossObj = makeSlime(5 * this.tileSize, 3 * this.tileSize, 4 * (Math.random > 0.5 ? -1 : 1), "boss", 50, 20, this.tileSize * 1.1, 500, 10000);
                 } else {
-                    this.bossObj = makeSlime(16 * this.tileSize, 3 * this.tileSize, 4 * (Math.random>0.5?-1:1), "boss", 50, 20, this.tileSize * 0.9, 500, 10000);
+                    this.bossObj = makeSlime(16 * this.tileSize, 3 * this.tileSize, 4 * (Math.random > 0.5 ? -1 : 1), "boss", 50, 20, this.tileSize * 1.1, 500, 10000);
                 }
                 this.bossLeft = !this.bossLeft;
                 this.levelGeom.get(3).push(this.bossObj);
@@ -235,12 +235,12 @@ class GameState {
 
         this.updateEnemeis(didAttack);
 
-        if(((Date.now() - this.bossSpawnTimer) > 8000) && this.spawnBoss && ((Date.now() - this.bossObj.data.lastHit) > this.bossObj.data.recov) ){
+        if (((Date.now() - this.bossSpawnTimer) > 8000) && this.spawnBoss && ((Date.now() - this.bossObj.data.lastHit) > this.bossObj.data.recov)) {
             if (Math.random() > 0.5) {
                 this.levelGeom.get(3).push(makeSlime(this.bossObj.x, this.bossObj.y, 2, "medium", 15, 20, this.tileSize * 0.8, 500, 200));
-              } else {
+            } else {
                 this.levelGeom.get(3).push(makeSlime(this.bossObj.x, this.bossObj.y, 2.5, "large", 30, 20, this.tileSize * 0.6, 400, 200));
-              }
+            }
             this.bossSpawnTimer = Date.now();
         }
 
@@ -301,8 +301,8 @@ class GameState {
 
     update(inputsArr, soundToggle) {
 
-        if(!this.gameWon){
-            this.updateGame(inputsArr,soundToggle);
+        if (!this.gameWon) {
+            this.updateGame(inputsArr, soundToggle);
         }
 
     }
@@ -350,26 +350,26 @@ class GameState {
                 }
                 this.geomAnimationTimer = Date.now();
             }
-            if(o.t == "TRANSMITTER"){
-                if(this.spawnBoss){
-                    var overlayAlpha = (1-(o.hp/o.maxHp));
+            if (o.t == "TRANSMITTER") {
+                if (this.spawnBoss) {
+                    var overlayAlpha = (1 - (o.hp / o.maxHp));
                     ctx.save();
                     ctx.globalAlpha = overlayAlpha;
-                    ctx.drawImage(textures.get("TBOverlay"),o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h);
+                    ctx.drawImage(textures.get("TBOverlay"), o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h);
                     ctx.restore();
-                    if(Date.now() - o.lastHit < 1000) {
-                        var alpha =  Math.abs(Math.sin((Date.now() - o.lastHit)/100)*200);
-                        ctx.fillStyle = rgbToHexAlpha(255,0,0,Math.trunc(alpha));
+                    if (Date.now() - o.lastHit < 1000) {
+                        var alpha = Math.abs(Math.sin((Date.now() - o.lastHit) / 100) * 200);
+                        ctx.fillStyle = rgbToHexAlpha(255, 0, 0, Math.trunc(alpha));
                         ctx.fillRect(o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h)
-                    } else if(Date.now() - this.bossObj.data.lastHit > this.bossObj.data.recov) {
-                        ctx.fillStyle = rgbToHexAlpha(0,0,255,100);
-                        ctx.fillRect(o.r.x + xOffset-5, o.r.y - this.cameraY, o.r.w+10, o.r.h);
+                    } else if (Date.now() - this.bossObj.data.lastHit > this.bossObj.data.recov) {
+                        ctx.fillStyle = rgbToHexAlpha(0, 0, 255, 100);
+                        ctx.fillRect(o.r.x + xOffset - 5, o.r.y - this.cameraY, o.r.w + 10, o.r.h);
                     }
                 }
-                if(nextAnimationFrame2){
-                    var i = parseInt(o.texture[o.texture.length-1])
-                    i = (i+1) > 5 ? 1 : i+1;
-                    o.texture = o.texture.slice(0,-1) + i.toString();
+                if (nextAnimationFrame2) {
+                    var i = parseInt(o.texture[o.texture.length - 1])
+                    i = (i + 1) > 5 ? 1 : i + 1;
+                    o.texture = o.texture.slice(0, -1) + i.toString();
                     this.geomAnimationTimer2 = Date.now();
                 }
             }
@@ -393,15 +393,30 @@ class GameState {
                     var textureStr = o.isDead ? "Dead" : Date.now() - o.data.lastHit > o.data.recov ? "Normal" : "Hit";
                     textureStr = o.data.type + textureStr;
                     var bobing = o.isDead ? 0 : Math.sin(Date.now() / 100) * 2;
-                    if(o.data.type != "boss"){
+                    if (o.data.type != "boss") {
                         ctx.drawImage(textures.get(textureStr), o.x + xOffset, o.y - this.cameraY - bobing, o.data.s, o.data.s + bobing);
                     } else {
                         ctx.save();
-                        ctx.translate(o.x + xOffset + (o.data.s/2),o.y - this.cameraY + (o.data.s/2));
-                        ctx.rotate((o.isDead||(Date.now() - o.data.lastHit < o.data.recov)) ? 0 : Math.sin(Date.now() / 200) * 0.2);
+                        ctx.translate(o.x + xOffset + (o.data.s / 2), o.y - this.cameraY + (o.data.s / 2));
+                        ctx.rotate((o.isDead || (Date.now() - o.data.lastHit < o.data.recov)) ? 0 : Math.sin(Date.now() / 200) * 0.2);
                         bobing = (Date.now() - o.data.lastHit > o.data.recov) ? 0 : bobing;
-                        ctx.drawImage(textures.get(textureStr), -(o.data.s/2), -bobing-(o.data.s/2), o.data.s, o.data.s + bobing);
+                        ctx.drawImage(textures.get(textureStr), -(o.data.s / 2), -bobing - (o.data.s / 2), o.data.s, o.data.s + bobing);
                         ctx.restore();
+                        if (((Date.now() - o.data.lastHit) < o.data.recov) && !o.isDead) {
+                            var zs = Math.round(((Date.now() - o.data.lastHit) / o.data.recov) * 3);
+                            ctx.fillStyle = rgbToHexAlpha(250, 250, 250, 150);
+                            ctx.font = "19px Courier New";
+                            ctx.textAlign = "left";
+                            if (zs < 3) {
+                                ctx.fillText("Z",o.x + xOffset+o.data.s-5,o.y - this.cameraY - bobing+5);
+                            }
+                            if (zs < 2) {
+                                ctx.fillText("Z",o.x + xOffset+o.data.s+5,o.y - this.cameraY - bobing-5);
+                            }
+                            if (zs < 1) {
+                                ctx.fillText("Z",o.x + xOffset+o.data.s+15,o.y - this.cameraY - bobing-15);
+                            }
+                        }
                     }
                     break;
             }
@@ -435,9 +450,13 @@ class GameState {
             this.playerAnimationTimer = Date.now();
         }
 
-        ctx.drawImage(textures.get("playerReflection"), xOffset + (this.levelRadius * this.tileSize) - this.tileSize, this.playerPosition.y - this.cameraY, 5, this.playerSize.h * (this.playerPosition.x / (this.levelRadius * this.tileSize)));
-        ctx.drawImage(textures.get("playerReflection"), xOffset + (this.levelRadius * this.tileSize) + this.tileSize - 5, this.playerPositionOpposite.y - this.cameraY, 5, this.playerSize.h * (this.playerPosition.x / (this.levelRadius * this.tileSize)));
+        if(!this.gameWon){
 
+            ctx.drawImage(textures.get("playerReflection"), xOffset + (this.levelRadius * this.tileSize) - this.tileSize, this.playerPosition.y - this.cameraY, 5, this.playerSize.h * (Math.min(this.playerPosition.x,this.playerPositionOpposite.x) / (this.levelRadius * this.tileSize)) + 5);
+            ctx.drawImage(textures.get("playerReflection"), xOffset + (this.levelRadius * this.tileSize) + this.tileSize - 5, this.playerPositionOpposite.y - this.cameraY, 5, this.playerSize.h * (Math.min(this.playerPosition.x,this.playerPositionOpposite.x) / (this.levelRadius * this.tileSize)) + 5);    
+        }
+
+        
 
 
         if (Date.now() - this.attackTimer < this.equipedWeapon.rate) {
@@ -670,16 +689,16 @@ class GameState {
                     this.canEnterShop = true;
                     this.currentShop = o;
                 }
-            } else if (o.t == "TRANSMITTER"){
-                if(o.hp > 0){
+            } else if (o.t == "TRANSMITTER") {
+                if (o.hp > 0) {
                     if (intersectRect(pX, o.r) || intersectRect(pOX, o.r)) {
                         xCollision = true;
                     }
                     if (didAttack) {
                         if (intersectRect(o.r, this.hitBox) || intersectRect(o.r, this.hitBoxOpp)) {
-                            if(Date.now() - o.lastHit > 1000){
-                                if(this.spawnBoss){
-                                    if(Date.now() - this.bossObj.data.lastHit < this.bossObj.data.recov){
+                            if (Date.now() - o.lastHit > 1000) {
+                                if (this.spawnBoss) {
+                                    if (Date.now() - this.bossObj.data.lastHit < this.bossObj.data.recov) {
                                         o.hp -= this.equipedWeapon.d;
                                         o.lastHit = Date.now();
                                     }
@@ -688,8 +707,8 @@ class GameState {
                                     o.hp -= this.equipedWeapon.d;
                                     o.lastHit = Date.now();
                                 }
-                                
-                                if(o.hp <= 0){
+
+                                if (o.hp <= 0) {
                                     this.gameWon = true;
                                     this.gameWonTimer = Date.now();
                                 }
@@ -733,9 +752,11 @@ class GameState {
         //Slime interaction with weapon
         o.data.vy += 0.5;
         var sSX = makeRect(o.x + o.data.vx, o.y, o.data.s, o.data.s - 1);
-        var sSY = makeRect(o.x - 1, o.y + o.data.vy, o.data.s + 2, o.data.s);
+        var sSY = makeRect(o.x - 1, o.y + o.data.vy, o.data.s + 2, o.data.s+1);
+        var sSYFloor = makeRect(o.x - 1, o.y + o.data.s-5, o.data.s + 2, 7);
         var xColSlime = false;
         var yColSlime = false;
+        var yColFloor = false;
         var hasFloor = false;
         this.visableGeom.filter(t => t != o && !["COIN", "ENEMY", "SHOP"].includes(t.t)).forEach(t => {
 
@@ -747,7 +768,11 @@ class GameState {
                 xColSlime = true;
             }
 
-            if(t.t == "FLOOR"){
+            if (intersectRect(t.r, sSYFloor)) {
+                yColFloor = true;
+            }
+
+            if (t.t == "FLOOR") {
                 var slimeTileX = Math.trunc(o.x / this.tileSize);
                 var slimeTileY = Math.trunc(o.y / this.tileSize);
                 if (o.data.vx > 0) {
@@ -761,21 +786,21 @@ class GameState {
                     }
                 }
             }
-            
+
         });
 
-        
-        if(xColSlime){
+
+        if (xColSlime) {
             o.data.vx *= -1;
-        } else if(!hasFloor && yColSlime){
-            if(o.data.type != "boss"){
+        } else if (!hasFloor && yColSlime) {
+            if (o.data.type != "boss") {
                 o.data.vx *= -1;
             }
         }
-        if(yColSlime){
+        if (yColSlime) {
             o.data.vy = 0;
         }
-        if(o.data.type == "boss" && (Math.random() > 0.5) && hasFloor && (Date.now() - o.data.lastHit > o.data.recov)){
+        if (o.data.type == "boss" && (Math.random() > 0.5) && yColFloor && (Date.now() - o.data.lastHit > o.data.recov)) {
             o.data.vy = -12;
         }
 
@@ -789,28 +814,28 @@ class GameState {
         var slimeRect = makeRect(o.x, o.y, o.data.s, o.data.s);
         if (didAttack && !o.isDead) {
             if (intersectRect(slimeRect, this.hitBox) || intersectRect(slimeRect, this.hitBoxOpp)) {
-                if(o.data.type != "boss" || (Date.now() - o.data.lastHit > o.data.recov)){
-                    if(o.data.type != "boss" && this.coins < 999){
+                if (o.data.type != "boss" || (Date.now() - o.data.lastHit > o.data.recov)) {
+                    if (o.data.type != "boss" && this.coins < 999) {
                         for (var i = 0; i < this.equipedWeapon.d; i += 3) {
                             this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, Math.random() * 6 * Math.sign(o.data.vx) + o.data.vx, -2 + (Math.random() * -4)));
                         }
                     }
-                    
+
                     o.data.hp -= this.equipedWeapon.d;
                     o.data.lastHit = Date.now();
-    
+
                     if (o.data.hp <= 0) {
                         o.isDead = true;
                     }
                 }
-                
+
             }
         }
 
         const pRect = makeRect(this.playerPosition.x, this.playerPosition.y, this.playerSize.w, this.playerSize.h);
         const pORect = makeRect(this.playerPositionOpposite.x, this.playerPositionOpposite.y, this.playerSize.w, this.playerSize.h);
         if ((intersectRect(pRect, slimeRect) || intersectRect(pORect, slimeRect))) {
-            if ((Date.now() - o.data.hitTimer > o.data.hitspeed) && (Date.now() - o.data.lastHit > o.data.recov) &&  !o.isDead && (o.data.dmg > 0)) {
+            if ((Date.now() - o.data.hitTimer > o.data.hitspeed) && (Date.now() - o.data.lastHit > o.data.recov) && !o.isDead && (o.data.dmg > 0)) {
                 if (this.playerArmor == 0) {
                     this.playerHealth = Math.max(0, this.playerHealth - o.data.dmg);
                 } else {
