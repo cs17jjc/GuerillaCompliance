@@ -67,7 +67,9 @@ function draw(ctx){
             gameState.inShop = false;
             gameState.shopCutscene = false;
         } else {
-            this.paused = !this.paused;
+            if(!gameState.spawnBoss){
+                this.paused = !this.paused;
+            }
         }
     }
     

@@ -555,7 +555,7 @@ class GameState {
             ctx.font = "15px Courier New";
             ctx.fillText(this.items[this.selectedItem].desc, (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.88);
             ctx.font = "16px Courier New";
-            ctx.fillText("Use:Shift", (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.92);
+            ctx.fillText("Shift to Use", (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.92);
         } else {
             ctx.textAlign = "center";
             ctx.font = "15px Courier New";
@@ -611,7 +611,7 @@ class GameState {
                     ctx.fillText("Q ", 330 + (i * 110), 410 + (i == this.selectedShopItem ? -80 : 0));
                     ctx.textAlign = "center";
                     ctx.font = "14px Courier New";
-                    ctx.fillText("Buy:Shift", 330 + (i * 110), 428 + (i == this.selectedShopItem ? -80 : 0));
+                    ctx.fillText("Shift to Buy", 330 + (i * 110), 428 + (i == this.selectedShopItem ? -80 : 0));
                     ctx.restore();
                 }
             }
