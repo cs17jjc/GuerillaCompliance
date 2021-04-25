@@ -32,6 +32,7 @@ class GameState {
         this.hitTimer = 0;
 
         this.coins = 0;
+        this.prevCoins = 0;
         this.lastCoinTimer = 0;
         this.coinUIImage = "coin1";
 
@@ -61,6 +62,9 @@ class GameState {
         this.gameWon = false;
         this.gameWonTimer = false;
         this.gold = 0;
+
+        this.endGame = false;
+        this.endGameTimer = Date.now();
 
         this.hasEnteredShop = true;
         this.canEnterShop = false;
@@ -104,6 +108,7 @@ class GameState {
     }
 
     updateGame(inputsArr, soundToggle) {
+
         var canAttack = Date.now() - this.attackTimer > this.equipedWeapon.rate;
         var didAttack = false;
         if (canAttack && !this.gameOver && !this.inShop) {
@@ -134,15 +139,18 @@ class GameState {
                 .filter(o => o.t != "COIN" ? true : !o.collected)
                 .filter(o => o.t != "ENEMY" ? true : !o.isDead || Date.now() - o.data.lastHit < 2000)
                 .filter(o => o.t != "SHOP" ? true : !this.spawnBoss)
-                .filter(o => o.t != "ENEMY" ? true : o.data.type == "boss" ? !o.isDead : true));
+                .filter(o => o.t != "ENEMY" ? true : o.data.type == "boss" ? !o.isDead : true)
+                .filter(o => o.t != "ANIM" ? true : Date.now() - o.created < o.lifetime));
             this.visableGeom = this.visableGeom.concat(this.levelGeom.get(i));
         }
+
 
         if (!this.inShop) {
             if (inputsArr.includes("UP") && Date.now() - this.jumpTimer > 1000 && this.hasLanded) {
                 this.playerVelocity.y -= 12;
                 this.jumpTimer = Date.now();
                 this.hasLanded = false;
+                zzfx(...[soundToggle ? 1 : 0, , 426, , .04, .23, 1, 1.15, -9.6, , , , , , .7]).start();
             }
             if (inputsArr.includes("DOWN") && !this.hasLanded) {
                 this.playerVelocity.y += 0.2;
@@ -168,13 +176,16 @@ class GameState {
         }
 
         if (didAttack) {
+            zzfx(...[soundToggle ? 1.73 : 0, , 300, .04, , .05, , 1.37, 5.3, , , , , , , , .05, , .03]).start();
             this.hitBox.x += this.playerPosition.x;
             this.hitBox.y += this.playerPosition.y;
             this.hitBoxOpp.x += this.playerPositionOpposite.x;
             this.hitBoxOpp.y += this.playerPositionOpposite.y;
         }
 
-        this.updatePlayerPosition(didAttack);
+
+        this.updatePlayerPosition(didAttack, soundToggle);
+
 
         if (inputsArr.includes("ENTER") && !inputs.prevStates.includes("ENTER")) {
             if (this.shopCutscene) {
@@ -196,9 +207,8 @@ class GameState {
             }
         }
 
-        if (!this.gameOver) {
-            this.playerPosition = addVector(this.playerPosition, this.playerVelocity);
-        }
+
+        this.playerPosition = addVector(this.playerPosition, this.playerVelocity);
         this.playerPositionOpposite = { x: (this.levelRadius * this.tileSize) + ((this.levelRadius * this.tileSize) - this.playerPosition.x - this.playerSize.w), y: this.playerPosition.y };
 
         if (this.playerPosition.y > this.bossFloor * this.tileSize && !this.boss && this.hasEnteredShop) {
@@ -224,16 +234,16 @@ class GameState {
         if (this.spawnBoss) {
             if (this.visableGeom.filter(o => o.t == "ENEMY" && o.data.type == "boss" && !o.isDead).length == 0) {
                 if (this.bossLeft) {
-                    this.bossObj = makeSlime(5 * this.tileSize, 3 * this.tileSize, 4 * (Math.random > 0.5 ? -1 : 1), "boss", 50, 20, this.tileSize * 1.1, 500, 10000);
+                    this.bossObj = makeSlime(5 * this.tileSize, 3 * this.tileSize, 4 * (Math.random > 0.5 ? -1 : 1), "boss", 50, 20, this.tileSize * 1.1, 500, 8000);
                 } else {
-                    this.bossObj = makeSlime(16 * this.tileSize, 3 * this.tileSize, 4 * (Math.random > 0.5 ? -1 : 1), "boss", 50, 20, this.tileSize * 1.1, 500, 10000);
+                    this.bossObj = makeSlime(16 * this.tileSize, 3 * this.tileSize, 4 * (Math.random > 0.5 ? -1 : 1), "boss", 50, 20, this.tileSize * 1.1, 500, 8000);
                 }
                 this.bossLeft = !this.bossLeft;
                 this.levelGeom.get(3).push(this.bossObj);
             }
         }
 
-        this.updateEnemeis(didAttack);
+        this.updateEnemeis(didAttack, soundToggle);
 
         if (((Date.now() - this.bossSpawnTimer) > 8000) && this.spawnBoss && ((Date.now() - this.bossObj.data.lastHit) > this.bossObj.data.recov)) {
             if (Math.random() > 0.5) {
@@ -265,8 +275,7 @@ class GameState {
                     useItem(this.items[this.selectedItem], this);
                     this.items.splice(this.selectedItem, 1);
                     this.selectedItem = Math.max(0, Math.min(this.items.length - 1, this.selectedItem));
-                } else {
-
+                    zzfx(...[soundToggle ? 1.19 : 0, , 389, .01, .1, .24, 2, 2.04, , -3.7, , , .1, , -137, .6, , , .01, .54]).start();
                 }
             } else if (this.inShop) {
                 if (this.currentShop.prices[this.selectedShopItem] <= this.coins && !this.shopCutscene) {
@@ -287,6 +296,12 @@ class GameState {
 
         }
 
+        if (this.coins > this.prevCoins) {
+            zzfx(...[soundToggle ? 1.07 : 0, 0, 801, .01, .04, .08, , .96, , , 100, .04, , , , , , .72, .09, .01]).start();
+        }
+        this.prevCoins = this.coins;
+
+
         if (this.playerHealth <= 0) {
             this.gameOver = true;
             this.gameOverTimer = Date.now();
@@ -297,14 +312,25 @@ class GameState {
             this.gameOver = true
             this.gameOverTimer = Date.now();
         }
+
+        if (this.gameWon && (Date.now() - this.gameWonTimer < 5000)) {
+            this.makeEndExplosions(10, soundToggle);
+        }
+
     }
 
     update(inputsArr, soundToggle) {
+        this.updateGame(inputsArr, soundToggle);
+    }
 
-        if (!this.gameWon) {
-            this.updateGame(inputsArr, soundToggle);
+    makeEndExplosions(num, soundToggle) {
+        zzfx(...[soundToggle ? 2.22 : 0, , 30, , .31, .43, 4, .33, .1, , , , , .8, , .4, .11, .51, .01]).start();
+        for (var i = 0; i < num; i++) {
+            var x = ((this.levelRadius - 2) * this.tileSize) + (Math.random() * 3 * this.tileSize);
+            var y = (3 * this.tileSize) + (Math.random() * 4 * this.tileSize);
+
+            this.levelGeom.get(4).push(makeAnimation(x, y, this.tileSize, this.tileSize, "Exp1", 500, 3));
         }
-
     }
 
     draw(ctx) {
@@ -320,7 +346,7 @@ class GameState {
         xOffset += xHealthBarOffset;
         var nextAnimationFrame = Date.now() - this.geomAnimationTimer > 200;
         var nextAnimationFrame2 = Date.now() - this.geomAnimationTimer2 > 100;
-        this.visableGeom.filter(t => t.t != "ENEMY" && t.t != "COIN").forEach(o => {
+        this.visableGeom.filter(t => t.t != "ENEMY" && t.t != "COIN" && t.t != "ANIM").forEach(o => {
             ctx.drawImage(textures.get(o.texture), o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h);
             if (nextAnimationFrame) {
                 switch (o.texture) {
@@ -351,7 +377,7 @@ class GameState {
                 this.geomAnimationTimer = Date.now();
             }
             if (o.t == "TRANSMITTER") {
-                if (this.spawnBoss) {
+                if (this.spawnBoss && !this.gameWon) {
                     var overlayAlpha = (1 - (o.hp / o.maxHp));
                     ctx.save();
                     ctx.globalAlpha = overlayAlpha;
@@ -367,10 +393,13 @@ class GameState {
                     }
                 }
                 if (nextAnimationFrame2) {
-                    var i = parseInt(o.texture[o.texture.length - 1])
-                    i = (i + 1) > 5 ? 1 : i + 1;
-                    o.texture = o.texture.slice(0, -1) + i.toString();
-                    this.geomAnimationTimer2 = Date.now();
+                    if (o.hp <= 0) {
+                        o.texture = "TBDes";
+                    } else {
+                        var i = parseInt(o.texture[o.texture.length - 1])
+                        i = (i + 1) > 5 ? 1 : i + 1;
+                        o.texture = o.texture.slice(0, -1) + i.toString();
+                    }
                 }
             }
             if (o.t == "SHOP" && this.canEnterShop && !this.inShop) {
@@ -383,6 +412,9 @@ class GameState {
                 ctx.fillStyle = rgbToHexAlpha(230, 230, 230, 240);
                 ctx.fillText("Press Enter", o.r.x + xOffset + (o.r.w / 2), o.r.y - this.cameraY - 5);
                 ctx.restore();
+            }
+            if (nextAnimationFrame2) {
+                this.geomAnimationTimer2 = Date.now();
             }
         });
 
@@ -408,13 +440,13 @@ class GameState {
                             ctx.font = "19px Courier New";
                             ctx.textAlign = "left";
                             if (zs < 3) {
-                                ctx.fillText("Z",o.x + xOffset+o.data.s-5,o.y - this.cameraY - bobing+5);
+                                ctx.fillText("Z", o.x + xOffset + o.data.s - 5, o.y - this.cameraY - bobing + 5);
                             }
                             if (zs < 2) {
-                                ctx.fillText("Z",o.x + xOffset+o.data.s+5,o.y - this.cameraY - bobing-5);
+                                ctx.fillText("Z", o.x + xOffset + o.data.s + 5, o.y - this.cameraY - bobing - 5);
                             }
                             if (zs < 1) {
-                                ctx.fillText("Z",o.x + xOffset+o.data.s+15,o.y - this.cameraY - bobing-15);
+                                ctx.fillText("Z", o.x + xOffset + o.data.s + 15, o.y - this.cameraY - bobing - 15);
                             }
                         }
                     }
@@ -422,10 +454,15 @@ class GameState {
             }
         });
 
-        this.visableGeom.filter(t => t.t == "COIN").forEach(o => {
+        this.visableGeom.filter(t => t.t == "COIN" || t.t == "ANIM").forEach(o => {
             ctx.drawImage(textures.get(o.texture), o.r.x + xOffset, o.r.y - this.cameraY, o.r.w, o.r.h);
-            if (nextAnimationFrame) {
+            if (nextAnimationFrame && o.t == "COIN") {
                 o.texture = getNextCoinFrame(o.texture);
+            }
+            if (nextAnimationFrame2 && o.t == "ANIM") {
+                var i = parseInt(o.texture[o.texture.length - 1])
+                i = (i + 1) > o.frames ? 1 : i + 1;
+                o.texture = o.texture.slice(0, -1) + i.toString();
             }
         });
 
@@ -450,13 +487,10 @@ class GameState {
             this.playerAnimationTimer = Date.now();
         }
 
-        if(!this.gameWon){
-
-            ctx.drawImage(textures.get("playerReflection"), xOffset + (this.levelRadius * this.tileSize) - this.tileSize, this.playerPosition.y - this.cameraY, 5, this.playerSize.h * (Math.min(this.playerPosition.x,this.playerPositionOpposite.x) / (this.levelRadius * this.tileSize)) + 5);
-            ctx.drawImage(textures.get("playerReflection"), xOffset + (this.levelRadius * this.tileSize) + this.tileSize - 5, this.playerPositionOpposite.y - this.cameraY, 5, this.playerSize.h * (Math.min(this.playerPosition.x,this.playerPositionOpposite.x) / (this.levelRadius * this.tileSize)) + 5);    
+        if (!this.gameWon) {
+            ctx.drawImage(textures.get("playerReflection"), xOffset + (this.levelRadius * this.tileSize) - this.tileSize, this.playerPosition.y - this.cameraY, 5, this.playerSize.h * (Math.min(this.playerPosition.x, this.playerPositionOpposite.x) / (this.levelRadius * this.tileSize)) + 5);
+            ctx.drawImage(textures.get("playerReflection"), xOffset + (this.levelRadius * this.tileSize) + this.tileSize - 5, this.playerPositionOpposite.y - this.cameraY, 5, this.playerSize.h * (Math.min(this.playerPosition.x, this.playerPositionOpposite.x) / (this.levelRadius * this.tileSize)) + 5);
         }
-
-        
 
 
         if (Date.now() - this.attackTimer < this.equipedWeapon.rate) {
@@ -581,6 +615,13 @@ class GameState {
                     ctx.restore();
                 }
             }
+            if (this.shopCutscene) {
+                ctx.textAlign = "center";
+                ctx.font = "18px Courier New";
+                ctx.shadowColor = rgbToHex(10, 10, 10);
+                ctx.fillStyle = rgbToHex(255, 255, 255);
+                ctx.fillText("Press Enter.",canvasWidth*0.52,canvasHeight*0.74)
+            }
             ctx.fillStyle = rgbToHexAlpha(0, 0, 0, 150);
             ctx.fillRect(230, 500, 550, 24);
             ctx.save();
@@ -623,10 +664,16 @@ class GameState {
         ctx.font = "28px Courier New";
         ctx.fillText(goldStr, canvasWidth * 0.928, canvasHeight * 0.15);
 
+        if (this.gameWon && (Date.now() - this.gameWonTimer) < 500) {
+            var alp = Math.trunc(((Date.now() - this.gameWonTimer) / 500) * 255)
+            ctx.fillStyle = rgbToHexAlpha(255, 255, 255, alp);
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        }
+
         ctx.restore();
     }
 
-    updatePlayerPosition(didAttack) {
+    updatePlayerPosition(didAttack, soundToggle) {
         //handles:
         //player collision with enviroment
         //player collision with coins
@@ -640,7 +687,7 @@ class GameState {
         const pOY = { x: this.playerPositionOpposite.x, y: this.playerPositionOpposite.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
         this.visableGeom.filter(o => o.t != "ENEMY").forEach(o => {
 
-            if (o.t != "COIN" && o.t != "SHOP" && o.t != "TRANSMITTER") {
+            if (o.t != "COIN" && o.t != "SHOP" && o.t != "TRANSMITTER" && o.t != "ANIM") {
                 if (intersectRect(pX, o.r) || intersectRect(pOX, o.r)) {
                     xCollision = true;
                 }
@@ -690,10 +737,10 @@ class GameState {
                     this.currentShop = o;
                 }
             } else if (o.t == "TRANSMITTER") {
+                if ((intersectRect(pX, o.r) || intersectRect(pOX, o.r)) && (!this.gameWon || (Date.now() - this.gameWonTimer < 5000))) {
+                    xCollision = true;
+                }
                 if (o.hp > 0) {
-                    if (intersectRect(pX, o.r) || intersectRect(pOX, o.r)) {
-                        xCollision = true;
-                    }
                     if (didAttack) {
                         if (intersectRect(o.r, this.hitBox) || intersectRect(o.r, this.hitBoxOpp)) {
                             if (Date.now() - o.lastHit > 1000) {
@@ -701,16 +748,24 @@ class GameState {
                                     if (Date.now() - this.bossObj.data.lastHit < this.bossObj.data.recov) {
                                         o.hp -= this.equipedWeapon.d;
                                         o.lastHit = Date.now();
+                                        this.makeEndExplosions(10, soundToggle);
                                     }
                                 } else {
                                     this.spawnBoss = true;
                                     o.hp -= this.equipedWeapon.d;
                                     o.lastHit = Date.now();
+                                    this.makeEndExplosions(10, soundToggle);
                                 }
 
                                 if (o.hp <= 0) {
                                     this.gameWon = true;
                                     this.gameWonTimer = Date.now();
+                                    this.spawnBoss = false;
+                                    this.visableGeom.filter(o => o.type == "SLIME").forEach(s => {
+                                        s.isDead = true;
+                                        s.hp = 0;
+                                        s.data.lastHit = Date.now();
+                                    });
                                 }
                             }
                         }
@@ -718,6 +773,11 @@ class GameState {
                 }
             }
         });
+
+        if (intersectRect(pX, pOX)) {
+            this.endGame = true;
+            this.endGameTimer = Date.now();
+        }
 
         if (xCollision) {
             this.playerVelocity.x = 0;
@@ -735,30 +795,32 @@ class GameState {
         }
     }
 
-    updateEnemeis(didAttack) {
+    updateEnemeis(didAttack, soundToggle) {
         this.visableGeom.filter(t => t.t == "ENEMY").forEach(o => {
             switch (o.type) {
                 case "SLIME":
-                    this.updateSlime(o, didAttack);
+                    this.updateSlime(o, didAttack, soundToggle);
                     break;
             }
         });
     }
 
-    updateSlime(o, didAttack) {
+    updateSlime(o, didAttack, soundToggle) {
         //Handles:
         //Slime movement
         //Slime collision with enviroment
         //Slime interaction with weapon
         o.data.vy += 0.5;
         var sSX = makeRect(o.x + o.data.vx, o.y, o.data.s, o.data.s - 1);
-        var sSY = makeRect(o.x - 1, o.y + o.data.vy, o.data.s + 2, o.data.s+1);
-        var sSYFloor = makeRect(o.x - 1, o.y + o.data.s-5, o.data.s + 2, 7);
+        var sSY = makeRect(o.x - 1, o.y + o.data.vy, o.data.s + 2, o.data.s + 1);
+        var sSYFloor = makeRect(o.x - 1, o.y + o.data.s - 5, o.data.s + 2, 7);
+        var sSYTop = makeRect(o.x - 1, o.y - 5, o.data.s + 2, 5);
         var xColSlime = false;
         var yColSlime = false;
         var yColFloor = false;
+        var yColTop = false;
         var hasFloor = false;
-        this.visableGeom.filter(t => t != o && !["COIN", "ENEMY", "SHOP"].includes(t.t)).forEach(t => {
+        this.visableGeom.filter(t => t != o && !["COIN", "ENEMY", "SHOP", "ANIM"].includes(t.t)).forEach(t => {
 
             if (intersectRect(t.r, sSY)) {
                 yColSlime = true;
@@ -770,6 +832,9 @@ class GameState {
 
             if (intersectRect(t.r, sSYFloor)) {
                 yColFloor = true;
+            }
+            if (intersectRect(t.r, sSYTop)) {
+                yColTop = true;
             }
 
             if (t.t == "FLOOR") {
@@ -792,15 +857,17 @@ class GameState {
 
         if (xColSlime) {
             o.data.vx *= -1;
+            zzfx(...[(soundToggle && Math.random() > 0.8) ? 0.2 : 0, .45, 551, .03, .03, 0, 1, .78, , -68, -102, .24, , .5, -4.4, , , .7, .02, .14]).start();
         } else if (!hasFloor && yColSlime) {
             if (o.data.type != "boss") {
                 o.data.vx *= -1;
+                zzfx(...[(soundToggle && Math.random() > 0.8) ? 0.2 : 0, .45, 551, .03, .03, 0, 1, .78, , -68, -102, .24, , .5, -4.4, , , .7, .02, .14]).start();
             }
         }
         if (yColSlime) {
             o.data.vy = 0;
         }
-        if (o.data.type == "boss" && (Math.random() > 0.5) && yColFloor && (Date.now() - o.data.lastHit > o.data.recov)) {
+        if (o.data.type == "boss" && (Math.random() > 0.5) && yColFloor && !yColTop && (Date.now() - o.data.lastHit > o.data.recov)) {
             o.data.vy = -12;
         }
 
@@ -817,15 +884,16 @@ class GameState {
                 if (o.data.type != "boss" || (Date.now() - o.data.lastHit > o.data.recov)) {
                     if (o.data.type != "boss" && this.coins < 999) {
                         for (var i = 0; i < this.equipedWeapon.d; i += 3) {
-                            this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, Math.random() * 6 * Math.sign(o.data.vx) + o.data.vx, -2 + (Math.random() * -4)));
+                            this.levelGeom.get(Math.trunc(o.y / this.tileSize)).push(makeCoin(o.x, o.y, (-8 + (Math.random() * 16)) + o.data.vx, -2 + (Math.random() * -6)));
                         }
                     }
-
+                    zzfx(...[soundToggle ? 1.99 : 0, , 700 - (o.data.s * 10), , .01, 0, 3, 1.96, -60, , , , , , , , .06]).start();
                     o.data.hp -= this.equipedWeapon.d;
                     o.data.lastHit = Date.now();
 
                     if (o.data.hp <= 0) {
                         o.isDead = true;
+                        zzfx(...[soundToggle ? 1.11 : 0, , 173, , , .31, 2, 2.85, -5.4, 4.6, , , , .3, , .3, , .64, .07, .12]).start();
                     }
                 }
 
@@ -838,8 +906,10 @@ class GameState {
             if ((Date.now() - o.data.hitTimer > o.data.hitspeed) && (Date.now() - o.data.lastHit > o.data.recov) && !o.isDead && (o.data.dmg > 0)) {
                 if (this.playerArmor == 0) {
                     this.playerHealth = Math.max(0, this.playerHealth - o.data.dmg);
+                    zzfx(...[soundToggle ? 2.07 : 0, , 100 + (400 * (this.playerHealth / this.maxHealth)), , , .09, , 2.66, , -4.1, , , , 1.2, , .2, .19, .71, .02]).start();
                 } else {
                     this.playerArmor = Math.max(0, this.playerArmor - 1);
+                    zzfx(...[soundToggle ? 2.07 : 0, , 500, , , .09, , 2.66, , -4.1, , , , 1.2, , .2, .19, .71, .02]).start();
                 }
                 this.hitTimer = Date.now();
                 o.data.hitTimer = Date.now();

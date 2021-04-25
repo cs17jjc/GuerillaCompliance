@@ -11,7 +11,7 @@ Array.from(document.images).forEach(i => {
 
 var gameState;
 var inputs = Inputs.empty();
-inputs.attachInputs();
+inputs.attachInput("ENTER",'Enter');
 
 document.addEventListener('keydown', (e) => {
     inputs.update(e.key,true);
@@ -28,6 +28,8 @@ var musicToggle = true;
 var soundToggle = true;
 
 var paused = false;
+
+var playing = false;
 
 
 function draw(ctx){
@@ -99,6 +101,27 @@ function draw(ctx){
             myAudioNode.connect(zzfxX.destination);
         }
     }
+
+    if(!playing){
+        ctx.fillStyle = rgbToHexAlpha(0,0,0,220);
+        ctx.fillRect(0,0,canvasWidth,canvasHeight);
+        var scale = 5;
+        ctx.drawImage(textures.get("MirroriaImg"),(canvasWidth/2) - ((118*scale)/2),canvasHeight*0.05,118*scale,33*scale);
+        ctx.fillStyle = rgbToHex(250,250,250);
+        ctx.font = "20px Courier New";
+        ctx.textAlign = 'center';
+        ctx.fillText("WASD to Move.",canvasWidth/2,canvasHeight*0.45);
+        ctx.fillText("Left and Right Arrow Keys to Attack.",canvasWidth/2,canvasHeight*0.55);
+        ctx.fillText("Q and E to Switch Item.",canvasWidth/2,canvasHeight*0.65);
+        ctx.fillText("Shift to Use Item.",canvasWidth/2,canvasHeight*0.75);
+        ctx.font = "24px Courier New";
+        ctx.fillText("Press Enter to Start.",canvasWidth/2,canvasHeight*0.85);
+        if(inputs.getInputs().includes("ENTER")){
+            playing = true;
+            inputs.attachInputs();
+        }
+    }
+
     inputs.prevStates = inputs.getInputs();
 }
 
@@ -110,6 +133,7 @@ loadChecker = setInterval(() => {
         var coins = localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA");
         var weapon = JSON.parse(localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaWeaponYRYRBHJASKWA"));
         gameState = GameState.initial(coins,weapon,-1);
+        gameState.update([],soundToggle);
         setInterval(() => draw(ctx),50);
     } else {
         loadedImages = true;

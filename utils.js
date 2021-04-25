@@ -209,7 +209,9 @@ function makeTransmitter(x, y, w, h, maxHp, tex) {
 }
 function makeCoin(x, y, vx, vy) {
   return { t: "COIN", vx: vx, vy: vy, texture: "coin1", r: makeRect(x, y, 8, 8), collected: false };
-
+}
+function makeAnimation(x,y,w,h,tex,lifetime,frames){
+  return { t: "ANIM", r:makeRect(x,y,w,h),frames:frames,texture:tex,lifetime:lifetime,created:Date.now()};
 }
 function getNextCoinFrame(frame) {
   switch (frame) {
@@ -477,7 +479,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
       }
     }
     if(y == 4){
-      row.push(makeTransmitter((levelRadius-1) * tileSize, 4 * tileSize, tileSize*2, tileSize*3, 500, "TB1"));
+      row.push(makeTransmitter((levelRadius-1) * tileSize, 4 * tileSize, tileSize*2, tileSize*3, 300, "TB1"));
     }
     tileMap.set(y, row);
   }

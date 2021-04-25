@@ -29,7 +29,6 @@ class Inputs{
         this.attachInput("PREVITEM",'q');
         this.attachInput("USEITEM",'Shift');
 
-        this.attachInput("ENTER",'Enter');
         this.attachInput("RESTART",'r');
         this.attachInput("ESC",'Escape');
         this.attachInput("MUTE",'m');
