@@ -786,7 +786,8 @@ class GameState {
         if (intersectRect(pX, pOX) && !this.endGame) {
             this.endGame = true;
             this.endGameTimer = Date.now();
-            zzfx(...[soundToggle ? 1.12 : 0,,420,,.04,3,,.61,,,534,.06,.2,,,,.01,.94,.08,.11]).start();
+            this.playerVelocity = {x:0,y:0};
+            zzfx(...[soundToggle ? 1.12 : 0,,420,,.04,3,,.61,,,534,.06,.2,,,,.01,.94,.08,.11]).start(); 
         }
 
         if (xCollision) {

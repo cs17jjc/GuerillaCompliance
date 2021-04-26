@@ -133,6 +133,10 @@ function draw(ctx) {
         ctx.fillText("Thanks For Playing!", canvasWidth * 0.52, canvasHeight * 0.5 - (50 * ratio));
         ctx.font = "20px Courier New";
         ctx.fillText("Press Enter to Replay.", canvasWidth * 0.52, canvasHeight * 0.58 - (50 * ratio));
+        ctx.fillStyle = rgbToHex(29, 161, 242);
+        ctx.fillText("Press E to Tweet score.", canvasWidth * 0.52, canvasHeight * 0.64 - (50 * ratio));
+        ctx.font = "15px Courier New";
+        ctx.fillText("This will open a popup.", canvasWidth * 0.52, canvasHeight * 0.67 - (50 * ratio));
         if (inputs.getInputs().includes("ENTER") && !inputs.prevStates.includes("ENTER")) {
             playing = false;
             inputs = Inputs.empty();
@@ -140,6 +144,9 @@ function draw(ctx) {
             var coins = localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaCoinsYRYRBHJASKWA");
             var weapon = JSON.parse(localStorage.getItem("AJSNDJNSAJKJNDSKJMirroriaWeaponYRYRBHJASKWA"));
             gameState = GameState.initial(coins, weapon, -1);
+        }
+        if(inputs.getInputs().includes("NEXTITEM") && !inputs.prevStates.includes("NEXTITEM")){
+            tweetFinished(gameState.coins);
         }
     }
 

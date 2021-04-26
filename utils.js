@@ -54,6 +54,18 @@ function intersectRect(r1, r2) {
   const yIntersection = (r1.y >= r2.y && r1.y <= r2.y + r2.h) || (r2.y >= r1.y && r2.y <= r1.y + r1.h);
   return xIntersection && yIntersection;
 }
+function tweetFinished(score){      
+  var left = (screen.width / 2) - (640 / 2);
+            var top = (screen.height / 2) - (380 / 2);
+
+              var shareText = encodeURIComponent("I completed Mirroria by @KiwiSoggy with " + score + " Coins! #gamedevjs");
+            var shareUrl = "https://twitter.com/intent/tweet?text=" + shareText;
+
+            var popup = window.open(shareUrl, 'name', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + 640 + ', height=' + 380 +', top=' + top + ', left=' + left);
+            if (window.focus && popup){
+              popup.focus();
+            }
+}
 function createBackgroundImage(levelRadius, levelHeight, tileSize) {
   var bgCanv = document.createElement('canvas');
   bgCanv.width = levelRadius * 2 * tileSize;
@@ -502,7 +514,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
       }
     }
     if (y == 4) {
-      row.push(makeTransmitter((levelRadius - 1) * tileSize, 4 * tileSize, tileSize * 2, tileSize * 3, 10, "TB1"));
+      row.push(makeTransmitter((levelRadius - 1) * tileSize, 4 * tileSize, tileSize * 2, tileSize * 3, 300, "TB1"));
     }
     tileMap.set(y, row);
   }
@@ -605,7 +617,7 @@ function priceItems(items) {
       case "JUMP":
         return 10;
       case "ARMOR":
-        return 15;
+        return 12;
       case "SWORD":
         return Math.trunc((i.sword.d / i.sword.rate) * 1000);
     }
