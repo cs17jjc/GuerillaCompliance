@@ -172,7 +172,7 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
       { text: "Those eyes?", side: "R" },
       { text: "Yes, they track the souls in each tower.", side: "L" },
       { text: "Unknown to them,", side: "L" },
-      { text: "this brickwork was ocupied.", side: "L" },
+      { text: "this brickwork was occupied.", side: "L" },
       { text: "Can they still see me?", side: "R" },
       { text: "They can,", side: "L" },
       { text: "but they only talk to me now.", side: "L" },
@@ -210,7 +210,7 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
       { text: "Yes, two of the most powerful.", side: "L" },
       { text: "Both fell to the omnislime.", side: "L" },
       { text: "It feeds directly from the transmitter,", side: "L" },
-      { text: "and sheilds it from damage.", side: "L" },
+      { text: "and shields it from damage.", side: "L" },
       { text: "How do I kill it?", side: "R" },
       { text: "You can't,", side: "L" },
       { text: "but you can stun it for long enough,", side: "L" },
@@ -224,7 +224,7 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
       { text: "This is our last chance to talk.", side: "L" },
       { text: "I appriciate your help.", side: "R" },
       { text: "I hope you find peace.", side: "L" },
-      { text: "What will you do afterwards?.", side: "R" },
+      { text: "What will you do afterwards?", side: "R" },
       { text: "With the omnislime gone,", side: "L" },
       { text: "I can leave this cursed tower,", side: "L" },
       { text: "and search for other survivors.", side: "L" },
@@ -1201,7 +1201,7 @@ class GameState {
         }
 
         ctx.textAlign = "center";
-        ctx.fillStyle = rgbToHex(50, 50, 50);
+        ctx.fillStyle = rgbToHex(250, 250, 250);
         ctx.shadowColor = rgbToHex(0, 0, 0);
         if (this.items[this.selectedItem] != null) {
             ctx.drawImage(textures.get(this.items[this.selectedItem].texture), (canvasWidth * 0.91) + (canvasWidth * 0.025) - 16, canvasHeight * 0.74, 32, 32);
@@ -1223,6 +1223,7 @@ class GameState {
             ctx.font = "15px Courier New";
             ctx.fillText("No Items", (canvasWidth * 0.91) + (canvasWidth * 0.025), canvasHeight * 0.84);
         }
+        ctx.fillStyle = rgbToHex(0, 0, 0);
 
         if (this.gameOver) {
             var ratio = Math.min(1, (Date.now() - this.gameOverTimer) / 3000);
