@@ -43,11 +43,8 @@ function draw(ctx) {
     if (this.paused) {
         ctx.textAlign = 'left'
         ctx.font = "99px Courier New";
-        ctx.fillStyle = rgbToHex(50, 50, 50);
+        ctx.fillStyle = rgbToHex(250, 250, 250);
         ctx.fillText("PAUSED", canvasWidth * 0.32, canvasHeight * 0.4);
-        ctx.font = "100px Courier New";
-        ctx.fillStyle = rgbToHex(0, 0, 0);
-        ctx.fillText("PAUSED", canvasWidth * 0.32 - 3, canvasHeight * 0.4);
     }
     ctx.textAlign = 'left'
     ctx.font = "15px Courier New";
