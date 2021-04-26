@@ -58,7 +58,7 @@ function tweetFinished(score){
   var left = (screen.width / 2) - (640 / 2);
             var top = (screen.height / 2) - (380 / 2);
 
-              var shareText = encodeURIComponent("I completed Mirroria by @KiwiSoggy with " + score + " Coins! #gamedevjs");
+              var shareText = encodeURIComponent("I completed Mirroria by @KiwiSoggy with " + score + " Coins! https://soggykiwi.itch.io/mirroria");
             var shareUrl = "https://twitter.com/intent/tweet?text=" + shareText;
 
             var popup = window.open(shareUrl, 'name', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + 640 + ', height=' + 380 +', top=' + top + ', left=' + left);
@@ -203,9 +203,9 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
     prices = priceItems(items);
     text = [
       { text: "After the war with your kind,", side: "L" },
-      { text: "the slimehive built these towers,", side: "L" },
+      { text: "the Slimehive built these towers,", side: "L" },
       { text: "to rebuild their armies,", side: "L" },
-      { text: "from captured warriors souls.", side: "L" },
+      { text: "from captured warrior's souls.", side: "L" },
       { text: "Were those their weapons?", side: "R" },
       { text: "Yes, two of the most powerful.", side: "L" },
       { text: "Both fell to the omnislime.", side: "L" },
