@@ -86,6 +86,7 @@ class GameState {
         var gState = new GameState();
         gState.lastShopNum = lastShopNum;
         gState.coins = coins == null ? 0 : parseInt(coins);
+        gState.prevCoins = gState.coins;
         gState.changeWeapon(weapon == null ? makeStartWeapon(gState.playerSize) : weapon);
         if (lastShopNum != -1) {
             var lastShop = Array.from(gState.levelGeom.values()).flat().filter(o => o.shopNum == lastShopNum)[0];
@@ -111,7 +112,7 @@ class GameState {
 
         var canAttack = Date.now() - this.attackTimer > this.equipedWeapon.rate;
         var didAttack = false;
-        if (canAttack && !this.gameOver && !this.inShop) {
+        if (canAttack && !this.gameOver && !this.inShop && !this.endGame) {
             if (inputsArr.includes("LEFTARROW")) {
                 this.attackTimer = Date.now();
                 this.hitBox = copyRect(this.equipedWeapon.hw);
@@ -145,7 +146,7 @@ class GameState {
         }
 
 
-        if (!this.inShop) {
+        if (!this.inShop && !this.endGame) {
             if (inputsArr.includes("UP") && Date.now() - this.jumpTimer > 1000 && this.hasLanded) {
                 this.playerVelocity.y -= 12;
                 this.jumpTimer = Date.now();
@@ -301,6 +302,11 @@ class GameState {
         }
         this.prevCoins = this.coins;
 
+        if(this.endGame && (Date.now() - this.endGameTimer) < 5000){
+            this.playerPosition.x = (this.levelRadius*this.tileSize) - (this.playerSize.w/2);
+            this.playerPosition.y -= 2;
+            this.playerPositionOpposite = this.playerPosition;
+        }
 
         if (this.playerHealth <= 0) {
             this.gameOver = true;
@@ -324,7 +330,7 @@ class GameState {
     }
 
     makeEndExplosions(num, soundToggle) {
-        zzfx(...[soundToggle ? 2.22 : 0, , 30, , .31, .43, 4, .33, .1, , , , , .8, , .4, .11, .51, .01]).start();
+        zzfx(...[soundToggle ? 1 : 0, , 30, , .31, .43, 4, .33, .1, , , , , .8, , .4, .11, .51, .01]).start();
         for (var i = 0; i < num; i++) {
             var x = ((this.levelRadius - 2) * this.tileSize) + (Math.random() * 3 * this.tileSize);
             var y = (3 * this.tileSize) + (Math.random() * 4 * this.tileSize);
@@ -335,8 +341,7 @@ class GameState {
 
     draw(ctx) {
         ctx.save();
-        ctx.fillStyle = rgbToHex(50, 50, 250);
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+        ctx.drawImage(textures.get("Background"), 0, -this.cameraY * 0.143,canvasWidth,textures.get("Background").height);
 
         var xHealthBarOffset = Date.now() - this.hitTimer < 250 ? Math.sin((Date.now() - this.hitTimer) / 25) * 2 : 0;
         var xOffset = ((canvasWidth / 2) - (this.levelRadius * this.tileSize));
@@ -421,7 +426,6 @@ class GameState {
         this.visableGeom.filter(t => t.t == "ENEMY").forEach(o => {
             switch (o.type) {
                 case "SLIME":
-
                     var textureStr = o.isDead ? "Dead" : Date.now() - o.data.lastHit > o.data.recov ? "Normal" : "Hit";
                     textureStr = o.data.type + textureStr;
                     var bobing = o.isDead ? 0 : Math.sin(Date.now() / 100) * 2;
@@ -466,10 +470,14 @@ class GameState {
             }
         });
 
+        ctx.save();
         ctx.fillStyle = rgbToHex(0, 0, 0);
         var paTime = Date.now() - this.playerAnimationTimer;
         var jmpTime = Date.now() - this.jumpTimer;
         var squish = (jmpTime >= 800 ? 0 : 1 - (jmpTime / 800)) * 3;
+        if(this.endGame){
+            ctx.globalAlpha = Math.max(0,1-((Date.now()-this.endGameTimer)/3000));
+        }
         if (paTime < 250) {
             ctx.drawImage(textures.get("playerFrame1"), this.playerPosition.x + xOffset + squish, this.playerPosition.y - this.cameraY, this.playerSize.w - squish * 2, this.playerSize.h);
             ctx.drawImage(textures.get("playerFrame1"), this.playerPositionOpposite.x + xOffset + squish, this.playerPositionOpposite.y - this.cameraY, this.playerSize.w - squish * 2, this.playerSize.h);
@@ -483,6 +491,7 @@ class GameState {
             ctx.drawImage(textures.get("playerFrame4"), this.playerPosition.x + xOffset + squish, this.playerPosition.y - this.cameraY, this.playerSize.w - squish * 2, this.playerSize.h);
             ctx.drawImage(textures.get("playerFrame4"), this.playerPositionOpposite.x + xOffset + squish, this.playerPositionOpposite.y - this.cameraY, this.playerSize.w - squish * 2, this.playerSize.h);
         }
+        ctx.restore();
         if (paTime >= 1000) {
             this.playerAnimationTimer = Date.now();
         }
@@ -685,7 +694,7 @@ class GameState {
         const pY = { x: this.playerPosition.x, y: this.playerPosition.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
         const pOX = { x: this.playerPositionOpposite.x - this.playerVelocity.x, y: this.playerPositionOpposite.y, w: this.playerSize.w, h: this.playerSize.h - 1 };
         const pOY = { x: this.playerPositionOpposite.x, y: this.playerPositionOpposite.y + this.playerVelocity.y, w: this.playerSize.w, h: this.playerSize.h };
-        this.visableGeom.filter(o => o.t != "ENEMY").forEach(o => {
+        this.visableGeom.filter(o => o.t != "ENEMY" && this.endGameTimer).forEach(o => {
 
             if (o.t != "COIN" && o.t != "SHOP" && o.t != "TRANSMITTER" && o.t != "ANIM") {
                 if (intersectRect(pX, o.r) || intersectRect(pOX, o.r)) {
@@ -774,9 +783,10 @@ class GameState {
             }
         });
 
-        if (intersectRect(pX, pOX)) {
+        if (intersectRect(pX, pOX) && !this.endGame) {
             this.endGame = true;
             this.endGameTimer = Date.now();
+            zzfx(...[soundToggle ? 1.12 : 0,,420,,.04,3,,.61,,,534,.06,.2,,,,.01,.94,.08,.11]).start();
         }
 
         if (xCollision) {
@@ -786,7 +796,7 @@ class GameState {
         }
         if (yCollison) {
             this.playerVelocity.y = 0;
-        } else {
+        } else if(!this.endGame) {
             this.playerVelocity.y += 0.5;
         }
         if (xCollision && yCollison) {

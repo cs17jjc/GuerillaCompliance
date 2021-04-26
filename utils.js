@@ -104,8 +104,8 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
     items.push(makeArmorItem());
     prices = priceItems(items);
     text = [
-      { text: "Where am I?", side: "R" },
       { text: "Hello spirit.", side: "L" },
+      { text: "Where am I?", side: "R" },
       { text: "This is a Tower of Mirroria.", side: "L" },
       { text: "How did I get here?", side: "R" },
       { text: "When you died,", side: "L" },
@@ -166,8 +166,7 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
       { text: "but they only talk to me now.", side: "L" },
       { text: "However,", side: "L" },
       { text: "When you attack the transmitter,", side: "L" },
-      { text: "the omnislime will be summoned.", side: "L" },
-      { text: "", side: "R" }];
+      { text: "the omnislime will be summoned.", side: "L" }];
   } else if (shopNum == 3) {
     var weapon1 = makeQuickWeapon1(playerSize);
     var weapon2 = makeHeavyWeapon1(playerSize);
@@ -177,8 +176,11 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
     items.push(makeSwordItem(weapon2, makeSwordDesc(weapon2, true)));
     prices = priceItems(items);
     text = [
-      { text: "Poggers.", side: "R" },
-      { text: "Poggers.", side: "L" }];
+      { text: "What's up with the green slimes?", side: "R" },
+      { text: "Rejects from the sludgemines,", side: "L" },
+      { text: "they are the uncorrupted slimes,", side: "L" },
+      { text: "still bound with soul energy,", side: "L" },
+      { text: "they're left here to be 'recycled'.", side: "L" }];
   } else if (shopNum == 4) {
     var weapon1 = makeQuickWeapon2(playerSize);
     var weapon2 = makeHeavyWeapon2(playerSize);
@@ -188,15 +190,36 @@ function makeShop(x, y, w, h, shopNum, tex, playerSize) {
     items.push(makeSwordItem(weapon2, makeSwordDesc(weapon2, true)));
     prices = priceItems(items);
     text = [
-      { text: "Poggers.", side: "R" },
-      { text: "Poggers.", side: "L" }];
-  } else {
-    items = nRandomShopItems(6, ["HEALTH", "ARMOR", "HEALTHBOOST", "JUMP"], 20, 30);
+      { text: "After the war with your kind,", side: "L" },
+      { text: "the slimehive built these towers,", side: "L" },
+      { text: "to rebuild their armies,", side: "L" },
+      { text: "from captured warriors souls.", side: "L" },
+      { text: "Were those their weapons?", side: "R" },
+      { text: "Yes, two of the most powerful.", side: "L" },
+      { text: "Both fell to the omnislime.", side: "L" },
+      { text: "It feeds directly from the transmitter,", side: "L" },
+      { text: "and sheilds it from damage.", side: "L" },
+      { text: "How do I kill it?", side: "R" },
+      { text: "You can't,", side: "L" },
+      { text: "but you can stun it for long enough,", side: "L" },
+      { text: "to attack the transmitter.", side: "L" }];
+  } else if (shopNum == 5) {
+    items = nRandomShopItems(3, ["HEALTH", "ARMOR", "HEALTHBOOST", "JUMP"], 20, 30);
+    items.push(makeHealthItem(50));
+    items.push(makeHealthBoostItem(20));
     prices = priceItems(items);
-    text = [{ text: "Hello.", side: "L" }, { text: "Poggers.", side: "R" }];
+    text = [
+      { text: "This is our last chance to talk.", side: "L" },
+      { text: "I appriciate your help.", side: "R" },
+      { text: "I hope you find peace.", side: "L" },
+      { text: "What will you do afterwards?.", side: "R" },
+      { text: "With the omnislime gone,", side: "L" },
+      { text: "I can leave this cursed tower,", side: "L" },
+      { text: "and search for other survivors.", side: "L" },
+      { text: "Poggers.", side: "R" }];
   }
 
-  return { t: "SHOP", shopNum:shopNum, r: makeRect(x, y, w, h), texture: tex, items: items, prices: prices, text: text, beenEntered: false };
+  return { t: "SHOP", shopNum: shopNum, r: makeRect(x, y, w, h), texture: tex, items: items, prices: prices, text: text, beenEntered: false };
 }
 function makeEnenmy(x, y, type, data) {
   return { t: "ENEMY", x: x, y: y, type: type, isDead: false, data: data };
@@ -205,13 +228,13 @@ function makeSlime(x, y, vx, type, hp, dmg, s, hs, recov) {
   return makeEnenmy(x, y, "SLIME", { type: type, vx: vx, vy: 0, s: s, hp: hp, dmg: dmg, hitTimer: 0, hitspeed: hs, lastHit: 0, recov: recov })
 }
 function makeTransmitter(x, y, w, h, maxHp, tex) {
-  return { t: "TRANSMITTER", r: makeRect(x, y, w, h), texture: tex,maxHp:maxHp, hp: maxHp, lastHit: 0};
+  return { t: "TRANSMITTER", r: makeRect(x, y, w, h), texture: tex, maxHp: maxHp, hp: maxHp, lastHit: 0 };
 }
 function makeCoin(x, y, vx, vy) {
   return { t: "COIN", vx: vx, vy: vy, texture: "coin1", r: makeRect(x, y, 8, 8), collected: false };
 }
-function makeAnimation(x,y,w,h,tex,lifetime,frames){
-  return { t: "ANIM", r:makeRect(x,y,w,h),frames:frames,texture:tex,lifetime:lifetime,created:Date.now()};
+function makeAnimation(x, y, w, h, tex, lifetime, frames) {
+  return { t: "ANIM", r: makeRect(x, y, w, h), frames: frames, texture: tex, lifetime: lifetime, created: Date.now() };
 }
 function getNextCoinFrame(frame) {
   switch (frame) {
@@ -390,7 +413,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
             row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorRight"));
           } else {
 
-            if (shopCooldown >= (25 - (y < 20 && y > 15 ? 20 : 0) )) {
+            if (shopCooldown >= (25 - (y < 20 && y > 15 ? 20 : 0))) {
               shopCooldown = 0;
               row.push(makeFloor(x * tileSize, y * tileSize, tileSize, tileSize, "floorMiddleShop"));
               row.push(makeShop(x * tileSize, (y - 1) * tileSize, tileSize, tileSize, shopCounter, "shop1", playerSize));
@@ -421,7 +444,7 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
         case "SLIME":
           var section = Math.trunc(y / 22);
           //I've been working on this game jam for days, please dont judge me on this.
-          if(tileMap.get(y+1).filter(o => o.t == "SHOP").length >= 1){
+          if (tileMap.get(y + 1).filter(o => o.t == "SHOP").length >= 1) {
             section = 9999999;
           }
           switch (section) {
@@ -478,8 +501,8 @@ function generateMap(height, levelRadius, tileSize, playerSize) {
           break;
       }
     }
-    if(y == 4){
-      row.push(makeTransmitter((levelRadius-1) * tileSize, 4 * tileSize, tileSize*2, tileSize*3, 300, "TB1"));
+    if (y == 4) {
+      row.push(makeTransmitter((levelRadius - 1) * tileSize, 4 * tileSize, tileSize * 2, tileSize * 3, 10, "TB1"));
     }
     tileMap.set(y, row);
   }
@@ -515,7 +538,7 @@ function makeQuickWeapon1(playerSize) {
 }
 function makeHeavyWeapon1(playerSize) {
   var texture = "sword3";
-  return makeMeleeWeapon("Saphire Sword", 16, 500, texture,
+  return makeMeleeWeapon("Sapphire Sword", 16, 500, texture,
     makeRect(playerSize.w, -10, textures.get(texture).height, playerSize.h + 10),
     makeRect(-1 * textures.get(texture).height, -10, textures.get(texture).height, playerSize.h + 10));
 }

@@ -12,7 +12,7 @@ class Inputs{
         this.currentStates.set(keyCode,false);
     }
     update(keyCode,value){
-        this.currentStates.set(keyCode,value);
+        this.currentStates.set(keyCode.toLowerCase(),value);
     }
     attachInputs(){
         this.attachInput("UP",'w');
@@ -20,17 +20,17 @@ class Inputs{
         this.attachInput("LEFT",'a');
         this.attachInput("RIGHT",'d');
 
-        this.attachInput("UPARROW",'ArrowUp');
-        this.attachInput("DOWNARROW",'ArrowDown');
-        this.attachInput("LEFTARROW",'ArrowLeft');
-        this.attachInput("RIGHTARROW",'ArrowRight');
+        this.attachInput("UPARROW",'ArrowUp'.toLowerCase());
+        this.attachInput("DOWNARROW",'ArrowDown'.toLowerCase());
+        this.attachInput("LEFTARROW",'ArrowLeft'.toLowerCase());
+        this.attachInput("RIGHTARROW",'ArrowRight'.toLowerCase());
 
         this.attachInput("NEXTITEM",'e');
         this.attachInput("PREVITEM",'q');
-        this.attachInput("USEITEM",'Shift');
+        this.attachInput("USEITEM",'Shift'.toLowerCase());
 
         this.attachInput("RESTART",'r');
-        this.attachInput("ESC",'Escape');
+        this.attachInput("ESC",'Escape'.toLowerCase());
         this.attachInput("MUTE",'m');
         this.attachInput("CLEARSTORAGE",'+');
     }
