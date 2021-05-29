@@ -11,7 +11,7 @@ Array.from(document.images).forEach(i => {
 
 var gameState;
 var inputs = Inputs.empty();
-inputs.attachInput("ENTER", 'Enter'.toLowerCase());
+inputs.attachInputs();
 
 document.addEventListener('keydown', (e) => {
     inputs.update(e.key, true);

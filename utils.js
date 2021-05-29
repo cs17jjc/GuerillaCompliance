@@ -58,7 +58,7 @@ function tweetFinished(score){
   var left = (screen.width / 2) - (640 / 2);
             var top = (screen.height / 2) - (380 / 2);
 
-              var shareText = encodeURIComponent("I completed Mirroria by @KiwiSoggy with " + score + " Coins! https://soggykiwi.itch.io/mirroria");
+            var shareText = encodeURIComponent("I completed Mirroria by @KiwiSoggy with " + score + " Coins! https://soggykiwi.itch.io/mirroria");
             var shareUrl = "https://twitter.com/intent/tweet?text=" + shareText;
 
             var popup = window.open(shareUrl, 'name', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + 640 + ', height=' + 380 +', top=' + top + ', left=' + left);
@@ -67,3 +67,7 @@ function tweetFinished(score){
             }
 }
 
+
+function makeEnemy(position,type,currentWaypoint){
+  return new GameObject("ENEMY",position,{health:100,type:type,curWay:currentWaypoint})
+}
