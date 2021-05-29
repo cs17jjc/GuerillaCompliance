@@ -71,10 +71,6 @@ function makeTurretPlatform(position,sector){
   return new GameObject("TURRET_PLATFORM",position,{hasTurret:false,turret:null,sector:sector});
 }
 
-function makeTurret(position,type,currentWaypoint){
-  return new GameObject("TURRET",position,{type:type})
-}
-
 function makeEnemy(position,type,health,speed,dmg,currentWaypoint){
   return new GameObject("ENEMY",position,{health:health,type:type,curWay:currentWaypoint,curWayDist:0,speed:speed,dmg:dmg,timeMade:Date.now()})
 }

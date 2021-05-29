@@ -1,14 +1,19 @@
 ///Parent class for turrets
 ///type provides type of turret, which should contain 'damage', 'firingSpeed', and 'bulletSpeed'
 class Turret{
-    constructor(type,pos,data)
+    constructor(type,damage,firingSpeed,bulletSpeed,accuracy,range)
     {
         this.type = type
-        this.position = pos
-        this.data = data
-        this.damage = type.damage
-        this.firingSpeed = type.firingSpeed
-        this.bulletSpeed = type.bulletSpeed
-        this.accuracy = type.accuracy
+        this.damage = damage
+        this.firingSpeed = firingSpeed
+        this.bulletSpeed = bulletSpeed
+        this.accuracy = accuracy
+        this.range = rage;
+    }
+    static standardTurret(){
+        return new Turret("STANDARD",1,50,1,0.8,20);
+    }
+    static sniperTurret(){
+        return new Turret("SNIPER",2,150,2,1,50);
     }
 }
