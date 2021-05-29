@@ -68,6 +68,6 @@ function tweetFinished(score){
 }
 
 
-function makeEnemy(position,type,speed,currentWaypoint){
-  return new GameObject("ENEMY",position,{health:100,type:type,curWay:currentWaypoint,speed:speed})
+function makeEnemy(position,type,speed,dmg,currentWaypoint){
+  return new GameObject("ENEMY",position,{health:100,type:type,curWay:currentWaypoint,speed:speed,dmg:dmg,timeMade:Date.now()})
 }

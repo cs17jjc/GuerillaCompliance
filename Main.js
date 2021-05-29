@@ -77,7 +77,7 @@ loadChecker = setInterval(() => {
     if (loadedImages) {
         clearInterval(loadChecker);
         gameState = GameState.initial();
-        setInterval(() => draw(ctx), 1000);
+        setInterval(() => draw(ctx), 50);
     } else {
         loadedImages = true;
         ctx.fillStyle = rgbToHex(0, 0, 0);
