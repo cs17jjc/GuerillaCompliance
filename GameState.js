@@ -4,6 +4,11 @@ class GameState {
         this.wayPoints = new Map();
         this.baseHealth = 100;
 
+        this.upcomingEnemies = [];
+        this.enemySpawnRate = 25;
+        this.spawnEnemies = false;
+        this.spawnedFrameCounter = 0;
+
         this.enemyLifespans = [];
     }
     static initial() { 
@@ -26,12 +31,29 @@ class GameState {
         gs.wayPoints.set(9,{x:canvasWidth*1.01,y:canvasHeight*0.5})
 
 
-        gs.gameObjects.push(makeEnemy({x:0,y:canvasHeight/2},"NORM",3,5,0))
+        var enems = [];
+        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",3,5,0));
+        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",4,5,0));
+        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",2,5,0));
+        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",2,5,0));
+        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",4,5,0));
+
+        gs.upcomingEnemies = enems;
+        gs.spawnEnemies = true;
 
         return gs;
     }
 
     updateGame(inputsArr, soundToggle) {
+
+        if(this.spawnEnemies && this.upcomingEnemies.length > 0){
+            if(this.spawnedFrameCounter == this.enemySpawnRate){
+                this.gameObjects.push(this.upcomingEnemies.pop());
+                this.spawnedFrameCounter = 0;
+            } else {
+                this.spawnedFrameCounter += 1;
+            }
+        }
 
         this.gameObjects.forEach(e => {
             switch(e.type){
@@ -39,24 +61,33 @@ class GameState {
                     this.updateEnemy(e);
             }
         })
+        this.gameObjects = this.gameObjects.filter(o => o.isAlive);
 
     }
 
     updateEnemy(enemy){
-        var targetPosition = this.wayPoints.get(enemy.data.curWay);
-        var distanceToTarget = calcDistance(enemy.position,targetPosition);
-        if(distanceToTarget <= 4){
-            enemy.data.curWay = Math.min(enemy.data.curWay+1,this.wayPoints.size-1);
-        } else {
-            var angle = calcAngle(enemy.position,targetPosition);
-            var velComp = calcComponents(enemy.data.speed,angle);
-            enemy.position.x += velComp.x;
-            enemy.position.y += velComp.y;
-        }
-        if(enemy.data.curWay == this.wayPoints.size-1){
-            this.baseHealth -= enemy.data.dmg;
+        if(enemy.data.health <= 0){
             this.enemyLifespans.push(Date.now() - enemy.data.timeMade);
             enemy.isAlive = false;
+        } else {
+            var targetPosition = this.wayPoints.get(enemy.data.curWay);
+            var distanceToTarget = calcDistance(enemy.position,targetPosition);
+            if(distanceToTarget <= 4){
+
+                if(enemy.data.curWay == this.wayPoints.size-1){
+                    this.baseHealth -= enemy.data.dmg;
+                    this.enemyLifespans.push(Date.now() - enemy.data.timeMade);
+                    enemy.isAlive = false;
+                }
+
+                enemy.data.curWay = Math.min(enemy.data.curWay+1,this.wayPoints.size-1);
+            } else {
+                var angle = calcAngle(enemy.position,targetPosition);
+                var velComp = calcComponents(enemy.data.speed,angle);
+                enemy.position.x += velComp.x;
+                enemy.position.y += velComp.y;
+            }
+            
         }
     }
 
