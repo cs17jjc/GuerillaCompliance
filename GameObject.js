@@ -3,5 +3,6 @@ class GameObject{
         this.position = pos;
         this.type = type;
         this.data = data;
+        this.isAlive = true;
     }
 }
