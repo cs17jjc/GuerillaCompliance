@@ -32,11 +32,11 @@ class GameState {
 
 
         var enems = [];
-        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",3,5,0));
-        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",4,5,0));
-        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",2,5,0));
-        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",2,5,0));
-        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",4,5,0));
+        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",10,3,5,0));
+        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",10,4,5,0));
+        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",10,2,5,0));
+        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",10,2,5,0));
+        enems.push(makeEnemy({x:-1,y:canvasHeight/2},"NORM",10,4,5,0));
 
         gs.upcomingEnemies = enems;
         gs.spawnEnemies = true;
