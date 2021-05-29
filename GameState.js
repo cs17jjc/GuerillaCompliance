@@ -72,6 +72,7 @@ class GameState {
         } else {
             var targetPosition = this.wayPoints.get(enemy.data.curWay);
             var distanceToTarget = calcDistance(enemy.position,targetPosition);
+            enemy.data.curWayDist = distanceToTarget;
             if(distanceToTarget <= 4){
 
                 if(enemy.data.curWay == this.wayPoints.size-1){
