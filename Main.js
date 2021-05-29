@@ -71,13 +71,13 @@ function draw(ctx) {
     inputs.prevStates = inputs.getInputs();
 }
 
-var loadedImages = false;
+var loadedImages = true;
 var loadChecker;
 loadChecker = setInterval(() => {
     if (loadedImages) {
         clearInterval(loadChecker);
         gameState = GameState.initial();
-        setInterval(() => draw(ctx), 50);
+        setInterval(() => draw(ctx), 1000);
     } else {
         loadedImages = true;
         ctx.fillStyle = rgbToHex(0, 0, 0);
