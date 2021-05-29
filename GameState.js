@@ -38,11 +38,8 @@ class GameState {
         } else {
             var angle = calcAngle(enemy.position,targetPosition);
             var velComp = calcComponents(enemy.data.speed,angle);
-            console.log(angle)
-            console.log(velComp)
             enemy.position.x += velComp.x;
             enemy.position.y += velComp.y;
-            console.log(enemy.position)
         }
     }
 
@@ -59,8 +56,7 @@ class GameState {
 
         ctx.fillStyle = rgbToHex(0,255,0);
         this.gameObjects.filter(o => o.type == "ENEMY").forEach(e => {
-            console.log(e);
-            ctx.fillRect(e.x-5,e.y-5,10,10);
+            ctx.fillRect(e.position.x-5,e.position.y-5,10,10);
         })
 
         ctx.restore();
