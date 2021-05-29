@@ -59,6 +59,8 @@ class GameState {
             switch(e.type){
                 case "ENEMY":
                     this.updateEnemy(e);
+                case "TURRET":
+                    this.updateTurret(e);
             }
         })
         this.gameObjects = this.gameObjects.filter(o => o.isAlive);
@@ -90,6 +92,22 @@ class GameState {
             }
             
         }
+    }
+
+    updateTurret(turret){
+        var enemyTargets = Array.from(this.gameObjects.filter(o => o.type == "ENEMY"));
+        var enemiesInRange = checkRange(enemyTargets, turret.range, turret.position);
+
+    }
+
+    checkRange(targets, range, position){
+        var retArray;
+        for(i = 0; i < enemyTargets.length; i++){
+            if(calcDistance(position, enemyTargets[i]) < range){
+                retArray.add(enemyTargets[i]);
+            }
+        }
+        return retArray;
     }
 
     update(inputsArr, soundToggle) {

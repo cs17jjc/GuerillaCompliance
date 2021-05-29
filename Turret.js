@@ -9,5 +9,6 @@ class Turret{
         this.damage = type.damage
         this.firingSpeed = type.firingSpeed
         this.bulletSpeed = type.bulletSpeed
+        this.accuracy = type.accuracy
     }
 }
