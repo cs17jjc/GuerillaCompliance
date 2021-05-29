@@ -99,6 +99,7 @@ class GameState {
     updateTurret(turret){
         var enemyTargets = Array.from(this.gameObjects.filter(o => o.type == "ENEMY"));
         var enemiesInRange = checkRange(enemyTargets, turret.range, turret.position);
+        var targetEnemy = targetEnemy(enemiesInRangeS);
 
     }
 
@@ -110,6 +111,21 @@ class GameState {
             }
         }
         return retArray;
+    }
+
+    targetEnemy(enemyTargets){
+        var enemy;
+        for(i=0; i<enemyTargets.length; i++){
+            if(enemyTargets[i].curWay > enemy.curWayDist){
+                enemy = enemyTargets[i];
+            }
+            if(enemyTargets[i].curWay == enemy.curWay){
+                if(enemyTargets[i].curWayDist > enemy.curWayDist){
+                    enemy = enemyTargets[i]
+                }
+            }
+        }
+        return enemy
     }
 
     update(inputsArr, soundToggle) {
