@@ -68,8 +68,8 @@ function tweetFinished(score){
 }
 
 
-function makeEnemy(position,type,currentWaypoint){
-  return new GameObject("ENEMY",position,{health:100,type:type,curWay:currentWaypoint})
+function makeEnemy(position,type,speed,currentWaypoint){
+  return new GameObject("ENEMY",position,{health:100,type:type,curWay:currentWaypoint,speed:speed})
 }
 
 function makeTurret(position,type,currentWaypoint){
