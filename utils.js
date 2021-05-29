@@ -67,8 +67,8 @@ function tweetFinished(score){
             }
 }
 
-function makeTurretPlatform(position,sector){
-  return new GameObject("TURRET_PLATFORM",position,{hasTurret:false,turret:null,sector:sector});
+function makeTurretPlatform(position,sector,num){
+  return new GameObject("TURRET_PLATFORM",position,{platformNum:num,hasTurret:false,turret:null,sector:sector});
 }
 
 function makeEnemy(position,type,health,speed,dmg,currentWaypoint){

@@ -41,7 +41,19 @@ class GameState {
         gs.upcomingEnemies = enems;
         gs.spawnEnemies = true;
 
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.2, y: canvasHeight * 0.2 },0))
+        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.27, y: canvasHeight * 0.05 },0,0))
+        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.2, y: canvasHeight * 0.5 },0,1))
+        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.07, y: canvasHeight * 0.2 },0,2))
+
+        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.42, y: canvasHeight * 0.18 },1,3))
+        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.52, y: canvasHeight * 0.45 },1,4))
+
+        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.42, y: canvasHeight * 0.8 },2,5))
+        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.52, y: canvasHeight * 0.8 },2,6))
+
+        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.74, y: canvasHeight * 0.17 },3,7))
+        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.85, y: canvasHeight * 0.36 },3,8))
+        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.93, y: canvasHeight * 0.58 },3,9))
 
         return gs;
     }
@@ -167,5 +179,9 @@ class GameState {
         })
 
         ctx.restore();
+    }
+
+    attachTurret(turret,platformNumber){
+
     }
 }
