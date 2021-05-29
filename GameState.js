@@ -59,8 +59,10 @@ class GameState {
             switch(e.type){
                 case "ENEMY":
                     this.updateEnemy(e);
-                case "TURRET":
-                    this.updateTurret(e);
+                case "TURRET_PLATFORM":
+                    if(e.data.hasTurret){
+                        this.updateTurret(e.data.turret);
+                    }
             }
         })
         this.gameObjects = this.gameObjects.filter(o => o.isAlive);
