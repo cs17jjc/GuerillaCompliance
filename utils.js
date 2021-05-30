@@ -54,24 +54,55 @@ function intersectRect(r1, r2) {
   const yIntersection = (r1.y >= r2.y && r1.y <= r2.y + r2.h) || (r2.y >= r1.y && r2.y <= r1.y + r1.h);
   return xIntersection && yIntersection;
 }
-function tweetFinished(score){      
+function tweetFinished(score) {
   var left = (screen.width / 2) - (640 / 2);
-            var top = (screen.height / 2) - (380 / 2);
+  var top = (screen.height / 2) - (380 / 2);
 
-            var shareText = encodeURIComponent("I completed Mirroria by @KiwiSoggy with " + score + " Coins! https://soggykiwi.itch.io/mirroria");
-            var shareUrl = "https://twitter.com/intent/tweet?text=" + shareText;
+  var shareText = encodeURIComponent("I completed Mirroria by @KiwiSoggy with " + score + " Coins! https://soggykiwi.itch.io/mirroria");
+  var shareUrl = "https://twitter.com/intent/tweet?text=" + shareText;
 
-            var popup = window.open(shareUrl, 'name', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + 640 + ', height=' + 380 +', top=' + top + ', left=' + left);
-            if (window.focus && popup){
-              popup.focus();
-            }
+  var popup = window.open(shareUrl, 'name', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=' + 640 + ', height=' + 380 + ', top=' + top + ', left=' + left);
+  if (window.focus && popup) {
+    popup.focus();
+  }
 }
 
-function makeTurretPlatform(position,sector,num){
-  return new GameObject("TURRET_PLATFORM",position,{platformNum:num,hasTurret:false,turret:null,sector:sector});
+function makeTurretPlatform(position, sector, num) {
+  return new GameObject("TURRET_PLATFORM", position, { platformNum: num, hasTurret: false, turret: null, sector: sector });
 }
 
-function makeEnemy(position,type,health,speed,dmg,currentWaypoint){
-  return new GameObject("ENEMY",position,{health:health,type:type,curWay:currentWaypoint,curWayDist:0,speed:speed,dmg:dmg,timeMade:Date.now()})
+function makeEnemy(position, type, health) {
+  return new GameObject("ENEMY", position, { health: health, type: type, curWay: 0, curWayDist: 0, speed: 0, timeMade: Date.now(), angle: 0 })
+}
+
+function checkRange(enemyTargets, range, position) {
+  var retArray = [];
+  for (var i = 0; i < enemyTargets.length; i++) {
+    if (calcDistance(position, enemyTargets[i].position) < range) {
+      retArray.push(enemyTargets[i]);
+    }
+  }
+  return retArray;
+}
+
+function targetEnemy(enemyTargets) {
+  var enemy = enemyTargets[0];
+  for (var i = 1; i < enemyTargets.length; i++) {
+    if (enemyTargets[i].curWay > enemy.curWay) {
+      enemy = enemyTargets[i];
+    }
+    if (enemyTargets[i].curWay == enemy.curWay) {
+      if (enemyTargets[i].curWayDist < enemy.curWayDist) {
+        enemy = enemyTargets[i]
+      }
+    }
+  }
+  return enemy
+}
+
+
+function healthToColour(health) {
+  var col = ["f94144","f3722c","f8961e","f9844a","f9c74f","90be6d","43aa8b","4d908e","577590","277da1"][health-1];
+  return col;
 }
 
