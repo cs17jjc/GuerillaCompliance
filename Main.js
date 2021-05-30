@@ -10,6 +10,8 @@ Array.from(document.images).forEach(i => {
 });
 
 var gameState;
+var isClicked = false
+var clickEvent;
 var inputs = Inputs.empty();
 inputs.attachInputs();
 
@@ -18,6 +20,12 @@ document.addEventListener('keydown', (e) => {
 });
 document.addEventListener('keyup', (e) => {
     inputs.update(e.key, false);
+});
+document.addEventListener('click', (e) => {
+    console.log(isClicked)
+    isClicked = true;
+    clickEvent = e;
+    console.log("click");
 });
 
 let mySongData = zzfxM(...bgMusicSong);
