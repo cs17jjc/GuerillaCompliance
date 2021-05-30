@@ -22,10 +22,8 @@ document.addEventListener('keyup', (e) => {
     inputs.update(e.key, false);
 });
 document.addEventListener('click', (e) => {
-    console.log(isClicked)
     isClicked = true;
     clickEvent = e;
-    console.log("click");
 });
 
 let mySongData = zzfxM(...bgMusicSong);
