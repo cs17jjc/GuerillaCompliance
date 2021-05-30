@@ -142,8 +142,13 @@ class GameState {
             }
         })
         this.gameObjects = this.gameObjects.filter(o => o.isAlive);
+<<<<<<< HEAD
         if (isClicked == true) {
             this.printMousePos(clickEvent)
+=======
+        if(isClicked == true){
+            var towerClicked = this.checkTowerClicked(this.returnMousePos(clickEvent));
+>>>>>>> refs/remotes/main/master
             isClicked = false;
         }
 
@@ -216,6 +221,7 @@ class GameState {
 
     // Checks the position of a given mouse position against the x and y of all towers to see if any were clicked.
     // Returns the tower clicked if any, or null if no tower was clicked.
+<<<<<<< HEAD
     checkTowerClicked(mousePos) {
         towers = this.gameObjects.filter(e => e.type == "TURRET_PLATFORM")
         for (i = 0; i < towers.length; i++) {
@@ -224,13 +230,24 @@ class GameState {
                     console.log("Tower clicked = " + towers[i].platformNumber)
                     return towers[i].platformNumber
                 }
+=======
+    checkTowerClicked(mousePos){
+        var towers;
+        towers = this.gameObjects.filter(e => e.type == "TURRET_PLATFORM")
+        for(var i=0; i<towers.length; i++){
+            if(Math.abs(mousePos.x - towers[i].position.x) < 20 && Math.abs(mousePos.y - towers[i].position.y) < 20){
+                return towers[i].data.platformNum
+>>>>>>> refs/remotes/main/master
             }
         }
-        console.log("No tower clicked")
         return null
     }
 
+<<<<<<< HEAD
     printMousePos(event) {
+=======
+    returnMousePos(event){
+>>>>>>> refs/remotes/main/master
         var rect = canvas.getBoundingClientRect();
         console.log("X: " + (event.clientX - rect.left) / (rect.right - rect.left) * canvasWidth)
         console.log("Y: " + (event.clientY - rect.top) / (rect.bottom - rect.top) * canvasHeight)
