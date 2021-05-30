@@ -88,14 +88,15 @@ function checkRange(enemyTargets, range, position) {
 function targetEnemy(enemyTargets) {
   var enemy = enemyTargets[0];
   for (var i = 1; i < enemyTargets.length; i++) {
+
     if (enemyTargets[i].curWay > enemy.curWay) {
       enemy = enemyTargets[i];
-    }
-    if (enemyTargets[i].curWay == enemy.curWay) {
+    } else if (enemyTargets[i].curWay == enemy.curWay) {
       if (enemyTargets[i].curWayDist < enemy.curWayDist) {
         enemy = enemyTargets[i]
       }
     }
+
   }
   return enemy
 }

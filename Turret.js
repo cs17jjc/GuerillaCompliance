@@ -4,12 +4,11 @@ class Turret {
     constructor(type, damage, cooldown, accuracy, range) {
         this.type = type;
 
-        this.damage;
+        this.damage = damage;
         this.cooldown;
         this.accuracy;
         this.range;
 
-        this.baseDamage = damage;
         this.baseCooldown = cooldown;
         this.baseAccuracy = accuracy;
         this.baseRange = range;
