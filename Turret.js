@@ -1,14 +1,22 @@
 ///Parent class for turrets
 ///type provides type of turret, which should contain 'damage', 'firingSpeed', and 'bulletSpeed'
 class Turret {
-    constructor(type, damage, firingSpeed, bulletSpeed, accuracy, range) {
+    constructor(type, damage, cooldown, accuracy, range) {
         this.type = type;
-        this.damage = damage;
-        this.firingSpeed = firingSpeed;
-        this.bulletSpeed = bulletSpeed;
-        this.accuracy = accuracy;
-        this.range = range;
+
+        this.damage;
+        this.cooldown;
+        this.accuracy;
+        this.range;
+
+        this.baseDamage = damage;
+        this.baseCooldown = cooldown;
+        this.baseAccuracy = accuracy;
+        this.baseRange = range;
+
         this.shotTimer = 0;
+        this.canShoot = true;
+        this.atributesUpdated = false;
     }
     static standardTurret() {
         //Low Damage - Medium Fire Rate - Low Radius
