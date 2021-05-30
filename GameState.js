@@ -38,8 +38,8 @@ class GameState {
 
 
         var enems = [];
-        for (var i = 0; i < 200; i++) {
-            enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random()*10)));
+        for (var i = 0; i < 10; i++) {
+            enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", 10));
         }
 
         gs.upcomingEnemies = enems.reverse();
@@ -101,9 +101,10 @@ class GameState {
             { type: "EMBARGO", section: 0, subtype: "MACHINE_GUN", modifies: "RANGE", value: 0.9 },
 
             { type: "PRESERVE", section: 0, health: 9 },
-            { type: "PRESERVE", section: 1, health: 5 },
-            { type: "PRESERVE", section: 2, health: 4 },
-            { type: "PRESERVE", section: 3, health: 5 },
+            { type: "PRESERVE", section: 0, health: 8 },
+            { type: "PRESERVE", section: 0, health: 7 },
+            { type: "PRESERVE", section: 1, health: 8 },
+            { type: "PRESERVE", section: 2, health: 7 },
 
             { type: "BAN", section: 0, subtype: "SNIPER" },
             { type: "BAN", section: 3, subtype: "STANDARD" }
@@ -194,7 +195,8 @@ class GameState {
         //Enemy targeting & shooting
         if (turret.shotTimer == 0) {
             var enemyTargets = this.gameObjects.filter(o => o.type == "ENEMY");
-            var enemiesInRange = checkRange(enemyTargets, turret.range, position);
+            var avoidEnemyHealths = this.rules.filter(r => r.type == "PRESERVE" && r.section == section).map(r => r.health);
+            var enemiesInRange = checkRange(enemyTargets, turret.range, position).filter(e => !avoidEnemyHealths.includes(e.data.health));
             if (enemiesInRange.length > 0) {
                 var target = targetEnemy(enemiesInRange);
                 target.data.health -= turret.damage;
@@ -335,7 +337,7 @@ class GameState {
     }
 
     getModifiers(turretType, section) {
-        var appliedRules = this.rules.filter(r => r.section == section && r.subtype == turretType);
+        var appliedRules = this.rules.filter(r => r.type == "EMBARGO" && r.section == section && r.subtype == turretType);
         var appliedSectionMods = this.sectionModifiers.filter(m => m.section == section && m.subtype == turretType);
 
         var rangeModifiers = appliedRules.filter(r => r.modifies == "RANGE").concat(appliedSectionMods.filter(m => m.modifies == "RANGE")).map(o => o.value);
