@@ -38,8 +38,8 @@ class GameState {
 
 
         var enems = [];
-        for (var i = 0; i < 25; i++) {
-            enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", 10));
+        for (var i = 0; i < 30; i++) {
+            enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random()*10)));
         }
 
         gs.upcomingEnemies = enems.reverse();
@@ -60,16 +60,38 @@ class GameState {
         gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.93, y: canvasHeight * 0.56 }, 3, 9))
 
         for (var i = 0; i < 10; i++) {
-            gs.attachTurret(Turret.standardTurret(), i);
+            switch (Math.floor(Math.random()*4)) {
+                case 0:
+                    gs.attachTurret(Turret.standardTurret(), i);
+                    break;
+                case 1:
+                    gs.attachTurret(Turret.sniperTurret(), i);
+                    break;
+                case 2:
+                    gs.attachTurret(Turret.machineGunTurret(), i);
+                    break;
+                case 3:
+                    gs.attachTurret(Turret.laserTurret(), i);
+                    break;
+            }
+
         }
 
         gs.sectionModifiers = [
-            { section: 0, turret: "SNIPER", modifies: "RANGE", value: 0.8 },
+
+            { section: 0, turret: "STANDARD", modifies: "ACCURACY", value: 0.9 },
+            { section: 0, turret: "SNIPER", modifies: "RANGE", value: 0.9 },
+
             { section: 1, turret: "SNIPER", modifies: "RANGE", value: 1.1 },
-            { section: 0, turret: "STANDARD", modifies: "SPEED", value: 1.1 },
+            { section: 1, turret: "SNIPER", modifies: "SPEED", value: 0.9 },
+
             { section: 2, turret: "MACHINE_GUN", modifies: "DAMAGE", value: 0.9 },
             { section: 2, turret: "MACHINE_GUN", modifies: "SPEED", value: 1.1 },
-            { section: 2, turret: "MACHINE_GUN", modifies: "ACCURACY", value: 0.8 }
+            { section: 2, turret: "MACHINE_GUN", modifies: "ACCURACY", value: 0.8 },
+
+            { section: 3, turret: "STANDARD", modifies: "RANGE", value: 1.2 },
+            { section: 3, turret: "STANDARD", modifies: "SPEED", value: 0.9 },
+            { section: 3, turret: "STANDARD", modifies: "ACCURACY", value: 1.1 },
         ]
 
         gs.rules = [
@@ -111,19 +133,21 @@ class GameState {
             switch (e.type) {
                 case "ENEMY":
                     this.updateEnemy(e);
+                    break;
                 case "TURRET_PLATFORM":
                     if (e.data.hasTurret) {
-                        this.updateTurret(e.data.turret, e.position,e.data.section);
+                        this.updateTurret(e.data.turret, e.position, e.data.sector);
                     }
+                    break;
             }
         })
         this.gameObjects = this.gameObjects.filter(o => o.isAlive);
-        if(isClicked == true){
+        if (isClicked == true) {
             this.printMousePos(clickEvent)
             isClicked = false;
         }
 
-        if(this.rulesUpdated){
+        if (this.rulesUpdated) {
             this.rulesUpdated = false;
         }
     }
@@ -159,17 +183,18 @@ class GameState {
     updateTurret(turret, position, section) {
 
         //Update turret attributes to conform to section & rule modifiers
-        if(!turret.atributesUpdated || this.rulesUpdated){
-            var modifiers = this.getModifiers(turret.type,section);
-            console.log(modifiers);
+        if (!turret.atributesUpdated || this.rulesUpdated) {
+            var modifiers = this.getModifiers(turret.type, section);
             turret.range = turret.baseRange * modifiers.range;
             turret.accuracy = turret.baseAccuracy * modifiers.accuracy;
             turret.damage = turret.baseDamage * modifiers.damage;
             turret.cooldown = turret.baseCooldown * modifiers.speed;
 
+            console.log(turret);
+
             turret.atributesUpdated = true;
         }
-        
+
         //Enemy targeting & shooting
         if (turret.shotTimer == 0) {
             var enemyTargets = this.gameObjects.filter(o => o.type == "ENEMY");
@@ -181,7 +206,7 @@ class GameState {
                 this.shotTraces.push({ x1: position.x, y1: position.y, x2: target.position.x, y2: target.position.y, type: turret.type, frameCounter: 0 });
             }
         } else {
-            if (turret.shotTimer == turret.firingSpeed) {
+            if (turret.shotTimer == turret.cooldown) {
                 turret.shotTimer = 0;
             } else {
                 turret.shotTimer += 1;
@@ -191,11 +216,11 @@ class GameState {
 
     // Checks the position of a given mouse position against the x and y of all towers to see if any were clicked.
     // Returns the tower clicked if any, or null if no tower was clicked.
-    checkTowerClicked(mousePos){
+    checkTowerClicked(mousePos) {
         towers = this.gameObjects.filter(e => e.type == "TURRET_PLATFORM")
-        for(i=0; i<towers.length; i++){
-            if(mousePos.x - towers[i].x < 20){
-                if(mousePos.y - towers[i].y < 20){
+        for (i = 0; i < towers.length; i++) {
+            if (mousePos.x - towers[i].x < 20) {
+                if (mousePos.y - towers[i].y < 20) {
                     console.log("Tower clicked = " + towers[i].platformNumber)
                     return towers[i].platformNumber
                 }
@@ -205,10 +230,10 @@ class GameState {
         return null
     }
 
-    printMousePos(event){
+    printMousePos(event) {
         var rect = canvas.getBoundingClientRect();
-        console.log("X: " +(event.clientX - rect.left) / (rect.right - rect.left) * canvasWidth)
-        console.log("Y: " +(event.clientY - rect.top) / (rect.bottom - rect.top) * canvasHeight)
+        console.log("X: " + (event.clientX - rect.left) / (rect.right - rect.left) * canvasWidth)
+        console.log("Y: " + (event.clientY - rect.top) / (rect.bottom - rect.top) * canvasHeight)
         return {
             x: (event.clientX - rect.left) / (rect.right - rect.left) * canvasWidth,
             y: (event.clientY - rect.top) / (rect.bottom - rect.top) * canvasHeight
@@ -316,20 +341,19 @@ class GameState {
         platform.data.turret = turret;
     }
 
-    getModifiers(turretType,section) {
+    getModifiers(turretType, section) {
         var appliedRules = this.rules.filter(r => r.section == section && r.subtype == turretType);
         var appliedSectionMods = this.sectionModifiers.filter(m => m.section == section && m.subtype == turretType);
-      
-        var rangeModifiers = appliedRules.filter(r => r.modifies == "RANGE").concat(appliedSectionMods.filter(m => m.modifies == "RANGE"));
-        var speedModifiers = appliedRules.filter(r => r.modifies == "SPEED").concat(appliedSectionMods.filter(m => m.modifies == "SPEED"));
-        var damageModifiers = appliedRules.filter(r => r.modifies == "DAMAGE").concat(appliedSectionMods.filter(m => m.modifies == "DAMAGE"));
-        var accuracyModifiers = appliedRules.filter(r => r.modifies == "ACCURACY").concat(appliedSectionMods.filter(m => m.modifies == "ACCURACY"));
-      
-        var rangeMod = rangeModifiers.length > 0 ? rangeModifiers.reduce((acc, cur) => acc * cur.value) : 1;
-        var speedMod = speedModifiers.length > 0 ? speedModifiers.reduce((acc, cur) => acc * cur.value) : 1;
-        var damageMod = damageModifiers.length > 0 ? damageModifiers.reduce((acc, cur) => acc * cur.value) : 1;
-        var accuracyMod = accuracyModifiers.length > 0 ? accuracyModifiers.reduce((acc, cur) => acc * cur.value) : 1;
-      
-        return {range:rangeMod,speed:speedMod,damage:damageMod,accuracy:accuracyMod};
-      }
+        var rangeModifiers = appliedRules.filter(r => r.modifies == "RANGE").concat(appliedSectionMods.filter(m => m.modifies == "RANGE")).map(o => o.value);
+        var speedModifiers = appliedRules.filter(r => r.modifies == "SPEED").concat(appliedSectionMods.filter(m => m.modifies == "SPEED")).map(o => o.value);
+        var damageModifiers = appliedRules.filter(r => r.modifies == "DAMAGE").concat(appliedSectionMods.filter(m => m.modifies == "DAMAGE")).map(o => o.value);
+        var accuracyModifiers = appliedRules.filter(r => r.modifies == "ACCURACY").concat(appliedSectionMods.filter(m => m.modifies == "ACCURACY")).map(o => o.value);
+
+        var rangeMod = rangeModifiers.length > 0 ? rangeModifiers.reduce((acc, cur) => acc * cur) : 1;
+        var speedMod = speedModifiers.length > 0 ? speedModifiers.reduce((acc, cur) => acc * cur) : 1;
+        var damageMod = damageModifiers.length > 0 ? damageModifiers.reduce((acc, cur) => acc * cur) : 1;
+        var accuracyMod = accuracyModifiers.length > 0 ? accuracyModifiers.reduce((acc, cur) => acc * cur) : 1;
+
+        return { range: rangeMod, speed: speedMod, damage: damageMod, accuracy: accuracyMod };
+    }
 }
