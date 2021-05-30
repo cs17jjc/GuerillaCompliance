@@ -102,7 +102,7 @@ function targetEnemy(enemyTargets) {
 
 
 function healthToColour(health) {
-  var col = ["f94144","f3722c","f8961e","f9844a","f9c74f","90be6d","43aa8b","4d908e","577590","277da1"][health-1];
+  var col = ["f94144", "f3722c", "f8961e", "f9844a", "f9c74f", "90be6d", "43aa8b", "4d908e", "577590", "277da1"][health - 1];
   return col;
 }
 
