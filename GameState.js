@@ -4,7 +4,7 @@ class GameState {
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.17, y: canvasHeight * 0.5 }, 0, 0))
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.1, y: canvasHeight * 0.2 }, 0, 1))
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.25, y: canvasHeight * 0.05 }, 0, 2))
-        
+
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.41, y: canvasHeight * 0.18 }, 1, 3))
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.53, y: canvasHeight * 0.36 }, 1, 4))
 
@@ -57,7 +57,7 @@ class GameState {
             { section: 3, turret: "STANDARD", modifies: "RANGE", value: 1.4 },
             { section: 3, turret: "STANDARD", modifies: "COOLDOWN", value: 0.8 },
             { section: 3, turret: "STANDARD", modifies: "ACCURACY", value: 1.1 },
-            
+
         ];
         this.rulesUpdated = false;
 
@@ -368,5 +368,39 @@ class GameState {
         var accuracyMod = accuracyModifiers.length > 0 ? accuracyModifiers.reduce((acc, cur) => acc * cur) : 1;
 
         return { range: rangeMod, cooldown: cooldownMod, accuracy: accuracyMod };
+    }
+
+    getTurretRepresentation() {
+
+        var rep = [];
+        this.gameObjects.filter(o => o.type == "TURRET_PLATFORM").forEach(p => {
+            if (p.data.hasTurret) {
+                switch (p.data.turret.type) {
+                    case "STANDARD":
+                        rep = rep.concat([1, 0, 0, 0]);
+                        break;
+                    case "SNIPER":
+                        rep = rep.concat([0, 1, 0, 0]);
+                        break;
+                    case "MACHINE_GUN":
+                        rep = rep.concat([0, 0, 1, 0]);
+                        break;
+                    case "LASER":
+                        rep = rep.concat([0, 0, 0, 1]);
+                        break;
+                }
+            } else {
+                rep = rep.concat([0, 0, 0, 0]);
+            }
+        })
+
+        return rep;
+    }
+
+    addNewRule(){
+        var nextRule = getNextRule(model,this.getTurretRepresentation(),0,allRules,this.rules);
+        console.log(nextRule);
+        this.rules.push(nextRule);
+        this.rulesUpdated = true;
     }
 }

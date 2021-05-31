@@ -33,6 +33,9 @@ myAudioNode.loop = true;
 var musicToggle = true;
 var soundToggle = true;
 
+var model = makeModel(40,67);
+var allRules = makeAllPossibleRules();
+
 
 function draw(ctx) {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
