@@ -107,3 +107,100 @@ function healthToColour(health) {
   return col;
 }
 
+function makeAllPossibleRules() {
+  var turretTypes = ["STANDARD", "SNIPER", "MACHINE_GUN", "LASER"];
+  var sections = [0, 1, 2, 3];
+  var modTypes = ["RANGE", "ACCURACY", "COOLDOWN"];
+
+  var allRules = [
+    { type: "PRESERVE", section: 0, health: 8 },
+    { type: "PRESERVE", section: 1, health: 6 },
+    { type: "PRESERVE", section: 2, health: 4 }
+  ];
+
+  var typeCounter = 0;
+  var sectionCounter = 0;
+  var modCounter = 0;
+  while (modCounter < modTypes.length) {
+    allRules.push({ type: "EMBARGO", section: sections[sectionCounter], subtype: turretTypes[typeCounter], modifies: modTypes[modCounter], value: modTypes[modCounter] == "COOLDOWN" ? 1.2 : 0.8 });
+    typeCounter += 1;
+    if (typeCounter == turretTypes.length) {
+      typeCounter = 0;
+      sectionCounter += 1;
+    }
+    if (sectionCounter == sections.length) {
+      sectionCounter = 0;
+      modCounter += 1;
+    }
+  }
+
+  typeCounter = 0;
+  sectionCounter = 0;
+  while (sectionCounter < sections.length) {
+    allRules.push({ type: "BAN", section: sections[sectionCounter], subtype: turretTypes[typeCounter] });
+    typeCounter += 1;
+    if (typeCounter == turretTypes.length) {
+      typeCounter = 0;
+      sectionCounter += 1;
+    }
+  }
+
+  return allRules;
+}
+
+function averageEnemyLifespanForState(rep, rule) {
+
+  var gs = new GameState();
+
+  if (rule != null) {
+    gs.rules.push(rule);
+    gs.rulesUpdated = true;
+  }
+
+  updateGamestateToMatchRep(gs,rep);
+
+  var enems = [];
+  for (var i = 0; i < 500; i++) {
+    enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random() * 10)));
+  }
+
+  gs.spawnEnemies = true;
+
+  while (gs.gameObjects.filter(o => o.type == "ENEMY").length > 0) {
+    gs.update([], false);
+  }
+
+  return gs.enemyLifespans.reduce((acc, cur) => acc + cur) / gs.enemyLifespans.length;
+}
+
+function updateGamestateToMatchRep(gs, rep){
+  for (var i = 0; i < rep.length; i++) {
+    if (rep[i] == 1) {
+      var platform = Math.trunc(i / 4);
+      var type = i - (4*platform);
+      console.log(platform + " " + type);
+      switch (type) {
+        case 0:
+          gs.attachTurret(Turret.standardTurret(), platform);
+          break;
+        case 1:
+          gs.attachTurret(Turret.sniperTurret(), platform);
+          break;
+        case 2:
+          gs.attachTurret(Turret.machineGunTurret(), platform);
+          break;
+        case 3:
+          gs.attachTurret(Turret.laserTurret(), platform);
+          break;
+      }
+    }
+  }
+}
+
+function createDataset(){
+  var ruleSet = makeAllPossibleRules();
+
+
+
+}
+

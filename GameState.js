@@ -1,7 +1,32 @@
 class GameState {
     constructor() {
         this.gameObjects = [];
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.17, y: canvasHeight * 0.5 }, 0, 0))
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.1, y: canvasHeight * 0.2 }, 0, 1))
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.25, y: canvasHeight * 0.05 }, 0, 2))
+        
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.41, y: canvasHeight * 0.18 }, 1, 3))
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.53, y: canvasHeight * 0.36 }, 1, 4))
+
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.43, y: canvasHeight * 0.60 }, 2, 5))
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.47, y: canvasHeight * 0.83 }, 2, 6))
+
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.76, y: canvasHeight * 0.15 }, 3, 7))
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.83, y: canvasHeight * 0.44 }, 3, 8))
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.93, y: canvasHeight * 0.56 }, 3, 9))
+
         this.wayPoints = new Map();
+        this.wayPoints.set(0, { x: canvasWidth * -0.01, y: canvasHeight * 0.5 })
+        this.wayPoints.set(1, { x: canvasWidth * 0.14, y: canvasHeight * 0.5 })
+        this.wayPoints.set(2, { x: canvasWidth * 0.14, y: canvasHeight * 0.1 })
+        this.wayPoints.set(3, { x: canvasWidth * 0.38, y: canvasHeight * 0.1 })
+        this.wayPoints.set(4, { x: canvasWidth * 0.38, y: canvasHeight * 0.9 })
+        this.wayPoints.set(5, { x: canvasWidth * 0.56, y: canvasHeight * 0.9 })
+        this.wayPoints.set(6, { x: canvasWidth * 0.56, y: canvasHeight * 0.1 })
+        this.wayPoints.set(7, { x: canvasWidth * 0.8, y: canvasHeight * 0.1 })
+        this.wayPoints.set(8, { x: canvasWidth * 0.8, y: canvasHeight * 0.5 })
+        this.wayPoints.set(9, { x: canvasWidth * 1.01, y: canvasHeight * 0.5 })
+
         this.baseHealth = 100;
 
         this.upcomingEnemies = [];
@@ -12,7 +37,25 @@ class GameState {
         this.enemyLifespans = [];
 
         this.rules = [];
-        this.sectionModifiers = [];
+        this.sectionModifiers = [
+
+            { section: 0, turret: "STANDARD", modifies: "ACCURACY", value: 0.9 },
+            { section: 0, turret: "SNIPER", modifies: "RANGE", value: 0.9 },
+            { section: 0, turret: "MACHINE_GUN", modifies: "RANGE", value: 1.2 },
+
+            { section: 1, turret: "SNIPER", modifies: "RANGE", value: 1.1 },
+            { section: 1, turret: "SNIPER", modifies: "COOLDOWN", value: 0.9 },
+            { section: 1, turret: "STANDARD", modifies: "RANGE", value: 1.2 },
+
+            { section: 2, turret: "MACHINE_GUN", modifies: "COOLDOWN", value: 1.1 },
+            { section: 2, turret: "MACHINE_GUN", modifies: "ACCURACY", value: 0.8 },
+            { section: 2, turret: "SNIPER", modifies: "ACCURACY", value: 0.9 },
+
+            { section: 3, turret: "STANDARD", modifies: "RANGE", value: 1.4 },
+            { section: 3, turret: "STANDARD", modifies: "COOLDOWN", value: 0.8 },
+            { section: 3, turret: "STANDARD", modifies: "ACCURACY", value: 1.1 },
+            
+        ];
         this.rulesUpdated = false;
 
         this.shotTraces = [];
@@ -20,96 +63,14 @@ class GameState {
     static initial() {
         var gs = new GameState();
 
-        gs.wayPoints.set(0, { x: canvasWidth * -0.01, y: canvasHeight * 0.5 })
-
-        gs.wayPoints.set(1, { x: canvasWidth * 0.14, y: canvasHeight * 0.5 })
-        gs.wayPoints.set(2, { x: canvasWidth * 0.14, y: canvasHeight * 0.1 })
-
-        gs.wayPoints.set(3, { x: canvasWidth * 0.38, y: canvasHeight * 0.1 })
-        gs.wayPoints.set(4, { x: canvasWidth * 0.38, y: canvasHeight * 0.9 })
-
-        gs.wayPoints.set(5, { x: canvasWidth * 0.56, y: canvasHeight * 0.9 })
-        gs.wayPoints.set(6, { x: canvasWidth * 0.56, y: canvasHeight * 0.1 })
-
-        gs.wayPoints.set(7, { x: canvasWidth * 0.8, y: canvasHeight * 0.1 })
-        gs.wayPoints.set(8, { x: canvasWidth * 0.8, y: canvasHeight * 0.5 })
-
-        gs.wayPoints.set(9, { x: canvasWidth * 1.01, y: canvasHeight * 0.5 })
-
 
         var enems = [];
         for (var i = 0; i < 100; i++) {
-            enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random()*10)));
+            enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random() * 10)));
         }
 
-        gs.upcomingEnemies = enems.reverse();
+        gs.upcomingEnemies = enems;
         gs.spawnEnemies = true;
-
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.17, y: canvasHeight * 0.5 }, 0, 0))
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.1, y: canvasHeight * 0.2 }, 0, 1))
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.25, y: canvasHeight * 0.05 }, 0, 2))
-
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.41, y: canvasHeight * 0.18 }, 1, 3))
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.53, y: canvasHeight * 0.45 }, 1, 4))
-
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.41, y: canvasHeight * 0.83 }, 2, 5))
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.53, y: canvasHeight * 0.83 }, 2, 6))
-
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.76, y: canvasHeight * 0.15 }, 3, 7))
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.83, y: canvasHeight * 0.44 }, 3, 8))
-        gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.93, y: canvasHeight * 0.56 }, 3, 9))
-
-        for (var i = 0; i < 10; i++) {
-            switch (i%4) {
-                case 0:
-                    gs.attachTurret(Turret.standardTurret(), i);
-                    break;
-                case 1:
-                    gs.attachTurret(Turret.sniperTurret(), i);
-                    break;
-                case 2:
-                    gs.attachTurret(Turret.machineGunTurret(), i);
-                    break;
-                case 3:
-                    gs.attachTurret(Turret.laserTurret(), i);
-                    break;
-            }
-
-        }
-
-        gs.sectionModifiers = [
-
-            { section: 0, turret: "STANDARD", modifies: "ACCURACY", value: 0.9 },
-            { section: 0, turret: "SNIPER", modifies: "RANGE", value: 0.9 },
-
-            { section: 1, turret: "SNIPER", modifies: "RANGE", value: 1.1 },
-            { section: 1, turret: "SNIPER", modifies: "COOLDOWN", value: 0.9 },
-
-            { section: 2, turret: "MACHINE_GUN", modifies: "COOLDOWN", value: 1.1 },
-            { section: 2, turret: "MACHINE_GUN", modifies: "ACCURACY", value: 0.8 },
-
-            { section: 3, turret: "STANDARD", modifies: "RANGE", value: 1.4 },
-            { section: 3, turret: "STANDARD", modifies: "COOLDOWN", value: 0.8 },
-            { section: 3, turret: "STANDARD", modifies: "ACCURACY", value: 1.1 },
-        ]
-
-        gs.rules = [
-            { type: "EMBARGO", section: 0, subtype: "STANDARD", modifies: "RANGE", value: 0.8 },
-            { type: "EMBARGO", section: 1, subtype: "STANDARD", modifies: "COOLDOWN", value: 1.1 },
-            { type: "EMBARGO", section: 2, subtype: "SNIPER", modifies: "ACCURACY", value: 0.7 },
-            { type: "EMBARGO", section: 3, subtype: "SNIPER", modifies: "RANGE", value: 0.6 },
-            { type: "EMBARGO", section: 0, subtype: "MACHINE_GUN", modifies: "RANGE", value: 0.9 },
-
-            { type: "PRESERVE", section: 0, health: 9 },
-            { type: "PRESERVE", section: 1, health: 8 },
-            { type: "PRESERVE", section: 2, health: 7 },
-
-            { type: "BAN", section: 0, subtype: "STANDARD" },
-            { type: "BAN", section: 1, subtype: "SNIPER" },
-            { type: "BAN", section: 2, subtype: "MACHINE_GUN" },
-            { type: "BAN", section: 3, subtype: "LASER" },
-        ]
-        gs.rulesUpdated = true;
 
         return gs;
     }
@@ -141,7 +102,7 @@ class GameState {
             }
         })
         this.gameObjects = this.gameObjects.filter(o => o.isAlive);
-        if(isClicked == true){
+        if (isClicked == true) {
             var towerClicked = this.checkTowerClicked(this.returnMousePos(clickEvent));
             isClicked = false;
         }
@@ -193,15 +154,21 @@ class GameState {
         }
 
         //Enemy targeting & shooting
-        if (turret.shotTimer == 0 && !this.rules.filter(r => r.type=="BAN" && r.subtype == turret.type).map(r => r.section).includes(section)) {
+        if (turret.shotTimer == 0 && !this.rules.filter(r => r.type == "BAN" && r.subtype == turret.type).map(r => r.section).includes(section)) {
             var enemyTargets = this.gameObjects.filter(o => o.type == "ENEMY");
             var avoidEnemyHealths = this.rules.filter(r => r.type == "PRESERVE" && r.section == section).map(r => r.health);
             var enemiesInRange = checkRange(enemyTargets, turret.range, position).filter(e => !avoidEnemyHealths.includes(e.data.health));
             if (enemiesInRange.length > 0) {
+
                 var target = targetEnemy(enemiesInRange);
-                target.data.health -= turret.damage;
-                turret.shotTimer += 1;
-                this.shotTraces.push({ x1: position.x, y1: position.y, x2: target.position.x, y2: target.position.y, type: turret.type, frameCounter: 0 });
+                if (Math.random() < turret.accuracy) {
+                    target.data.health -= turret.damage;
+                    turret.shotTimer += 1;
+                    this.shotTraces.push({ x1: position.x, y1: position.y, x2: target.position.x, y2: target.position.y, type: turret.type, frameCounter: 0 });
+                } else {
+                    turret.shotTimer += 1;
+                    this.shotTraces.push({ x1: position.x, y1: position.y, x2: target.position.x + ((Math.random() * 20) - 10), y2: target.position.y + ((Math.random() * 20) - 10), type: turret.type, frameCounter: 0 });
+                }
             }
         } else {
             if (turret.shotTimer == turret.cooldown) {
@@ -214,18 +181,18 @@ class GameState {
 
     // Checks the position of a given mouse position against the x and y of all towers to see if any were clicked.
     // Returns the tower clicked if any, or null if no tower was clicked.
-    checkTowerClicked(mousePos){
+    checkTowerClicked(mousePos) {
         var towers;
         towers = this.gameObjects.filter(e => e.type == "TURRET_PLATFORM")
-        for(var i=0; i<towers.length; i++){
-            if(Math.abs(mousePos.x - towers[i].position.x) < 20 && Math.abs(mousePos.y - towers[i].position.y) < 20){
+        for (var i = 0; i < towers.length; i++) {
+            if (Math.abs(mousePos.x - towers[i].position.x) < 20 && Math.abs(mousePos.y - towers[i].position.y) < 20) {
                 return towers[i].data.platformNum
             }
         }
         return null
     }
 
-    returnMousePos(event){
+    returnMousePos(event) {
         var rect = canvas.getBoundingClientRect();
         console.log("X: " + (event.clientX - rect.left) / (rect.right - rect.left) * canvasWidth)
         console.log("Y: " + (event.clientY - rect.top) / (rect.bottom - rect.top) * canvasHeight)
