@@ -148,6 +148,26 @@ function makeAllPossibleRules() {
   return allRules;
 }
 
+function makeAllPossibleConfigs() {
+  var platformConfigs = [[0, 0, 0, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+  var possibleConfigs = [];
+  var turretCounter = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  while (turretCounter[9] != 5) {
+    var mapped = turretCounter.map(c => platformConfigs[c]);
+    var reduced = mapped.reduce((acc, cur) => acc.concat(cur));
+    possibleConfigs.push(reduced);
+
+    turretCounter[0] += 1;
+    for (var i = 1; i < turretCounter.length; i++) {
+      if(turretCounter[i-1] == 5){
+        turretCounter[i-1] = 0;
+        turretCounter[i] += 1;
+      }
+    }
+  }
+  return possibleConfigs;
+}
+
 function averageEnemyLifespanForState(rep, rule) {
 
   var gs = new GameState();
@@ -157,7 +177,7 @@ function averageEnemyLifespanForState(rep, rule) {
     gs.rulesUpdated = true;
   }
 
-  updateGamestateToMatchRep(gs,rep);
+  updateGamestateToMatchRep(gs, rep);
 
   var enems = [];
   for (var i = 0; i < 500; i++) {
@@ -173,11 +193,11 @@ function averageEnemyLifespanForState(rep, rule) {
   return gs.enemyLifespans.reduce((acc, cur) => acc + cur) / gs.enemyLifespans.length;
 }
 
-function updateGamestateToMatchRep(gs, rep){
+function updateGamestateToMatchRep(gs, rep) {
   for (var i = 0; i < rep.length; i++) {
     if (rep[i] == 1) {
       var platform = Math.trunc(i / 4);
-      var type = i - (4*platform);
+      var type = i - (4 * platform);
       console.log(platform + " " + type);
       switch (type) {
         case 0:
@@ -197,9 +217,8 @@ function updateGamestateToMatchRep(gs, rep){
   }
 }
 
-function createDataset(){
+function createDataset() {
   var ruleSet = makeAllPossibleRules();
-
 
 
 }
