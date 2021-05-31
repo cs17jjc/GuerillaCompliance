@@ -219,7 +219,36 @@ function updateGamestateToMatchRep(gs, rep) {
 
 function createDataset() {
   var ruleSet = makeAllPossibleRules();
+  var configSet = makeAllPossibleConfigs();
+  var dataset = [];
 
+  configSet.forEach(config => {
 
+    
+    var times = [];
+    ruleSet.forEach(r => {
+      times.push(averageEnemyLifespanForState(config,r));
+    })
+    
+
+    var maxTime = Math.max(...times);
+    var labels = times.map(t => t == maxTime ? 1 : 0);
+    dataset.push([config,labels]);
+
+    document.title = dataset.length;
+  })
+
+  downloadToFile(JSON.stringify(dataset), 'dataset.txt', 'text/plain');
 }
+
+const downloadToFile = (content, filename, contentType) => {
+  const a = document.createElement('a');
+  const file = new Blob([content], {type: contentType});
+  
+  a.href= URL.createObjectURL(file);
+  a.download = filename;
+  a.click();
+
+	URL.revokeObjectURL(a.href);
+};
 
