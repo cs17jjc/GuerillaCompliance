@@ -205,10 +205,4 @@ function updateGamestateToMatchRep(gs, rep){
   }
 }
 
-function createDataset(){
-  var ruleSet = makeAllPossibleRules();
-
-
-
-}
 
