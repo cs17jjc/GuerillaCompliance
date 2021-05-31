@@ -83,18 +83,6 @@ loadChecker = setInterval(() => {
     if (loadedImages) {
         clearInterval(loadChecker);
         gameState = GameState.initial();
-        var rep = [
-            0,0,1,0, 
-            1,0,0,0, 
-            0,0,1,0, 
-            0,0,0,1, 
-            1,0,0,0, 
-            0,1,0,0, 
-            0,0,1,0, 
-            0,0,0,1, 
-            0,1,0,0, 
-            0,0,1,0]
-        updateGamestateToMatchRep(gameState,rep);
         setInterval(() => draw(ctx), 50);
     } else {
         loadedImages = true;
