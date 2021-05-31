@@ -15,6 +15,9 @@ class GameState {
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.83, y: canvasHeight * 0.44 }, 3, 8))
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.93, y: canvasHeight * 0.56 }, 3, 9))
 
+        this.gameObjects.push(makeShopFrame({x: canvasWidth * 0.75, y: canvasHeight * 0.1}, canvasWidth * 0.2, canvasHeight * 0.8, "r"));
+        this.gameObjects.push(makeShopFrame({x: canvasWidth * 0.05, y: canvasHeight * 0.1}, canvasWidth * 0.2, canvasHeight * 0.8, "l"));
+
         this.wayPoints = new Map();
         this.wayPoints.set(0, { x: canvasWidth * -0.01, y: canvasHeight * 0.5 })
         this.wayPoints.set(1, { x: canvasWidth * 0.14, y: canvasHeight * 0.5 })
@@ -106,8 +109,25 @@ class GameState {
         })
         this.gameObjects = this.gameObjects.filter(o => o.isAlive);
         if (isClicked == true) {
-            var towerClicked = this.checkTowerClicked(this.returnMousePos(clickEvent));
+            var objectClicked = this.checkObjectClicked(this.returnMousePos(clickEvent));
             isClicked = false;
+            if(objectClicked == null){
+                this.gameObjects.filter(s=> s.type == "UI_FRAME").forEach(s => {
+                    s.data.isVisible = false;
+                });
+            }
+            else if(objectClicked.type == "TURRET_PLATFORM"){
+                if(objectClicked.data.sector <= 1){
+                    this.gameObjects.filter(s=> s.type == "UI_FRAME" && s.data.side == "r").forEach(s => {
+                        s.data.isVisible = true;
+                    });
+                }
+                else{
+                    this.gameObjects.filter(s=> s.type == "UI_FRAME" && s.data.side == "l").forEach(s => {
+                        s.data.isVisible = true;
+                    });
+                }
+            }
         }
 
         if (this.rulesUpdated) {
@@ -199,18 +219,19 @@ class GameState {
     ///Checks for valid game objects that have been clicked on and returns the game object that is clicked on
     ///Valid game objects are UI buttons, or turret platforms
     ///Returns the object that was at the mouse's position.
-    checkObjectClicked(mousepos) {
+    checkObjectClicked(mousePos){
         var objs;
-        towers = this.gameObjects.filter(e => e.type == "TURRET_PLATFORM")
+        var towers = this.gameObjects.filter(e => e.type == "TURRET_PLATFORM")
         for (var i = 0; i < towers.length; i++) {
             if (Math.abs(mousePos.x - towers[i].position.x) < 20 && Math.abs(mousePos.y - towers[i].position.y) < 20) {
                 return towers[i];
             }
         }
-        uiButtons = this.gameObjects.filter(e = e.type == "UI_OBJECT")
-        for (var i = 0; i < uiButtons.length; i++) {
-            if (mousePos.x - uiButtons[i].position.x < 10 && mousePos.x - uiButtons[i].position.x > 0
-                && mousePos.y - uiButtons[i].position.y < 5 && mousePos.y - uiButtons[i].position.x > 0) {
+        var uiButtons = this.gameObjects.filter(e => e.type == "UI_OBJECT")
+        for(var i = 0; i<uiButtons.length; i++)
+        {
+            if(mousePos.x - uiButtons[i].position.x < 10 && mousePos.x - uiButtons[i].position.x > 0 
+            && mousePos.y - uiButtons[i].position.y < 5 && mousePos.y - uiButtons[i].position.x > 0){
                 return uiButtons[i];
             }
         }
@@ -312,12 +333,13 @@ class GameState {
         })
 
         this.gameObjects.filter(o => o.type == "UI_FRAME").forEach(e => {
-            ctx.save();
-            var width = 50;
-            var height = 100;
-            ctx.lineWidth = 2;
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(e.position.x, e.position.y, e.data.width, e.data.height);
+            console.log(e.data.isVisible)
+            if(e.data.isVisible == true){
+                ctx.save();
+                ctx.lineWidth = 2;
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(e.position.x, e.position.y, e.data.width, e.data.height);
+            }
         })
 
         this.shotTraces.forEach(t => {
