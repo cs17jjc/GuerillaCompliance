@@ -75,6 +75,14 @@ function makeEnemy(position, type, health) {
   return new GameObject("ENEMY", position, { health: health, type: type, curWay: 0, curWayDist: 0, speed: 0, timeMade: Date.now(), angle: 0 })
 }
 
+function makeShopFrame(position, platform){
+  return new GameObject("UI_FRAME", position, {turretPlatform: platform});
+}
+
+function makeShopButton(position){
+  return new GameObject("UI_BUTTON", position, {})
+}
+
 function checkRange(enemyTargets, range, position) {
   var retArray = [];
   for (var i = 0; i < enemyTargets.length; i++) {

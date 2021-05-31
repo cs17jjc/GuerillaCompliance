@@ -192,6 +192,27 @@ class GameState {
         return null
     }
 
+    ///Checks for valid game objects that have been clicked on and returns the game object that is clicked on
+    ///Valid game objects are UI buttons, or turret platforms
+    checkObjectClicked(mousepos){
+        var objs;
+        towers = this.gameObjects.filter(e => e.type == "TURRET_PLATFORM")
+        for (var i = 0; i < towers.length; i++) {
+            if (Math.abs(mousePos.x - towers[i].position.x) < 20 && Math.abs(mousePos.y - towers[i].position.y) < 20) {
+                return towers[i];
+            }
+        }
+        uiButtons = this.gameObjects.filter(e = e.type == "UI_OBJECT")
+        for(var i = 0; i<uiButtons.length; i++)
+        {
+            if(mousePos.x - uiButtons[i].position.x < 10 && mousePos.x - uiButtons[i].position.x > 0 
+            && mousePos.y - uiButtons[i].position.y < 5 && mousePos.y - uiButtons[i].position.x > 0){
+                return uiButtons[i];
+            }
+        }
+        return null;
+    }
+
     returnMousePos(event) {
         var rect = canvas.getBoundingClientRect();
         console.log("X: " + (event.clientX - rect.left) / (rect.right - rect.left) * canvasWidth)
