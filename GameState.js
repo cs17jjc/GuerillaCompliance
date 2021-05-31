@@ -118,10 +118,16 @@ class GameState {
                     this.gameObjects.filter(s=> s.type == "UI_FRAME" && s.data.side == "r").forEach(s => {
                         s.data.isVisible = true;
                     });
+                    this.gameObjects.filter(s=> s.type == "UI_FRAME" && s.data.side == "l").forEach(s => {
+                        s.data.isVisible = false;
+                    });
                 }
                 else{
                     this.gameObjects.filter(s=> s.type == "UI_FRAME" && s.data.side == "l").forEach(s => {
                         s.data.isVisible = true;
+                    });
+                    this.gameObjects.filter(s=> s.type == "UI_FRAME" && s.data.side == "r").forEach(s => {
+                        s.data.isVisible = false;
                     });
                 }
             }
@@ -329,7 +335,6 @@ class GameState {
         })
 
         this.gameObjects.filter(o => o.type == "UI_FRAME").forEach(e => {
-            console.log(e.data.isVisible)
             if(e.data.isVisible == true){
                 ctx.save();
                 ctx.lineWidth = 2;
