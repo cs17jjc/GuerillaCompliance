@@ -35,6 +35,7 @@ class GameState {
         this.spawnedFrameCounter = 0;
 
         this.enemyLifespans = [];
+        this.frameCounter = 0;
 
         this.rules = [];
         this.sectionModifiers = [
@@ -63,7 +64,6 @@ class GameState {
     static initial() {
         var gs = new GameState();
 
-
         var enems = [];
         for (var i = 0; i < 100; i++) {
             enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random() * 10)));
@@ -79,7 +79,9 @@ class GameState {
 
         if (this.spawnEnemies && this.upcomingEnemies.length > 0) {
             if (this.spawnedFrameCounter == this.enemySpawnRate) {
-                this.gameObjects.push(this.upcomingEnemies.pop());
+                var nextEnem = this.upcomingEnemies.pop();
+                nextEnem.data.timeMade = this.frameCounter;
+                this.gameObjects.push(nextEnem);
                 this.spawnedFrameCounter = 0;
             } else {
                 this.spawnedFrameCounter += 1;
@@ -110,11 +112,13 @@ class GameState {
         if (this.rulesUpdated) {
             this.rulesUpdated = false;
         }
+
+        this.frameCounter += 1;
     }
 
     updateEnemy(enemy) {
         if (enemy.data.health <= 0) {
-            this.enemyLifespans.push(Date.now() - enemy.data.timeMade);
+            this.enemyLifespans.push(this.frameCounter - enemy.data.timeMade);
             enemy.isAlive = false;
         } else {
             var targetPosition = this.wayPoints.get(enemy.data.curWay);
@@ -124,7 +128,7 @@ class GameState {
 
                 if (enemy.data.curWay == this.wayPoints.size - 1) {
                     this.baseHealth -= enemy.data.health;
-                    this.enemyLifespans.push(Date.now() - enemy.data.timeMade);
+                    this.enemyLifespans.push(this.frameCounter - enemy.data.timeMade);
                     enemy.isAlive = false;
                 }
 

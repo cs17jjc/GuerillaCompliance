@@ -72,7 +72,7 @@ function makeTurretPlatform(position, sector, num) {
 }
 
 function makeEnemy(position, type, health) {
-  return new GameObject("ENEMY", position, { health: health, type: type, curWay: 0, curWayDist: 0, speed: 0, timeMade: Date.now(), angle: 0 })
+  return new GameObject("ENEMY", position, { health: health, type: type, curWay: 0, curWayDist: 0, speed: 0, timeMade: 0, angle: 0 })
 }
 
 function checkRange(enemyTargets, range, position) {
@@ -179,14 +179,12 @@ function averageEnemyLifespanForState(rep, rule) {
 
   updateGamestateToMatchRep(gs, rep);
 
-  var enems = [];
-  for (var i = 0; i < 500; i++) {
-    enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random() * 10)));
+  for (var i = 0; i < 10; i++) {
+    gs.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random() * 10)));
   }
-
   gs.spawnEnemies = true;
 
-  while (gs.gameObjects.filter(o => o.type == "ENEMY").length > 0) {
+  while ((gs.gameObjects.filter(o => o.type == "ENEMY").length > 0) || (gs.upcomingEnemies.length > 0)) {
     gs.update([], false);
   }
 
@@ -198,7 +196,6 @@ function updateGamestateToMatchRep(gs, rep) {
     if (rep[i] == 1) {
       var platform = Math.trunc(i / 4);
       var type = i - (4 * platform);
-      console.log(platform + " " + type);
       switch (type) {
         case 0:
           gs.attachTurret(Turret.standardTurret(), platform);
@@ -234,8 +231,6 @@ function createDataset() {
     var maxTime = Math.max(...times);
     var labels = times.map(t => t == maxTime ? 1 : 0);
     dataset.push([config,labels]);
-
-    document.title = dataset.length;
   })
 
   downloadToFile(JSON.stringify(dataset), 'dataset.txt', 'text/plain');
