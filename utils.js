@@ -97,10 +97,10 @@ function targetEnemy(enemyTargets) {
   var enemy = enemyTargets[0];
   for (var i = 1; i < enemyTargets.length; i++) {
 
-    if (enemyTargets[i].curWay > enemy.curWay) {
+    if (enemyTargets[i].data.curWay > enemy.data.curWay) {
       enemy = enemyTargets[i];
-    } else if (enemyTargets[i].curWay == enemy.curWay) {
-      if (enemyTargets[i].curWayDist < enemy.curWayDist) {
+    } else if (enemyTargets[i].data.curWay == enemy.data.curWay) {
+      if (enemyTargets[i].data.curWayDist < enemy.data.curWayDist) {
         enemy = enemyTargets[i]
       }
     }

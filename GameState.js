@@ -184,11 +184,12 @@ class GameState {
 
         //Enemy targeting & shooting
         if (turret.shotTimer == 0 && !this.rules.filter(r => r.type == "BAN" && r.subtype == turret.type).map(r => r.section).includes(section)) {
+            
             var enemyTargets = this.gameObjects.filter(o => o.type == "ENEMY");
             var avoidEnemyHealths = this.rules.filter(r => r.type == "PRESERVE" && r.section == section).map(r => r.health);
             var enemiesInRange = checkRange(enemyTargets, turret.range, position).filter(e => !avoidEnemyHealths.includes(e.data.health));
+            
             if (enemiesInRange.length > 0) {
-
                 var target = targetEnemy(enemiesInRange);
                 if (Math.random() < turret.accuracy) {
                     target.data.health -= turret.damage;
@@ -290,6 +291,13 @@ class GameState {
             }
         })
         ctx.stroke();
+
+        ctx.textAlign="center"; 
+        ctx.font = "20px Georgia";
+        ctx.fillStyle = rgbToHex(0, 255, 0);
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = rgbToHex(0, 255, 0);
+        ctx.fillText(this.currency + " Vertices", canvasWidth*0.5, canvasHeight*0.06);
 
         ctx.shadowBlur = 0;
         ctx.shadowColor = rgbToHexAlpha(0, 0, 0, 0);
