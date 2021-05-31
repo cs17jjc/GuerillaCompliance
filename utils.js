@@ -75,11 +75,11 @@ function makeEnemy(position, type, health) {
   return new GameObject("ENEMY", position, { health: health, type: type, curWay: 0, curWayDist: 0, speed: 0, timeMade: Date.now(), angle: 0 })
 }
 
-function makeShopFrame(position, platform){
-  return new GameObject("UI_FRAME", position, {turretPlatform: platform});
+function makeShopFrame(position, platform) {
+  return new GameObject("UI_FRAME", position, { turretPlatform: platform });
 }
 
-function makeShopButton(position){
+function makeShopButton(position) {
   return new GameObject("UI_BUTTON", position, {})
 }
 
@@ -165,7 +165,7 @@ function averageEnemyLifespanForState(rep, rule) {
     gs.rulesUpdated = true;
   }
 
-  updateGamestateToMatchRep(gs,rep);
+  updateGamestateToMatchRep(gs, rep);
 
   var enems = [];
   for (var i = 0; i < 500; i++) {
@@ -181,11 +181,11 @@ function averageEnemyLifespanForState(rep, rule) {
   return gs.enemyLifespans.reduce((acc, cur) => acc + cur) / gs.enemyLifespans.length;
 }
 
-function updateGamestateToMatchRep(gs, rep){
+function updateGamestateToMatchRep(gs, rep) {
   for (var i = 0; i < rep.length; i++) {
     if (rep[i] == 1) {
       var platform = Math.trunc(i / 4);
-      var type = i - (4*platform);
+      var type = i - (4 * platform);
       console.log(platform + " " + type);
       switch (type) {
         case 0:
@@ -203,6 +203,50 @@ function updateGamestateToMatchRep(gs, rep){
       }
     }
   }
+}
+
+function getNextRule(model, rep, wave, allRules, currentRules) {
+
+  var pred = Array.from(model.predict(tf.tensor(rep,[1,40])).dataSync());
+  var chosenRule = -1;
+  for(var i = 0; i < allRules.length; i++){
+    //Check if rule type is allowed for wave
+    if(allRules[i].type == "EMBARGO" || (allRules[i].type == "PRESERVE" && wave > 5) || (allRules[i].type == "BAN" && wave > 10)){
+      //Check rule isn't already added
+      if(!currentRules.includes(allRules[i])){
+        if(chosenRule == -1){
+          chosenRule = i;
+        } else{
+          if(pred[i] > pred[chosenRule]){
+            chosenRule = i;
+          }
+        }
+      }
+    }
+  }
+
+  return chosenRule == -1 ? null : allRules[chosenRule];
+
+}
+
+function makeModel(inputSize,outputSize) {
+  const model = tf.sequential();
+  model.add(tf.layers.dense({ inputShape: [inputSize], units: 40, activation: 'relu' }));
+  model.add(tf.layers.dense({ units: 40, activation: 'relu' }));
+  model.add(tf.layers.dense({ units: outputSize, activation: 'sigmoid' }));
+
+  model.weights.forEach(w => {
+    const newVals = tf.randomNormal(w.shape);
+    w.val.assign(newVals);
+  });
+
+  model.compile({
+    optimizer: 'adam',
+    loss: 'categoricalCrossentropy',
+    metrics: ['accuracy']
+  });
+
+  return model;
 }
 
 
