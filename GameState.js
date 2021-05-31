@@ -313,9 +313,8 @@ class GameState {
             var width = 50;
             var height = 100;
             ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.rect(250,250,250,250);
-            ctx.fill;
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(e.position.x, e.position.y, e.data.width, e.data.height);
         })
 
         this.shotTraces.forEach(t => {

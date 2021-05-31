@@ -75,8 +75,8 @@ function makeEnemy(position, type, health) {
   return new GameObject("ENEMY", position, { health: health, type: type, curWay: 0, curWayDist: 0, speed: 0, timeMade: Date.now(), angle: 0 })
 }
 
-function makeShopFrame(position, platform){
-  return new GameObject("UI_FRAME", position, {turretPlatform: platform});
+function makeShopFrame(position, platform, w, h){
+  return new GameObject("UI_FRAME", position, {turretPlatform: platform, width: w, height: h});
 }
 
 function makeShopButton(position){
