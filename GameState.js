@@ -38,8 +38,8 @@ class GameState {
 
 
         var enems = [];
-        for (var i = 0; i < 10; i++) {
-            enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", 10));
+        for (var i = 0; i < 100; i++) {
+            enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random()*10)));
         }
 
         gs.upcomingEnemies = enems.reverse();
@@ -60,7 +60,7 @@ class GameState {
         gs.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.93, y: canvasHeight * 0.56 }, 3, 9))
 
         for (var i = 0; i < 10; i++) {
-            switch (Math.floor(Math.random()*5)) {
+            switch (i%4) {
                 case 0:
                     gs.attachTurret(Turret.standardTurret(), i);
                     break;
@@ -83,31 +83,31 @@ class GameState {
             { section: 0, turret: "SNIPER", modifies: "RANGE", value: 0.9 },
 
             { section: 1, turret: "SNIPER", modifies: "RANGE", value: 1.1 },
-            { section: 1, turret: "SNIPER", modifies: "SPEED", value: 0.9 },
+            { section: 1, turret: "SNIPER", modifies: "COOLDOWN", value: 0.9 },
 
-            { section: 2, turret: "MACHINE_GUN", modifies: "SPEED", value: 1.1 },
+            { section: 2, turret: "MACHINE_GUN", modifies: "COOLDOWN", value: 1.1 },
             { section: 2, turret: "MACHINE_GUN", modifies: "ACCURACY", value: 0.8 },
 
             { section: 3, turret: "STANDARD", modifies: "RANGE", value: 1.4 },
-            { section: 3, turret: "STANDARD", modifies: "SPEED", value: 0.8 },
+            { section: 3, turret: "STANDARD", modifies: "COOLDOWN", value: 0.8 },
             { section: 3, turret: "STANDARD", modifies: "ACCURACY", value: 1.1 },
         ]
 
         gs.rules = [
             { type: "EMBARGO", section: 0, subtype: "STANDARD", modifies: "RANGE", value: 0.8 },
-            { type: "EMBARGO", section: 1, subtype: "STANDARD", modifies: "SPEED", value: 0.7 },
+            { type: "EMBARGO", section: 1, subtype: "STANDARD", modifies: "COOLDOWN", value: 1.1 },
             { type: "EMBARGO", section: 2, subtype: "SNIPER", modifies: "ACCURACY", value: 0.7 },
             { type: "EMBARGO", section: 3, subtype: "SNIPER", modifies: "RANGE", value: 0.6 },
             { type: "EMBARGO", section: 0, subtype: "MACHINE_GUN", modifies: "RANGE", value: 0.9 },
 
             { type: "PRESERVE", section: 0, health: 9 },
-            { type: "PRESERVE", section: 0, health: 8 },
-            { type: "PRESERVE", section: 0, health: 7 },
             { type: "PRESERVE", section: 1, health: 8 },
             { type: "PRESERVE", section: 2, health: 7 },
 
-            { type: "BAN", section: 0, subtype: "SNIPER" },
-            { type: "BAN", section: 3, subtype: "STANDARD" }
+            { type: "BAN", section: 0, subtype: "STANDARD" },
+            { type: "BAN", section: 1, subtype: "SNIPER" },
+            { type: "BAN", section: 2, subtype: "MACHINE_GUN" },
+            { type: "BAN", section: 3, subtype: "LASER" },
         ]
         gs.rulesUpdated = true;
 
@@ -187,13 +187,13 @@ class GameState {
             var modifiers = this.getModifiers(turret.type, section);
             turret.range = turret.baseRange * modifiers.range;
             turret.accuracy = turret.baseAccuracy * modifiers.accuracy;
-            turret.cooldown = turret.baseCooldown * modifiers.speed;
+            turret.cooldown = turret.baseCooldown * modifiers.cooldown;
 
             turret.atributesUpdated = true;
         }
 
         //Enemy targeting & shooting
-        if (turret.shotTimer == 0) {
+        if (turret.shotTimer == 0 && !this.rules.filter(r => r.type=="BAN" && r.subtype == turret.type).map(r => r.section).includes(section)) {
             var enemyTargets = this.gameObjects.filter(o => o.type == "ENEMY");
             var avoidEnemyHealths = this.rules.filter(r => r.type == "PRESERVE" && r.section == section).map(r => r.health);
             var enemiesInRange = checkRange(enemyTargets, turret.range, position).filter(e => !avoidEnemyHealths.includes(e.data.health));
@@ -341,13 +341,13 @@ class GameState {
         var appliedSectionMods = this.sectionModifiers.filter(m => m.section == section && m.subtype == turretType);
 
         var rangeModifiers = appliedRules.filter(r => r.modifies == "RANGE").concat(appliedSectionMods.filter(m => m.modifies == "RANGE")).map(o => o.value);
-        var speedModifiers = appliedRules.filter(r => r.modifies == "SPEED").concat(appliedSectionMods.filter(m => m.modifies == "SPEED")).map(o => o.value);
+        var cooldownModifiers = appliedRules.filter(r => r.modifies == "COOLDOWN").concat(appliedSectionMods.filter(m => m.modifies == "COOLDOWN")).map(o => o.value);
         var accuracyModifiers = appliedRules.filter(r => r.modifies == "ACCURACY").concat(appliedSectionMods.filter(m => m.modifies == "ACCURACY")).map(o => o.value);
 
         var rangeMod = rangeModifiers.length > 0 ? rangeModifiers.reduce((acc, cur) => acc * cur) : 1;
-        var speedMod = speedModifiers.length > 0 ? speedModifiers.reduce((acc, cur) => acc * cur) : 1;
+        var cooldownMod = cooldownModifiers.length > 0 ? cooldownModifiers.reduce((acc, cur) => acc * cur) : 1;
         var accuracyMod = accuracyModifiers.length > 0 ? accuracyModifiers.reduce((acc, cur) => acc * cur) : 1;
 
-        return { range: rangeMod, speed: speedMod, accuracy: accuracyMod };
+        return { range: rangeMod, cooldown: cooldownMod, accuracy: accuracyMod };
     }
 }
