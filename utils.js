@@ -72,7 +72,7 @@ function makeTurretPlatform(position, sector, num) {
 }
 
 function makeEnemy(position, type, health) {
-  return new GameObject("ENEMY", position, { health: health, type: type, curWay: 0, curWayDist: 0, speed: 0, timeMade: Date.now(), angle: 0 })
+  return new GameObject("ENEMY", position, { health: health, type: type, curWay: 0, curWayDist: 0, speed: 0, timeMade: 0, angle: 0 })
 }
 
 function makeShopFrame(position, w, h, s){

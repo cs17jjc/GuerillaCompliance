@@ -64,7 +64,7 @@ class GameState {
 
         this.currency = 0;
         this.wave = 0;
-
+        this.frameCounter = 0;
     }
     static initial() {
         var gs = new GameState();
@@ -76,7 +76,9 @@ class GameState {
         if (this.spawnEnemies) {
             if (this.upcomingEnemies.length > 0) {
                 if (this.spawnedFrameCounter == this.enemySpawnRate) {
-                    this.gameObjects.push(this.upcomingEnemies.pop());
+                    var newEnem = this.upcomingEnemies.pop();
+                    newEnem.timeMade = this.frameCounter;
+                    this.gameObjects.push(newEnem);
                     this.spawnedFrameCounter = 0;
                 } else {
                     this.spawnedFrameCounter += 1;
@@ -133,11 +135,12 @@ class GameState {
         if (this.rulesUpdated) {
             this.rulesUpdated = false;
         }
+        this.frameCounter += 1;
     }
 
     updateEnemy(enemy) {
         if (enemy.data.health <= 0) {
-            this.enemyLifespans.push(Date.now() - enemy.data.timeMade);
+            this.enemyLifespans.push(this.frameCounter - enemy.data.timeMade);
             enemy.isAlive = false;
         } else {
             var targetPosition = this.wayPoints.get(enemy.data.curWay);
@@ -147,7 +150,7 @@ class GameState {
 
                 if (enemy.data.curWay == this.wayPoints.size - 1) {
                     this.baseHealth -= enemy.data.health;
-                    this.enemyLifespans.push(Date.now() - enemy.data.timeMade);
+                    this.enemyLifespans.push(this.frameCounter - enemy.data.timeMade);
                     enemy.isAlive = false;
                 }
 
@@ -185,7 +188,7 @@ class GameState {
 
             if (enemiesInRange.length > 0) {
                 var target = targetEnemy(enemiesInRange);
-                turret.angle = calcAngle(target.position,position);
+                turret.angle = calcAngle(target.position, position);
                 if (Math.random() < turret.accuracy) {
                     target.data.health -= turret.damage;
                     this.currency += turret.damage;
@@ -320,8 +323,8 @@ class GameState {
 
         this.gameObjects.filter(o => o.type == "TURRET_PLATFORM").forEach(e => {
             ctx.save();
-            ctx.translate(e.position.x,e.position.y);
-            
+            ctx.translate(e.position.x, e.position.y);
+
             ctx.lineWidth = 3;
             ctx.strokeStyle = rgbToHex(50, 50, 120);
             ctx.beginPath();
@@ -329,13 +332,30 @@ class GameState {
             ctx.stroke();
 
             if (e.data.hasTurret) {
-
-                console.log(this.frameCounter*0.1);
-                ctx.rotate(this.frameCounter*0.1);
-                ctx.strokeStyle = rgbToHexAlpha(200, 200, 200, 200);
-                ctx.lineWidth = 4;
+                ctx.strokeStyle = rgbToHex(250, 250, 250);
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = rgbToHex(200, 200, 200);
+                ctx.lineWidth = 2;
                 var circ = e.data.turret.range * 2 * Math.PI;
-                ctx.setLineDash([circ/4,circ/4]);
+                switch (e.data.turret.type) {
+                    case "STANDARD":
+                        ctx.rotate(this.frameCounter * 0.08);
+                        ctx.setLineDash([circ / 4, circ / 4]);
+                        break;
+                    case "SNIPER":
+                        ctx.rotate(this.frameCounter * 0.02);
+                        ctx.setLineDash([circ / 6, circ / 6]);
+                        break;
+                    case "MACHINE_GUN":
+                        ctx.rotate(this.frameCounter * 0.1);
+                        ctx.setLineDash([circ / 8, circ / 8]);
+                        break;
+                    case "LASER":
+                        ctx.rotate(this.frameCounter * 0.08);
+                        ctx.setLineDash([circ / 10, circ / 10]);
+                        break;
+                }
+
                 ctx.beginPath();
                 ctx.ellipse(0, 0, e.data.turret.range, e.data.turret.range, 0, 0, 2 * Math.PI);
                 ctx.stroke();
@@ -380,8 +400,8 @@ class GameState {
         ctx.shadowColor = rgbToHex(0, 255, 0);
         ctx.fillStyle = rgbToHex(0, 255, 0);
         ctx.textAlign = "right";
-        ctx.fillText("✚"+this.baseHealth, canvasWidth * (UICenterPoint + UIOffset), canvasHeight * 0.06);
- 
+        ctx.fillText("✚" + this.baseHealth, canvasWidth * (UICenterPoint + UIOffset), canvasHeight * 0.06);
+
         ctx.restore();
     }
 
@@ -468,8 +488,9 @@ class GameState {
                 break;
             default:
                 for (var i = 0; i < Math.floor(this.wave * 1.5); i++) {
-                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.min(this.wave,Math.floor(Math.random() * 10))));
+                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.min(this.wave, Math.floor(Math.random() * 10))));
                 }
+                this.enemySpawnRate = Math.max(8,this.enemySpawnRate-1);
                 break;
         }
         this.wave += 1;
