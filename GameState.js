@@ -62,6 +62,9 @@ class GameState {
         this.rulesUpdated = false;
 
         this.shotTraces = [];
+
+        this.currency = 0;
+
     }
     static initial() {
         var gs = new GameState();
@@ -189,6 +192,7 @@ class GameState {
                 var target = targetEnemy(enemiesInRange);
                 if (Math.random() < turret.accuracy) {
                     target.data.health -= turret.damage;
+                    this.currency += turret.damage;
                     turret.shotTimer += 1;
                     this.shotTraces.push({ x1: position.x, y1: position.y, x2: target.position.x, y2: target.position.y, type: turret.type, frameCounter: 0 });
                 } else {
