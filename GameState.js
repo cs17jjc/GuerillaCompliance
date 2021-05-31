@@ -194,6 +194,7 @@ class GameState {
 
     ///Checks for valid game objects that have been clicked on and returns the game object that is clicked on
     ///Valid game objects are UI buttons, or turret platforms
+    ///Returns the object that was at the mouse's position.
     checkObjectClicked(mousepos){
         var objs;
         towers = this.gameObjects.filter(e => e.type == "TURRET_PLATFORM")
@@ -305,6 +306,16 @@ class GameState {
             ctx.ellipse(e.position.x, e.position.y, 10, 10, 0, 0, 2 * Math.PI);
             ctx.fill();
 
+        })
+
+        this.gameObjects.filter(o => o.type == "UI_FRAME").forEach(e => {
+            ctx.save();
+            var width = 50;
+            var height = 100;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.rect(250,250,250,250);
+            ctx.fill;
         })
 
         this.shotTraces.forEach(t => {
