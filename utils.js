@@ -156,6 +156,26 @@ function makeAllPossibleRules() {
   return allRules;
 }
 
+function makeAllPossibleConfigs() {
+  var platformConfigs = [[0, 0, 0, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+  var possibleConfigs = [];
+  var turretCounter = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  while (turretCounter[9] != 5) {
+    var mapped = turretCounter.map(c => platformConfigs[c]);
+    var reduced = mapped.reduce((acc, cur) => acc.concat(cur));
+    possibleConfigs.push(reduced);
+
+    turretCounter[0] += 1;
+    for (var i = 1; i < turretCounter.length; i++) {
+      if(turretCounter[i-1] == 5){
+        turretCounter[i-1] = 0;
+        turretCounter[i] += 1;
+      }
+    }
+  }
+  return possibleConfigs;
+}
+
 function averageEnemyLifespanForState(rep, rule) {
 
   var gs = new GameState();
@@ -249,4 +269,38 @@ function makeModel(inputSize,outputSize) {
   return model;
 }
 
+function createDataset() {
+  var ruleSet = makeAllPossibleRules();
+  var configSet = makeAllPossibleConfigs();
+  var dataset = [];
+
+  configSet.forEach(config => {
+
+    
+    var times = [];
+    ruleSet.forEach(r => {
+      times.push(averageEnemyLifespanForState(config,r));
+    })
+    
+
+    var maxTime = Math.max(...times);
+    var labels = times.map(t => t == maxTime ? 1 : 0);
+    dataset.push([config,labels]);
+
+    document.title = dataset.length;
+  })
+
+  downloadToFile(JSON.stringify(dataset), 'dataset.txt', 'text/plain');
+}
+
+const downloadToFile = (content, filename, contentType) => {
+  const a = document.createElement('a');
+  const file = new Blob([content], {type: contentType});
+  
+  a.href= URL.createObjectURL(file);
+  a.download = filename;
+  a.click();
+
+	URL.revokeObjectURL(a.href);
+};
 
