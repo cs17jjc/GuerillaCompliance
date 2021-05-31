@@ -106,7 +106,7 @@ function targetEnemy(enemyTargets) {
     }
 
   }
-  return enemy
+  return enemy;
 }
 
 

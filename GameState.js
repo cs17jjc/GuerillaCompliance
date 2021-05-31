@@ -15,8 +15,8 @@ class GameState {
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.83, y: canvasHeight * 0.44 }, 3, 8))
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.93, y: canvasHeight * 0.56 }, 3, 9))
 
-        this.gameObjects.push(makeShopFrame({x: canvasWidth * 0.75, y: canvasHeight * 0.1}, canvasWidth * 0.2, canvasHeight * 0.8, "r"));
-        this.gameObjects.push(makeShopFrame({x: canvasWidth * 0.05, y: canvasHeight * 0.1}, canvasWidth * 0.2, canvasHeight * 0.8, "l"));
+        this.gameObjects.push(makeShopFrame({ x: canvasWidth * 0.75, y: canvasHeight * 0.1 }, canvasWidth * 0.2, canvasHeight * 0.8, "r"));
+        this.gameObjects.push(makeShopFrame({ x: canvasWidth * 0.05, y: canvasHeight * 0.1 }, canvasWidth * 0.2, canvasHeight * 0.8, "l"));
 
         this.wayPoints = new Map();
         this.wayPoints.set(0, { x: canvasWidth * -0.01, y: canvasHeight * 0.5 })
@@ -33,7 +33,7 @@ class GameState {
         this.baseHealth = 100;
 
         this.upcomingEnemies = [];
-        this.enemySpawnRate = 8;
+        this.enemySpawnRate = 15;
         this.spawnEnemies = false;
         this.spawnedFrameCounter = 0;
 
@@ -42,7 +42,6 @@ class GameState {
         this.rules = [];
         this.sectionModifiers = [
 
-            { section: 0, turret: "STANDARD", modifies: "ACCURACY", value: 0.9 },
             { section: 0, turret: "SNIPER", modifies: "RANGE", value: 0.9 },
             { section: 0, turret: "MACHINE_GUN", modifies: "RANGE", value: 1.2 },
 
@@ -64,31 +63,26 @@ class GameState {
         this.shotTraces = [];
 
         this.currency = 0;
+        this.wave = 0;
 
     }
     static initial() {
         var gs = new GameState();
-
-
-        var enems = [];
-        for (var i = 0; i < 100; i++) {
-            enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random() * 10)));
-        }
-
-        gs.upcomingEnemies = enems;
-        gs.spawnEnemies = true;
-
         return gs;
     }
 
     updateGame(inputsArr, soundToggle) {
 
-        if (this.spawnEnemies && this.upcomingEnemies.length > 0) {
-            if (this.spawnedFrameCounter == this.enemySpawnRate) {
-                this.gameObjects.push(this.upcomingEnemies.pop());
-                this.spawnedFrameCounter = 0;
+        if (this.spawnEnemies) {
+            if (this.upcomingEnemies.length > 0) {
+                if (this.spawnedFrameCounter == this.enemySpawnRate) {
+                    this.gameObjects.push(this.upcomingEnemies.pop());
+                    this.spawnedFrameCounter = 0;
+                } else {
+                    this.spawnedFrameCounter += 1;
+                }
             } else {
-                this.spawnedFrameCounter += 1;
+                this.spawnEnemies = false;
             }
         }
 
@@ -111,25 +105,25 @@ class GameState {
         if (isClicked == true) {
             var objectClicked = this.checkObjectClicked(this.returnMousePos(clickEvent));
             isClicked = false;
-            if(objectClicked == null){
-                this.gameObjects.filter(s=> s.type == "UI_FRAME").forEach(s => {
+            if (objectClicked == null) {
+                this.gameObjects.filter(s => s.type == "UI_FRAME").forEach(s => {
                     s.data.isVisible = false;
                 });
             }
-            else if(objectClicked.type == "TURRET_PLATFORM"){
-                if(objectClicked.data.sector <= 1){
-                    this.gameObjects.filter(s=> s.type == "UI_FRAME" && s.data.side == "r").forEach(s => {
+            else if (objectClicked.type == "TURRET_PLATFORM") {
+                if (objectClicked.data.sector <= 1) {
+                    this.gameObjects.filter(s => s.type == "UI_FRAME" && s.data.side == "r").forEach(s => {
                         s.data.isVisible = true;
                     });
-                    this.gameObjects.filter(s=> s.type == "UI_FRAME" && s.data.side == "l").forEach(s => {
+                    this.gameObjects.filter(s => s.type == "UI_FRAME" && s.data.side == "l").forEach(s => {
                         s.data.isVisible = false;
                     });
                 }
-                else{
-                    this.gameObjects.filter(s=> s.type == "UI_FRAME" && s.data.side == "l").forEach(s => {
+                else {
+                    this.gameObjects.filter(s => s.type == "UI_FRAME" && s.data.side == "l").forEach(s => {
                         s.data.isVisible = true;
                     });
-                    this.gameObjects.filter(s=> s.type == "UI_FRAME" && s.data.side == "r").forEach(s => {
+                    this.gameObjects.filter(s => s.type == "UI_FRAME" && s.data.side == "r").forEach(s => {
                         s.data.isVisible = false;
                     });
                 }
@@ -160,7 +154,7 @@ class GameState {
                 enemy.data.curWay = Math.min(enemy.data.curWay + 1, this.wayPoints.size - 1);
                 enemy.data.curWayDist = 999999999999999;//Lmao this is such a hack, it avoids having to re-calcualte distance for targeting
             } else {
-                enemy.data.speed = (11 - enemy.data.health) * 0.5;
+                enemy.data.speed = (11 - enemy.data.health) * 0.35;
                 var angle = calcAngle(enemy.position, targetPosition);
                 var velComp = calcComponents(enemy.data.speed, angle);
                 enemy.position.x += velComp.x;
@@ -184,13 +178,14 @@ class GameState {
 
         //Enemy targeting & shooting
         if (turret.shotTimer == 0 && !this.rules.filter(r => r.type == "BAN" && r.subtype == turret.type).map(r => r.section).includes(section)) {
-            
+
             var enemyTargets = this.gameObjects.filter(o => o.type == "ENEMY");
             var avoidEnemyHealths = this.rules.filter(r => r.type == "PRESERVE" && r.section == section).map(r => r.health);
             var enemiesInRange = checkRange(enemyTargets, turret.range, position).filter(e => !avoidEnemyHealths.includes(e.data.health));
-            
+
             if (enemiesInRange.length > 0) {
                 var target = targetEnemy(enemiesInRange);
+                turret.angle = calcAngle(target.position,position);
                 if (Math.random() < turret.accuracy) {
                     target.data.health -= turret.damage;
                     this.currency += turret.damage;
@@ -226,7 +221,7 @@ class GameState {
     ///Checks for valid game objects that have been clicked on and returns the game object that is clicked on
     ///Valid game objects are UI buttons, or turret platforms
     ///Returns the object that was at the mouse's position.
-    checkObjectClicked(mousePos){
+    checkObjectClicked(mousePos) {
         var objs;
         var towers = this.gameObjects.filter(e => e.type == "TURRET_PLATFORM")
         for (var i = 0; i < towers.length; i++) {
@@ -235,10 +230,9 @@ class GameState {
             }
         }
         var uiButtons = this.gameObjects.filter(e => e.type == "UI_OBJECT")
-        for(var i = 0; i<uiButtons.length; i++)
-        {
-            if(mousePos.x - uiButtons[i].position.x < 10 && mousePos.x - uiButtons[i].position.x > 0 
-            && mousePos.y - uiButtons[i].position.y < 5 && mousePos.y - uiButtons[i].position.x > 0){
+        for (var i = 0; i < uiButtons.length; i++) {
+            if (mousePos.x - uiButtons[i].position.x < 10 && mousePos.x - uiButtons[i].position.x > 0
+                && mousePos.y - uiButtons[i].position.y < 5 && mousePos.y - uiButtons[i].position.x > 0) {
                 return uiButtons[i];
             }
         }
@@ -266,8 +260,10 @@ class GameState {
         ctx.fillStyle = rgbToHex(0, 0, 0);
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = rgbToHex(100, 100, 100);
         ctx.lineWidth = 3;
-        ctx.strokeStyle = rgbToHex(200, 200, 200);
+        ctx.strokeStyle = rgbToHex(180, 180, 180);
         ctx.strokeRect(0, 0, canvasWidth / 3 - 50, canvasHeight);
         ctx.strokeRect(canvasWidth / 3 - 50, 0, canvasWidth / 3 + 50, canvasHeight / 2);
         ctx.strokeRect(canvasWidth / 3 - 50, canvasHeight / 2, canvasWidth / 3 + 50, canvasHeight / 2);
@@ -276,11 +272,11 @@ class GameState {
         ctx.fillStyle = rgbToHex(255, 0, 0);
 
         ctx.lineWidth = 3;
-        ctx.strokeStyle = rgbToHex(0, 255, 0);
+        ctx.strokeStyle = rgbToHex(0, 200, 0);
         ctx.beginPath();
         ctx.setLineDash([5, 15]);
         ctx.shadowBlur = 10;
-        ctx.shadowColor = rgbToHex(0, 255, 0);
+        ctx.shadowColor = rgbToHex(0, 200, 0);
         var first = true;
         Array.from(this.wayPoints.values()).forEach(w => {
             if (first) {
@@ -291,13 +287,6 @@ class GameState {
             }
         })
         ctx.stroke();
-
-        ctx.textAlign="center"; 
-        ctx.font = "20px Georgia";
-        ctx.fillStyle = rgbToHex(0, 255, 0);
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = rgbToHex(0, 255, 0);
-        ctx.fillText(this.currency + " Vertices", canvasWidth*0.5, canvasHeight*0.06);
 
         ctx.shadowBlur = 0;
         ctx.shadowColor = rgbToHexAlpha(0, 0, 0, 0);
@@ -330,24 +319,34 @@ class GameState {
 
 
         this.gameObjects.filter(o => o.type == "TURRET_PLATFORM").forEach(e => {
+            ctx.save();
+            ctx.translate(e.position.x,e.position.y);
+            
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = rgbToHex(50, 50, 120);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 8, 8, 0, 0, 2 * Math.PI);
+            ctx.stroke();
+
             if (e.data.hasTurret) {
-                ctx.fillStyle = rgbToHexAlpha(255, 0, 0, 50);
-                ctx.strokeStyle = rgbToHexAlpha(0, 0, 0, 50);
-                ctx.lineWidth = 2;
+
+                console.log(this.frameCounter*0.1);
+                ctx.rotate(this.frameCounter*0.1);
+                ctx.strokeStyle = rgbToHexAlpha(200, 200, 200, 200);
+                ctx.lineWidth = 4;
+                var circ = e.data.turret.range * 2 * Math.PI;
+                ctx.setLineDash([circ/4,circ/4]);
                 ctx.beginPath();
-                ctx.ellipse(e.position.x, e.position.y, e.data.turret.range, e.data.turret.range, 0, 0, 2 * Math.PI);
-                ctx.fill();
+                ctx.ellipse(0, 0, e.data.turret.range, e.data.turret.range, 0, 0, 2 * Math.PI);
                 ctx.stroke();
             }
-            ctx.fillStyle = rgbToHexAlpha(150, 150, 150, 150);
-            ctx.beginPath();
-            ctx.ellipse(e.position.x, e.position.y, 10, 10, 0, 0, 2 * Math.PI);
-            ctx.fill();
+
+            ctx.restore();
 
         })
 
         this.gameObjects.filter(o => o.type == "UI_FRAME").forEach(e => {
-            if(e.data.isVisible == true){
+            if (e.data.isVisible == true) {
                 ctx.save();
                 ctx.lineWidth = 2;
                 ctx.fillStyle = "#FFFFFF";
@@ -363,6 +362,26 @@ class GameState {
             ctx.stroke();
         })
 
+
+
+        var UICenterPoint = 0.47;
+        var UIOffset = 0.17;
+        ctx.font = "20px Georgia";
+        ctx.shadowBlur = 8;
+        var remainingEnems = this.gameObjects.filter(o => o.type == "ENEMY").length + this.upcomingEnemies.length;
+        ctx.fillStyle = rgbToHex(0, 0, 255);
+        ctx.shadowColor = rgbToHex(0, 0, 255);
+        ctx.textAlign = "left";
+        ctx.fillText("ᐯ" + this.currency, canvasWidth * (UICenterPoint - UIOffset), canvasHeight * 0.06);
+        ctx.shadowColor = rgbToHex(255, 0, 0);
+        ctx.fillStyle = rgbToHex(255, 0, 0);
+        ctx.textAlign = "center";
+        ctx.fillText("⎔" + remainingEnems, canvasWidth * (UICenterPoint), canvasHeight * 0.06);
+        ctx.shadowColor = rgbToHex(0, 255, 0);
+        ctx.fillStyle = rgbToHex(0, 255, 0);
+        ctx.textAlign = "right";
+        ctx.fillText("✚"+this.baseHealth, canvasWidth * (UICenterPoint + UIOffset), canvasHeight * 0.06);
+ 
         ctx.restore();
     }
 
@@ -414,10 +433,45 @@ class GameState {
         return rep;
     }
 
-    addNewRule(){
-        var nextRule = getNextRule(model,this.getTurretRepresentation(),0,allRules,this.rules);
+    addNewRule() {
+        var nextRule = getNextRule(model, this.getTurretRepresentation(), 0, allRules, this.rules);
         console.log(nextRule);
         this.rules.push(nextRule);
         this.rulesUpdated = true;
+    }
+
+    nextWave() {
+        switch (this.wave) {
+            case 0:
+                for (var i = 0; i < 4; i++) {
+                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 1));
+                }
+                break;
+            case 1:
+                for (var i = 0; i < 3; i++) {
+                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 2));
+                }
+                for (var i = 0; i < 3; i++) {
+                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 1));
+                }
+                break;
+            case 2:
+                for (var i = 0; i < 2; i++) {
+                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 3));
+                }
+                for (var i = 0; i < 2; i++) {
+                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 2));
+                }
+                for (var i = 0; i < 2; i++) {
+                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 1));
+                }
+                break;
+            default:
+                for (var i = 0; i < Math.floor(this.wave * 1.5); i++) {
+                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.min(this.wave,Math.floor(Math.random() * 10))));
+                }
+                break;
+        }
+        this.wave += 1;
     }
 }
