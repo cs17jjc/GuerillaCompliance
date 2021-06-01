@@ -17,6 +17,7 @@ class Turret {
         this.canShoot = true;
         this.atributesUpdated = false;
         this.angle = 0;
+        this.offset = 0;
     }
     static standardTurret() {
         //Low Damage - Medium Fire Rate - Low Radius
@@ -24,7 +25,7 @@ class Turret {
     }
     static sniperTurret() {
         //High Damage - Low Fire Rate - High Radius
-        return new Turret("SNIPER", 2, 50, 1, 120);
+        return new Turret("SNIPER", 2, 40, 1, 160);
     }
     static machineGunTurret() {
         //Low Damage - High Fire Rate - Medium Radius

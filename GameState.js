@@ -3,7 +3,7 @@ class GameState {
         this.gameObjects = [];
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.17, y: canvasHeight * 0.5 }, 0, 0))
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.1, y: canvasHeight * 0.2 }, 0, 1))
-        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.25, y: canvasHeight * 0.05 }, 0, 2))
+        this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.25, y: canvasHeight * 0.15 }, 0, 2))
 
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.41, y: canvasHeight * 0.18 }, 1, 3))
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.53, y: canvasHeight * 0.36 }, 1, 4))
@@ -55,8 +55,6 @@ class GameState {
 
             { section: 3, turret: "STANDARD", modifies: "RANGE", value: 1.4 },
             { section: 3, turret: "STANDARD", modifies: "COOLDOWN", value: 0.8 },
-            { section: 3, turret: "STANDARD", modifies: "ACCURACY", value: 1.1 },
-
         ];
         this.rulesUpdated = false;
 
@@ -169,6 +167,8 @@ class GameState {
 
     updateTurret(turret, position, section) {
 
+        turret.offset *= 0.9;
+
         //Update turret attributes to conform to section & rule modifiers
         if (!turret.atributesUpdated || this.rulesUpdated) {
             var modifiers = this.getModifiers(turret.type, section);
@@ -180,7 +180,7 @@ class GameState {
         }
 
         //Enemy targeting & shooting
-        if (turret.shotTimer == 0 && !this.rules.filter(r => r.type == "BAN" && r.subtype == turret.type).map(r => r.section).includes(section)) {
+        if (!this.rules.filter(r => r.type == "BAN" && r.subtype == turret.type).map(r => r.section).includes(section)) {
 
             var enemyTargets = this.gameObjects.filter(o => o.type == "ENEMY");
             var avoidEnemyHealths = this.rules.filter(r => r.type == "PRESERVE" && r.section == section).map(r => r.health);
@@ -188,21 +188,24 @@ class GameState {
 
             if (enemiesInRange.length > 0) {
                 var target = targetEnemy(enemiesInRange);
-                turret.angle = calcAngle(target.position, position);
-                if (Math.random() < turret.accuracy) {
-                    target.data.health -= turret.damage;
-                    this.currency += turret.damage;
-                    turret.shotTimer += 1;
-                    this.shotTraces.push({ x1: position.x, y1: position.y, x2: target.position.x, y2: target.position.y, type: turret.type, frameCounter: 0 });
-                } else {
-                    turret.shotTimer += 1;
-                    this.shotTraces.push({ x1: position.x, y1: position.y, x2: target.position.x + ((Math.random() * 20) - 10), y2: target.position.y + ((Math.random() * 20) - 10), type: turret.type, frameCounter: 0 });
+                turret.angle = calcAngle(target.position, position) - (Math.PI/2);
+                if(turret.shotTimer == 0){
+                    if (Math.random() < turret.accuracy) {
+                        target.data.health -= turret.damage;
+                        this.currency += turret.damage;
+                        turret.shotTimer += 1;
+                        this.shotTraces.push({ x1: position.x, y1: position.y, x2: target.position.x, y2: target.position.y, type: turret.type, frameCounter: 0 });
+                    } else {
+                        turret.shotTimer += 1;
+                        this.shotTraces.push({ x1: position.x, y1: position.y, x2: target.position.x + ((Math.random() * 20) - 10), y2: target.position.y + ((Math.random() * 20) - 10), type: turret.type, frameCounter: 0 });
+                    }
+                    turret.offset = 1;
                 }
             }
-        } else {
+
             if (turret.shotTimer == turret.cooldown) {
                 turret.shotTimer = 0;
-            } else {
+            } else if(turret.shotTimer != 0) {
                 turret.shotTimer += 1;
             }
         }
@@ -332,6 +335,49 @@ class GameState {
             ctx.stroke();
 
             if (e.data.hasTurret) {
+
+                ctx.rotate(e.data.turret.angle);
+                switch (e.data.turret.type) {
+                    case "STANDARD":
+                        ctx.translate(0, e.data.turret.offset * 10);
+                        ctx.strokeStyle = rgbToHex(250, 250, 250);
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = rgbToHex(200, 200, 200);
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.rect(-2,5,4,20);
+                        ctx.rect(-4,25,8,5);
+                        ctx.rect(-10,30,20,10);
+                        ctx.rect(-14,25,4,20);
+                        ctx.rect(10,25,4,20);
+                        ctx.stroke();
+                        ctx.translate(0, e.data.turret.offset * -10);
+                        break;
+                    case "SNIPER":
+                        ctx.translate(0, e.data.turret.offset * 20);
+                        ctx.strokeStyle = rgbToHex(250, 250, 250);
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = rgbToHex(200, 200, 200);
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.rect(-2,-10,4,40);
+                        ctx.rect(-4,30,8,15);
+                        ctx.rect(-6,45,12,30);
+                        ctx.moveTo(6,50);
+                        ctx.lineTo(12,50);
+                        ctx.lineTo(17,55);
+                        ctx.lineTo(17,70);
+                        ctx.lineTo(6,70);
+                        ctx.stroke();
+                        ctx.translate(0, e.data.turret.offset * -20);
+                        break;
+                    case "MACHINE_GUN":
+                        break;
+                    case "LASER":
+                        break;
+                }
+                ctx.rotate(-e.data.turret.angle);
+
                 ctx.strokeStyle = rgbToHex(250, 250, 250);
                 ctx.shadowBlur = 10;
                 ctx.shadowColor = rgbToHex(200, 200, 200);
@@ -490,7 +536,7 @@ class GameState {
                 for (var i = 0; i < Math.floor(this.wave * 1.5); i++) {
                     this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.min(this.wave, Math.floor(Math.random() * 10))));
                 }
-                this.enemySpawnRate = Math.max(8,this.enemySpawnRate-1);
+                this.enemySpawnRate = Math.max(8, this.enemySpawnRate - 1);
                 break;
         }
         this.wave += 1;
