@@ -17,6 +17,7 @@ class Turret {
         this.canShoot = true;
         this.atributesUpdated = false;
         this.angle = 0;
+        this.actualAngle = 0;
         this.offset = 0;
     }
     static standardTurret() {

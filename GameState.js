@@ -189,7 +189,7 @@ class GameState {
             if (enemiesInRange.length > 0) {
                 var target = targetEnemy(enemiesInRange);
                 turret.angle = calcAngle(target.position, position) - (Math.PI/2);
-                if(turret.shotTimer == 0){
+                if(turret.shotTimer == 0 && (Math.abs(turret.actualAngle-turret.angle) < 0.05)){
                     if (Math.random() < turret.accuracy) {
                         target.data.health -= turret.damage;
                         this.currency += turret.damage;
@@ -208,6 +208,8 @@ class GameState {
             } else if(turret.shotTimer != 0) {
                 turret.shotTimer += 1;
             }
+
+            turret.actualAngle = lerp(turret.actualAngle,turret.angle,0.1);
         }
     }
 
@@ -336,7 +338,7 @@ class GameState {
 
             if (e.data.hasTurret) {
 
-                ctx.rotate(e.data.turret.angle);
+                ctx.rotate(e.data.turret.actualAngle);
                 switch (e.data.turret.type) {
                     case "STANDARD":
                         ctx.translate(0, e.data.turret.offset * 10);

@@ -28,9 +28,6 @@ function calcComponents(force, angle) {
 function copyVector(v) {
   return { x: v.x, y: v.y };
 }
-function angleMagVector(angle, magnitude) {
-  return { x: Math.cos(angle) * magnitude, y: Math.sin(angle) * magnitude };
-}
 function drawRectCenter(ctx, x, y, w, h) {
   ctx.rect(x - w / 2, y - h / 2, w, h);
 }
@@ -53,6 +50,9 @@ function intersectRect(r1, r2) {
   const xIntersection = (r1.x >= r2.x && r1.x <= r2.x + r2.w) || (r2.x >= r1.x && r2.x <= r1.x + r1.w);
   const yIntersection = (r1.y >= r2.y && r1.y <= r2.y + r2.h) || (r2.y >= r1.y && r2.y <= r1.y + r1.h);
   return xIntersection && yIntersection;
+}
+function lerp(v0, v1, t) {
+  return v0*(1-t)+v1*t
 }
 function tweetFinished(score) {
   var left = (screen.width / 2) - (640 / 2);
