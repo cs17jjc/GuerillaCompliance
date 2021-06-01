@@ -188,8 +188,8 @@ class GameState {
 
             if (enemiesInRange.length > 0) {
                 var target = targetEnemy(enemiesInRange);
-                turret.angle = calcAngle(target.position, position) - (Math.PI/2);
-                if(turret.shotTimer == 0 && (Math.abs(turret.actualAngle-turret.angle) < 0.05)){
+                turret.angle = (calcAngle(target.position, position) % (2 * Math.PI)) - Math.PI / 2;
+                if (turret.shotTimer == 0 && (Math.abs(turret.actualAngle - turret.angle) < 0.8)) {
                     if (Math.random() < turret.accuracy) {
                         target.data.health -= turret.damage;
                         this.currency += turret.damage;
@@ -205,11 +205,12 @@ class GameState {
 
             if (turret.shotTimer == turret.cooldown) {
                 turret.shotTimer = 0;
-            } else if(turret.shotTimer != 0) {
+            } else if (turret.shotTimer != 0) {
                 turret.shotTimer += 1;
             }
 
-            turret.actualAngle = lerp(turret.actualAngle,turret.angle,0.1);
+            //turret.actualAngle = lerp(turret.actualAngle, turret.angle, 0.2);
+            turret.actualAngle = turret.angle;
         }
     }
 
@@ -347,11 +348,11 @@ class GameState {
                         ctx.shadowColor = rgbToHex(200, 200, 200);
                         ctx.lineWidth = 2;
                         ctx.beginPath();
-                        ctx.rect(-2,5,4,20);
-                        ctx.rect(-4,25,8,5);
-                        ctx.rect(-10,30,20,10);
-                        ctx.rect(-14,25,4,20);
-                        ctx.rect(10,25,4,20);
+                        ctx.rect(-2, 5, 4, 20);
+                        ctx.rect(-4, 25, 8, 5);
+                        ctx.rect(-10, 30, 20, 10);
+                        ctx.rect(-14, 25, 4, 20);
+                        ctx.rect(10, 25, 4, 20);
                         ctx.stroke();
                         ctx.translate(0, e.data.turret.offset * -10);
                         break;
@@ -362,14 +363,14 @@ class GameState {
                         ctx.shadowColor = rgbToHex(200, 200, 200);
                         ctx.lineWidth = 2;
                         ctx.beginPath();
-                        ctx.rect(-2,-10,4,40);
-                        ctx.rect(-4,30,8,15);
-                        ctx.rect(-6,45,12,30);
-                        ctx.moveTo(6,50);
-                        ctx.lineTo(12,50);
-                        ctx.lineTo(17,55);
-                        ctx.lineTo(17,70);
-                        ctx.lineTo(6,70);
+                        ctx.rect(-2, -10, 4, 40);
+                        ctx.rect(-4, 30, 8, 15);
+                        ctx.rect(-6, 45, 12, 30);
+                        ctx.moveTo(6, 50);
+                        ctx.lineTo(12, 50);
+                        ctx.lineTo(17, 55);
+                        ctx.lineTo(17, 70);
+                        ctx.lineTo(6, 70);
                         ctx.stroke();
                         ctx.translate(0, e.data.turret.offset * -20);
                         break;
@@ -378,7 +379,7 @@ class GameState {
                     case "LASER":
                         break;
                 }
-                ctx.rotate(-e.data.turret.angle);
+                ctx.rotate(-e.data.turret.actualAngle);
 
                 ctx.strokeStyle = rgbToHex(250, 250, 250);
                 ctx.shadowBlur = 10;

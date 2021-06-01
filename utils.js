@@ -52,7 +52,11 @@ function intersectRect(r1, r2) {
   return xIntersection && yIntersection;
 }
 function lerp(v0, v1, t) {
-  return v0*(1-t)+v1*t
+  return v0 * (1 - t) + v1 * t
+}
+function radians_to_degrees(radians) {
+  var pi = Math.PI;
+  return radians * (180 / pi);
 }
 function tweetFinished(score) {
   var left = (screen.width / 2) - (640 / 2);
@@ -75,8 +79,8 @@ function makeEnemy(position, type, health) {
   return new GameObject("ENEMY", position, { health: health, type: type, curWay: 0, curWayDist: 0, speed: 0, timeMade: 0, angle: 0 })
 }
 
-function makeShopFrame(position, w, h, s){
-  return new GameObject("UI_FRAME", position, {width: w, height: h, isVisible: false, side: s});
+function makeShopFrame(position, w, h, s) {
+  return new GameObject("UI_FRAME", position, { width: w, height: h, isVisible: false, side: s });
 }
 
 function makeShopButton(position) {
@@ -167,8 +171,8 @@ function makeAllPossibleConfigs() {
 
     turretCounter[0] += 1;
     for (var i = 1; i < turretCounter.length; i++) {
-      if(turretCounter[i-1] == 5){
-        turretCounter[i-1] = 0;
+      if (turretCounter[i - 1] == 5) {
+        turretCounter[i - 1] = 0;
         turretCounter[i] += 1;
       }
     }
@@ -227,17 +231,17 @@ function updateGamestateToMatchRep(gs, rep) {
 
 function getNextRule(model, rep, wave, allRules, currentRules) {
 
-  var pred = Array.from(model.predict(tf.tensor(rep,[1,40])).dataSync());
+  var pred = Array.from(model.predict(tf.tensor(rep, [1, 40])).dataSync());
   var chosenRule = -1;
-  for(var i = 0; i < allRules.length; i++){
+  for (var i = 0; i < allRules.length; i++) {
     //Check if rule type is allowed for wave
-    if(allRules[i].type == "EMBARGO" || (allRules[i].type == "PRESERVE" && wave > 5) || (allRules[i].type == "BAN" && wave > 10)){
+    if (allRules[i].type == "EMBARGO" || (allRules[i].type == "PRESERVE" && wave > 5) || (allRules[i].type == "BAN" && wave > 10)) {
       //Check rule isn't already added
-      if(!currentRules.includes(allRules[i])){
-        if(chosenRule == -1){
+      if (!currentRules.includes(allRules[i])) {
+        if (chosenRule == -1) {
           chosenRule = i;
-        } else{
-          if(pred[i] > pred[chosenRule]){
+        } else {
+          if (pred[i] > pred[chosenRule]) {
             chosenRule = i;
           }
         }
@@ -249,7 +253,7 @@ function getNextRule(model, rep, wave, allRules, currentRules) {
 
 }
 
-function makeModel(inputSize,outputSize) {
+function makeModel(inputSize, outputSize) {
   const model = tf.sequential();
   model.add(tf.layers.dense({ inputShape: [inputSize], units: 40, activation: 'relu' }));
   model.add(tf.layers.dense({ units: 40, activation: 'relu' }));
