@@ -36,6 +36,33 @@ var soundToggle = true;
 var model = makeModel(40,67);
 var allRules = makeAllPossibleRules();
 
+function onBatchEnd(batch, logs) {
+    console.log('Accuracy', logs.acc);
+  }
+  
+function trainModel(){
+    model.summary();
+    for(var batch = 0; batch < 1; batch ++){
+        var samples = 5;
+        var inputs = [];
+        var labels = [];
+        for(var i = 0; i < samples; i++){
+            var input = makeRandomConfig();
+            var label = averageLifespansForRules(input,allRules);
+            console.log("Simulated " + i);
+            console.log(input);
+            console.log(label);
+            inputs.push(input);
+            labels.push(labels);
+        }
+        model.fit(tf.tensor([inputs]), tf.tensor([labels]), {
+            epochs: 1,
+            batchSize: samples,
+            callbacks: {onBatchEnd}
+          });
+    }
+    
+}
 
 function draw(ctx) {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
