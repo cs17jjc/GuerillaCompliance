@@ -33,7 +33,7 @@ class GameState {
         this.baseHealth = 100;
 
         this.upcomingEnemies = [];
-        this.enemySpawnRate = 15;
+        this.enemySpawnRate = 20;
         this.spawnEnemies = false;
         this.spawnedFrameCounter = 0;
 
@@ -60,19 +60,18 @@ class GameState {
 
         this.shotTraces = [];
 
-        this.currency = 0;
+        this.currency = 10;
         this.wave = 0;
         this.frameCounter = 0;
     }
     static initial() {
         var gs = new GameState();
-        gs.attachTurret(Turret.standardTurret(), 0);
-        gs.attachTurret(Turret.machineGunTurret(), 1);
-        gs.attachTurret(Turret.sniperTurret(), 2);
-        gs.attachTurret(Turret.laserTurret(), 3);
+        gs.attachTurret(Turret.standardTurret(),0);
+        gs.attachTurret(Turret.machineGunTurret(),2);
+        gs.attachTurret(Turret.sniperTurret(),5);
+        gs.attachTurret(Turret.laserTurret(),6);
+        gs.enemySpawnRate = 10;
         gs.wave = 50;
-        gs.nextWave();
-        gs.spawnEnemies = true;
         return gs;
     }
 
@@ -203,10 +202,10 @@ class GameState {
                                 zzfx(...[1.04, , 235, .02, .04, .05, 3, 1.07, -6.4, .6, , , , , , .1, , .84, , .22]).start();
                                 break;
                             case "SNIPER":
-                                zzfx(...[1.01, , 870, .01, .18, .35, 3, 4.32, , , , , , .6, , 1, , .6, .06, .29]).start();
+                                zzfx(...[1.5, , 870, .01, .18, .35, 3, 4.32, , , , , , .6, , 1, , .6, .06, .29]).start();
                                 break;
                             case "MACHINE_GUN":
-                                zzfx(...[2.02, 0, 238, .02, .03, 0, 4, 1.8, , , , , , , , .1, .1, .75, .02]).start();
+                                zzfx(...[0.83, 0, 238, .02, .03, 0, 4, 1.8, , , , , , , , .1, .1, .75, .02]).start();
                                 break;
                             case "LASER":
                                 zzfx(...[, , 442, .01, , .04, 1, .21, -1.8, -0.8, , , , , , , , .74, .04]).start();
@@ -557,39 +556,64 @@ class GameState {
         this.rulesUpdated = true;
     }
 
+    buyTurret(turret, platform) {
+        var platformObj = this.gameObjects.filter(o => o.type == "TURRET_PLATFORM" && o.data.platformNum == platform)[0];
+        if (!platformObj.data.hasTurret) {
+            if (turret.price <= this.currency) {
+                this.currency -= turret.price;
+                this.attachTurret(turret, platform);
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
     nextWave() {
-        switch (this.wave) {
-            case 0:
-                for (var i = 0; i < 4; i++) {
-                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 1));
-                }
-                break;
-            case 1:
-                for (var i = 0; i < 3; i++) {
+        if(this.wave == 0){
+            for (var i = 0; i < 10; i++) {
+                this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 1));
+            }
+        } else if (this.wave < 5) {
+
+            for (var i = 0; i < 3; i++) {
+                this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 1));
+            }
+
+            if (this.wave > 0) {
+                for (var i = 0; i < 3 + (this.wave - 1); i++) {
                     this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 2));
                 }
-                for (var i = 0; i < 3; i++) {
-                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 1));
+            }
+            if (this.wave > 2) {
+                for (var i = 0; i < 3 + (this.wave - 1); i++) {
+                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.floor(Math.random() * 3)));
                 }
-                break;
-            case 2:
-                for (var i = 0; i < 2; i++) {
-                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 3));
-                }
-                for (var i = 0; i < 2; i++) {
-                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 2));
-                }
-                for (var i = 0; i < 2; i++) {
-                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", 1));
-                }
-                break;
-            default:
-                for (var i = 0; i < Math.floor(this.wave * 1.5); i++) {
-                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.floor(Math.random() * Math.min(10, this.wave))));
-                }
-                this.enemySpawnRate = Math.max(8, this.enemySpawnRate - 1);
-                break;
+            }
+        } else if (this.wave < 10) {
+            for (var i = 0; i < 3 + (this.wave - 1); i++) {
+                this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.floor(Math.random() * 5)));
+            }
+        } else if (this.wave < 15) {
+            for (var i = 0; i < 3 + (this.wave - 1); i++) {
+                this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.floor(Math.random() * 8)));
+            }
+        } else {
+            for (var i = 0; i < Math.floor(this.wave * 1.5); i++) {
+                this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.floor(Math.random() * Math.min(10, this.wave))));
+            }
+        }
+        this.upcomingEnemies = this.upcomingEnemies.reverse();
+        if(this.wave % 2 == 0){
+            this.enemySpawnRate = Math.max(10, this.enemySpawnRate - 1);
         }
         this.wave += 1;
+    }
+
+    startWave() {
+        this.nextWave();
+        this.spawnEnemies = true;
     }
 }
