@@ -29,7 +29,7 @@ document.addEventListener('click', (e) => {
 let mySongData = zzfxM(...bgMusicSong);
 let myAudioNode = zzfxP(...mySongData);
 myAudioNode.loop = true;
-//myAudioNode.start();
+myAudioNode.start();
 var musicToggle = true;
 var soundToggle = true;
 
@@ -65,7 +65,7 @@ loadChecker = setInterval(() => {
     if (loadedImages) {
         clearInterval(loadChecker);
         gameState = GameState.initial();
-        setInterval(() => draw(ctx), 100);
+        setInterval(() => draw(ctx), 50);
     } else {
         loadedImages = true;
         ctx.fillStyle = rgbToHex(0, 0, 0);

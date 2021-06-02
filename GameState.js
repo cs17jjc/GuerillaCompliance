@@ -66,6 +66,13 @@ class GameState {
     }
     static initial() {
         var gs = new GameState();
+        gs.attachTurret(Turret.standardTurret(), 0);
+        gs.attachTurret(Turret.machineGunTurret(), 1);
+        gs.attachTurret(Turret.sniperTurret(), 2);
+        gs.attachTurret(Turret.laserTurret(), 3);
+        gs.wave = 50;
+        gs.nextWave();
+        gs.spawnEnemies = true;
         return gs;
     }
 
@@ -165,7 +172,7 @@ class GameState {
         }
     }
 
-    updateTurret(turret, position, section) {
+    updateTurret(turret, position, section, sound) {
 
         turret.offset *= 0.9;
 
@@ -190,6 +197,22 @@ class GameState {
                 var target = targetEnemy(enemiesInRange);
                 turret.angle = (calcAngle(target.position, position) % (2 * Math.PI)) - Math.PI / 2;
                 if (turret.shotTimer == 0 && (Math.abs(turret.actualAngle - turret.angle) < 0.8)) {
+                    if (soundToggle) {
+                        switch (turret.type) {
+                            case "STANDARD":
+                                zzfx(...[1.04, , 235, .02, .04, .05, 3, 1.07, -6.4, .6, , , , , , .1, , .84, , .22]).start();
+                                break;
+                            case "SNIPER":
+                                zzfx(...[1.01, , 870, .01, .18, .35, 3, 4.32, , , , , , .6, , 1, , .6, .06, .29]).start();
+                                break;
+                            case "MACHINE_GUN":
+                                zzfx(...[2.02, 0, 238, .02, .03, 0, 4, 1.8, , , , , , , , .1, .1, .75, .02]).start();
+                                break;
+                            case "LASER":
+                                zzfx(...[, , 442, .01, , .04, 1, .21, -1.8, -0.8, , , , , , , , .74, .04]).start();
+                                break;
+                        }
+                    }
                     if (Math.random() < turret.accuracy) {
                         target.data.health -= turret.damage;
                         this.currency += turret.damage;
@@ -329,57 +352,72 @@ class GameState {
 
         this.gameObjects.filter(o => o.type == "TURRET_PLATFORM").forEach(e => {
             ctx.save();
-            ctx.translate(e.position.x, e.position.y);
 
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = rgbToHex(50, 50, 120);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 8, 8, 0, 0, 2 * Math.PI);
-            ctx.stroke();
+            ctx.translate(Math.floor(e.position.x), Math.floor(e.position.y));
+
 
             if (e.data.hasTurret) {
 
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = rgbToHex(50, 50, 120);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 2, 2, 0, 0, 2 * Math.PI);
+                ctx.stroke();
+
+                ctx.strokeStyle = rgbToHex(250, 250, 250);
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = rgbToHex(200, 200, 200);
+                ctx.lineWidth = 2;
+
+                ctx.save();
                 ctx.rotate(e.data.turret.actualAngle);
                 switch (e.data.turret.type) {
                     case "STANDARD":
-                        ctx.translate(0, e.data.turret.offset * 10);
-                        ctx.strokeStyle = rgbToHex(250, 250, 250);
-                        ctx.shadowBlur = 10;
-                        ctx.shadowColor = rgbToHex(200, 200, 200);
-                        ctx.lineWidth = 2;
+                        ctx.translate(0, Math.floor(e.data.turret.offset * 10));
                         ctx.beginPath();
                         ctx.rect(-2, 5, 4, 20);
                         ctx.rect(-4, 25, 8, 5);
                         ctx.rect(-10, 30, 20, 10);
                         ctx.rect(-14, 25, 4, 20);
                         ctx.rect(10, 25, 4, 20);
+                        ctx.closePath();
                         ctx.stroke();
-                        ctx.translate(0, e.data.turret.offset * -10);
                         break;
                     case "SNIPER":
-                        ctx.translate(0, e.data.turret.offset * 20);
-                        ctx.strokeStyle = rgbToHex(250, 250, 250);
-                        ctx.shadowBlur = 10;
-                        ctx.shadowColor = rgbToHex(200, 200, 200);
-                        ctx.lineWidth = 2;
+                        ctx.translate(0, Math.floor(e.data.turret.offset * 20));
                         ctx.beginPath();
-                        ctx.rect(-2, -10, 4, 40);
-                        ctx.rect(-4, 30, 8, 15);
-                        ctx.rect(-6, 45, 12, 30);
-                        ctx.moveTo(6, 50);
-                        ctx.lineTo(12, 50);
-                        ctx.lineTo(17, 55);
-                        ctx.lineTo(17, 70);
-                        ctx.lineTo(6, 70);
+                        ctx.rect(-2, 5, 4, 40);
+                        ctx.rect(-4, 45, 8, 15);
+                        ctx.rect(-6, 60, 12, 30);
+                        ctx.moveTo(6, 70);
+                        ctx.lineTo(12, 70);
+                        ctx.lineTo(17, 75);
+                        ctx.lineTo(17, 90);
+                        ctx.lineTo(6, 90);
+                        ctx.closePath();
                         ctx.stroke();
-                        ctx.translate(0, e.data.turret.offset * -20);
                         break;
                     case "MACHINE_GUN":
+                        ctx.translate(0, Math.floor(e.data.turret.offset * 15));
+                        ctx.beginPath();
+                        ctx.rect(-4, 5, 8, 30);
+                        ctx.rect(-6, 35, 12, 5);
+                        ctx.rect(-10, 40, 20, 20);
+                        ctx.closePath();
+                        ctx.stroke();
                         break;
                     case "LASER":
+                        ctx.translate(0, Math.floor(e.data.turret.offset * 5));
+                        ctx.beginPath();
+                        ctx.rect(-1, 5, 2, 30);
+                        ctx.rect(-5, 35, 10, 20);
+                        ctx.rect(-10, 45, 5, 10);
+                        ctx.rect(5, 45, 5, 10);
+                        ctx.closePath();
+                        ctx.stroke();
                         break;
                 }
-                ctx.rotate(-e.data.turret.actualAngle);
+                ctx.restore();
 
                 ctx.strokeStyle = rgbToHex(250, 250, 250);
                 ctx.shadowBlur = 10;
@@ -388,19 +426,19 @@ class GameState {
                 var circ = e.data.turret.range * 2 * Math.PI;
                 switch (e.data.turret.type) {
                     case "STANDARD":
-                        ctx.rotate(this.frameCounter * 0.08);
+                        ctx.rotate(this.frameCounter * 0.008);
                         ctx.setLineDash([circ / 4, circ / 4]);
                         break;
                     case "SNIPER":
-                        ctx.rotate(this.frameCounter * 0.02);
+                        ctx.rotate(this.frameCounter * 0.001);
                         ctx.setLineDash([circ / 6, circ / 6]);
                         break;
                     case "MACHINE_GUN":
-                        ctx.rotate(this.frameCounter * 0.1);
+                        ctx.rotate(this.frameCounter * 0.01);
                         ctx.setLineDash([circ / 8, circ / 8]);
                         break;
                     case "LASER":
-                        ctx.rotate(this.frameCounter * 0.08);
+                        ctx.rotate(this.frameCounter * 0.008);
                         ctx.setLineDash([circ / 10, circ / 10]);
                         break;
                 }
@@ -408,11 +446,16 @@ class GameState {
                 ctx.beginPath();
                 ctx.ellipse(0, 0, e.data.turret.range, e.data.turret.range, 0, 0, 2 * Math.PI);
                 ctx.stroke();
+            } else {
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = rgbToHex(50, 50, 120);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 8, 8, 0, 0, 2 * Math.PI);
+                ctx.stroke();
             }
 
             ctx.restore();
-
-        })
+        });
 
         this.gameObjects.filter(o => o.type == "UI_FRAME").forEach(e => {
             if (e.data.isVisible == true) {
@@ -433,8 +476,13 @@ class GameState {
 
 
 
+
+
         var UICenterPoint = 0.47;
         var UIOffset = 0.17;
+        ctx.fillStyle = rgbToHexAlpha(0, 0, 0, 200);
+        var underlayWidth = 0.38;
+        ctx.fillRect((canvasWidth * UICenterPoint) - (canvasWidth * underlayWidth * 0.49), 0, canvasWidth * underlayWidth, canvasHeight * 0.075);
         ctx.font = "20px Georgia";
         ctx.shadowBlur = 8;
         var remainingEnems = this.gameObjects.filter(o => o.type == "ENEMY").length + this.upcomingEnemies.length;
@@ -537,7 +585,7 @@ class GameState {
                 break;
             default:
                 for (var i = 0; i < Math.floor(this.wave * 1.5); i++) {
-                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.min(this.wave, Math.floor(Math.random() * 10))));
+                    this.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight * 0.5 }, "NORM", Math.floor(Math.random() * Math.min(10, this.wave))));
                 }
                 this.enemySpawnRate = Math.max(8, this.enemySpawnRate - 1);
                 break;
