@@ -255,7 +255,7 @@ function getNextRule(model, rep, wave, allRules, currentRules) {
 
 function makeModel(inputSize, outputSize) {
   const model = tf.sequential();
-  model.add(tf.layers.dense({ inputShape: [inputSize], units: 40, activation: 'tanh' }));
+  model.add(tf.layers.dense({ inputShape: [inputSize], units: 10, activation: 'tanh' }));
   model.add(tf.layers.dense({ units: outputSize, activation: 'relu' }));
 
   model.weights.forEach(w => {
