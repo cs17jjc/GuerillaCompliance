@@ -61,7 +61,7 @@ function trainModel(){
             callbacks: {onBatchEnd}
           });
     }
-    
+    await model.save('downloads://rulesModel');
 }
 
 function draw(ctx) {
