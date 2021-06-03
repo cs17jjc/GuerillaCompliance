@@ -33,34 +33,32 @@ myAudioNode.start();
 var musicToggle = true;
 var soundToggle = true;
 
-var model = makeModel(40,67);
+async function loadModel(){
+    return await tf.loadLayersModel('http://rulesModel.json');
+}
+
+var model = loadModel();
+
 var allRules = makeAllPossibleRules();
 
 function onBatchEnd(batch, logs) {
-    console.log('Accuracy', logs.acc);
-  }
-  
-function trainModel(){
+    console.log('Logs:', logs);
+}
+
+async function trainModel() {
     model.summary();
-    for(var batch = 0; batch < 1; batch ++){
-        var samples = 5;
-        var inputs = [];
-        var labels = [];
-        for(var i = 0; i < samples; i++){
-            var input = makeRandomConfig();
-            var label = averageLifespansForRules(input,allRules);
-            console.log("Simulated " + i);
-            console.log(input);
-            console.log(label);
-            inputs.push(input);
-            labels.push(labels);
-        }
-        model.fit(tf.tensor([inputs]), tf.tensor([labels]), {
+    var samples = 2000;
+    for (var i = 0; i < samples; i++) {
+        var input = makeRandomConfig();
+        var label = averageLifespansForRules(input, allRules);
+        console.log("Simulated " + i);
+        await model.fit(tf.tensor([input]), tf.tensor([label]), {
             epochs: 1,
-            batchSize: samples,
-            callbacks: {onBatchEnd}
-          });
+            batchSize: 1,
+            callbacks: { onBatchEnd }
+        });
     }
+
     await model.save('downloads://rulesModel');
 }
 
