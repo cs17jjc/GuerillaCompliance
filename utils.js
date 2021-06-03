@@ -160,24 +160,25 @@ function makeAllPossibleRules() {
   return allRules;
 }
 
-function makeAllPossibleConfigs() {
+function makeRandomConfig() {
   var platformConfigs = [[0, 0, 0, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
-  var possibleConfigs = [];
-  var turretCounter = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-  while (turretCounter[9] != 5) {
-    var mapped = turretCounter.map(c => platformConfigs[c]);
-    var reduced = mapped.reduce((acc, cur) => acc.concat(cur));
-    possibleConfigs.push(reduced);
-
-    turretCounter[0] += 1;
-    for (var i = 1; i < turretCounter.length; i++) {
-      if (turretCounter[i - 1] == 5) {
-        turretCounter[i - 1] = 0;
-        turretCounter[i] += 1;
-      }
-    }
+  var config = [];
+  for(var i = 0; i < 10; i++){
+    config = config.concat(random_item(platformConfigs));
   }
-  return possibleConfigs;
+  return config;
+}
+
+function averageLifespansForRules(rep,allRules){
+  var lifespans = [];
+  allRules.forEach(rule => {
+    lifespans.push(averageEnemyLifespanForState(rep,rule));
+  });
+
+  //Scaling
+  var min = Math.min(...lifespans);
+  var max = Math.max(...lifespans);
+  return lifespans.map(x => (x-min)/(max-min));
 }
 
 function averageEnemyLifespanForState(rep, rule) {
@@ -191,14 +192,13 @@ function averageEnemyLifespanForState(rep, rule) {
 
   updateGamestateToMatchRep(gs, rep);
 
-  var enems = [];
   for (var i = 0; i < 500; i++) {
-    enems.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.floor(Math.random() * 10)));
+    gs.upcomingEnemies.push(makeEnemy({ x: -10, y: canvasHeight / 2 }, "NORM", Math.min(10,Math.floor((i+50)/50)) ) );
   }
 
   gs.spawnEnemies = true;
 
-  while (gs.gameObjects.filter(o => o.type == "ENEMY").length > 0) {
+  while (gs.gameObjects.filter(o => o.type == "ENEMY").length > 0 || gs.spawnEnemies) {
     gs.update([], false);
   }
 
@@ -206,11 +206,11 @@ function averageEnemyLifespanForState(rep, rule) {
 }
 
 function updateGamestateToMatchRep(gs, rep) {
+  gs.gameObjects.filter(o => o.type == "TURRET_PLATFORM").forEach(p => {p.data.hasTurret = false; p.data.turret = null;})
   for (var i = 0; i < rep.length; i++) {
     if (rep[i] == 1) {
       var platform = Math.trunc(i / 4);
       var type = i - (4 * platform);
-      console.log(platform + " " + type);
       switch (type) {
         case 0:
           gs.attachTurret(Turret.standardTurret(), platform);
@@ -255,9 +255,8 @@ function getNextRule(model, rep, wave, allRules, currentRules) {
 
 function makeModel(inputSize, outputSize) {
   const model = tf.sequential();
-  model.add(tf.layers.dense({ inputShape: [inputSize], units: 40, activation: 'relu' }));
-  model.add(tf.layers.dense({ units: 40, activation: 'relu' }));
-  model.add(tf.layers.dense({ units: outputSize, activation: 'sigmoid' }));
+  model.add(tf.layers.dense({ inputShape: [inputSize], units: 40, activation: 'tanh' }));
+  model.add(tf.layers.dense({ units: outputSize, activation: 'relu' }));
 
   model.weights.forEach(w => {
     const newVals = tf.randomNormal(w.shape);
@@ -266,8 +265,8 @@ function makeModel(inputSize, outputSize) {
 
   model.compile({
     optimizer: 'adam',
-    loss: 'categoricalCrossentropy',
-    metrics: ['accuracy']
+    loss: 'meanSquaredError',
+    metrics: ['mae']
   });
 
   return model;
