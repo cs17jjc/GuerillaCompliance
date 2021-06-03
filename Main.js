@@ -34,7 +34,7 @@ var musicToggle = true;
 var soundToggle = true;
 
 async function loadModel(){
-    return await tf.loadLayersModel('rulesModel.json');
+    return await tf.loadLayersModel('http://rulesModel.json');
 }
 
 var model = loadModel();
