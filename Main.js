@@ -33,7 +33,12 @@ myAudioNode.loop = true;
 var musicToggle = true;
 var soundToggle = true;
 
-var model = makeModel(40, 67);
+async function loadModel(){
+    return await tf.loadLayersModel('rulesModel.json');
+}
+
+var model = loadModel();
+
 var allRules = makeAllPossibleRules();
 
 function onBatchEnd(batch, logs) {
@@ -42,7 +47,7 @@ function onBatchEnd(batch, logs) {
 
 async function trainModel() {
     model.summary();
-    var samples = 5;
+    var samples = 2000;
     for (var i = 0; i < samples; i++) {
         var input = makeRandomConfig();
         var label = averageLifespansForRules(input, allRules);
