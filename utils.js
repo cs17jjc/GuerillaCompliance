@@ -83,8 +83,8 @@ function makeShopFrame(position, w, h, s) {
   return new GameObject("UI_FRAME", position, { width: w, height: h, isVisible: false, side: s });
 }
 
-function makeShopButton(position) {
-  return new GameObject("UI_BUTTON", position, {})
+function makeShopButton(position, action, width, height) {
+  return new GameObject("UI_BUTTON", position, {action: action, width: width, height: height})
 }
 
 function checkRange(enemyTargets, range, position) {

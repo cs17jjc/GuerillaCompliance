@@ -15,8 +15,8 @@ class GameState {
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.83, y: canvasHeight * 0.44 }, 3, 8))
         this.gameObjects.push(makeTurretPlatform({ x: canvasWidth * 0.93, y: canvasHeight * 0.56 }, 3, 9))
 
-        this.gameObjects.push(makeShopFrame({ x: canvasWidth * 0.75, y: canvasHeight * 0.1 }, canvasWidth * 0.2, canvasHeight * 0.8, "r"));
-        this.gameObjects.push(makeShopFrame({ x: canvasWidth * 0.05, y: canvasHeight * 0.1 }, canvasWidth * 0.2, canvasHeight * 0.8, "l"));
+        this.gameObjects.push(makeShopFrame({ x: canvasWidth * 0.72, y: canvasHeight * 0.05 }, canvasWidth * 0.23, canvasHeight * 0.9, "r"));
+        this.gameObjects.push(makeShopFrame({ x: canvasWidth * 0.02, y: canvasHeight * 0.05 }, canvasWidth * 0.23, canvasHeight * 0.9, "l"));
 
         this.wayPoints = new Map();
         this.wayPoints.set(0, { x: canvasWidth * -0.01, y: canvasHeight * 0.5 })
@@ -462,7 +462,9 @@ class GameState {
                 ctx.beginPath();
                 ctx.fillStyle = "#000000";
                 ctx.strokeStyle = "#FF0000"
-                ctx.rect(e.position.x, e.position.y, e.data.width, e.data.height)
+                ctx.rect(e.position.x, e.position.y, e.data.width, e.data.height/3)
+                ctx.rect(e.position.x, e.position.y+e.data.height/3, e.data.width, e.data.height/3)
+                ctx.rect(e.position.x, e.position.y+(2*e.data.height/3), e.data.width, e.data.height/3)
                 ctx.fill();
                 ctx.stroke();
                 ctx.restore();
