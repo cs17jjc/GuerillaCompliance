@@ -262,8 +262,8 @@ class GameState {
         }
         var uiButtons = this.gameObjects.filter(e => e.type == "UI_OBJECT")
         for (var i = 0; i < uiButtons.length; i++) {
-            if (mousePos.x - uiButtons[i].position.x < 10 && mousePos.x - uiButtons[i].position.x > 0
-                && mousePos.y - uiButtons[i].position.y < 5 && mousePos.y - uiButtons[i].position.x > 0) {
+            if (mousePos.x - uiButtons[i].position.x < uiButtons[i].data.height && mousePos.x - uiButtons[i].position.x > 0
+                && mousePos.y - uiButtons[i].position.y < uiButtons[i].data.height && mousePos.y - uiButtons[i].position.x > 0) {
                 return uiButtons[i];
             }
         }
@@ -458,10 +458,14 @@ class GameState {
 
         this.gameObjects.filter(o => o.type == "UI_FRAME").forEach(e => {
             if (e.data.isVisible == true) {
-                ctx.save();
                 ctx.lineWidth = 2;
-                ctx.fillStyle = "#FFFFFF";
-                ctx.fillRect(e.position.x, e.position.y, e.data.width, e.data.height);
+                ctx.beginPath();
+                ctx.fillStyle = "#000000";
+                ctx.strokeStyle = "#FF0000"
+                ctx.rect(e.position.x, e.position.y, e.data.width, e.data.height)
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
             }
         })
 
